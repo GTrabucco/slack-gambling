@@ -1,23 +1,31 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import Login from "./components/Login";
+import Dashboard from "./components/Dashboard";
+import AuthProvider, { useAuth } from "./hooks/AuthProvider";
+import PrivateRoute from "./router/PrivateRouter";
+import Account from "./components/Account";
+
+function HomeRedirect() {
+  const { token } = useAuth();
+  return token ? <Navigate to="/dashboard" /> : <Navigate to="/login" />;
+}
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Router>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<HomeRedirect />} />
+            <Route path="/login" element={<Login />} />
+            <Route element={<PrivateRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/account" element={<Account />} />
+            </Route>
+            {/* Other routes */}
+          </Routes>
+        </AuthProvider>
+      </Router>
     </div>
   );
 }
