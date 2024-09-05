@@ -1,7 +1,6 @@
 import React from "react";
 import { useAuth } from "../../hooks/AuthProvider";
-import StevenNavbar from "../StevenNavbar";
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { Container } from 'react-bootstrap';
 
 const Dashboard = () => {
   const auth = useAuth();

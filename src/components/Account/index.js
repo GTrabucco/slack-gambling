@@ -1,6 +1,5 @@
-import StevenNavbar from "../StevenNavbar";
 import { useAuth } from "../../hooks/AuthProvider";
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 
 const Account = ()=>{
     const auth = useAuth();
