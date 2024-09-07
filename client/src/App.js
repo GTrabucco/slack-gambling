@@ -3,7 +3,11 @@ import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import AuthProvider, { useAuth } from "./hooks/AuthProvider";
 import PrivateRoute from "./router/PrivateRouter";
-import Account from "./components/Account";
+import UserAccount from "./components/UserAccount";
+import PickHistory from "./components/PickHistory";
+import Standings from "./components/Standings";
+import CalculateScoring from "./components/CalculateScoring";
+import AdminRoute from "./router/AdminRouter";
 
 function HomeRedirect() {
   const { token } = useAuth();
@@ -20,9 +24,13 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/account" element={<Account />} />
+              <Route path="/account" element={<UserAccount />} />
+              <Route path="/pickhistory" element={<PickHistory />} />
+              <Route path="/standings" element={<Standings />} />
             </Route>
-            {/* Other routes */}
+            <Route element={<AdminRoute />}>
+              <Route path="/calculatescoring" element={<CalculateScoring />} />
+            </Route>
           </Routes>
         </AuthProvider>
       </Router>

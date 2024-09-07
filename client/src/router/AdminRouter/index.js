@@ -3,10 +3,10 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../hooks/AuthProvider";
 import StevenNavbar from "../../components/StevenNavbar";
 
-const PrivateRoute = () => {
-  const user = useAuth();
-  if (!user.token) return <Navigate to="/login" />;
+const AdminRoute = () => {
+  const auth = useAuth();
+  if (!auth.user.admin) auth.logOut();
   return <React.Fragment><StevenNavbar></StevenNavbar><Outlet /></React.Fragment>;
 };
 
-export default PrivateRoute;
+export default AdminRoute;

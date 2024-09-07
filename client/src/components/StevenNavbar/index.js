@@ -1,5 +1,5 @@
 import { useAuth } from "../../hooks/AuthProvider";
-import { Container, Navbar, NavDropdown } from 'react-bootstrap';
+import { Container, Navbar, NavDropdown, Nav, NavbarCollapse } from 'react-bootstrap';
 import { useNavigate } from "react-router-dom";
 
 const StevenNavbar = ()=>{
@@ -20,12 +20,21 @@ const StevenNavbar = ()=>{
                 />
                 </Navbar.Brand>          
                 <Navbar.Toggle />
-                <Navbar.Collapse className="justify-content-end">
+                <Navbar.Collapse>
+                    <Nav>
+                        <Nav.Link onClick={() => navigate("/dashboard")} style={{ cursor: "pointer" }}>Dashboard</Nav.Link>
+                        <Nav.Link onClick={() => navigate("/standings")} style={{ cursor: "pointer" }}>Standings</Nav.Link>       
+                        <Nav.Link onClick={() => navigate("/pickhistory")} style={{ cursor: "pointer" }}>Pick History</Nav.Link>    
+                        <Nav.Link onClick={() => navigate("/calculatescoring")} style={{ cursor: "pointer" }}>Calculate Scoring (Private)</Nav.Link>                                                         
+                        <Nav.Link onClick={() => navigate("/report")} style={{ cursor: "pointer" }}>Report A Bug</Nav.Link>    
+                    </Nav>
+                </Navbar.Collapse>
+                <NavbarCollapse  className="justify-content-end">
                     <NavDropdown title={text}>
                         <NavDropdown.Item onClick={() => navigate("/account")} style={{ cursor: "pointer" }}>Account Details</NavDropdown.Item>
                         <NavDropdown.Item onClick={() => auth.logOut()}>Logout</NavDropdown.Item>
                     </NavDropdown>
-                </Navbar.Collapse>
+                </NavbarCollapse>
             </Container>
             </Navbar>
         </Container>

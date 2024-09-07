@@ -1,0 +1,14 @@
+.bet-btn {
+    width: 100%;
+    height: 100%;
+}
+
+.bet-btn.selected {
+    background-color: gold; 
+    color: black;
+}
+
+.bet-btn.selected:disabled {
+    background-color: gold;
+    color: black; 
+}
