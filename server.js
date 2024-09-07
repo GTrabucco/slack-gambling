@@ -12,7 +12,7 @@ const allowedOrigins = [
   
 app.use(cors({
     origin: function (origin, callback) {
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        if (!origin || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));
@@ -20,6 +20,8 @@ app.use(cors({
     }
 }));
 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'client/build')));
 
 const uri = process.env.MONGODB_URI;
@@ -91,7 +93,6 @@ app.post('/api/submit-picks', async (req, res) => {
     }
 
     try {
-        await client.connect();
         const db = client.db('SlackGambling');
         const picksCollection = db.collection('Picks');
         const filter = { username: username, type: pickType };
@@ -224,15 +225,16 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.route("/").get(function (req, res) {
-    console.log('/')
-    res.redirect("/login");
-});
-
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
+});
+
+process.on('SIGINT', async () => {
+    await client.close();
+    console.log('MongoDB connection closed');
+    process.exit(0);
 });

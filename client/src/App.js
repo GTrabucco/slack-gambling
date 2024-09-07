@@ -8,6 +8,9 @@ import PickHistory from "./components/PickHistory";
 import Standings from "./components/Standings";
 import CalculateScoring from "./components/CalculateScoring";
 import AdminRoute from "./router/AdminRouter";
+import { disableReactDevTools } from '@fvilers/disable-react-devtools';
+
+if (process.env.NODE_ENV === 'production') disableReactDevTools();
 
 function HomeRedirect() {
   const { token } = useAuth();
@@ -22,15 +25,19 @@ function App() {
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
             <Route path="/login" element={<Login />} />
+            
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/account" element={<UserAccount />} />
               <Route path="/pickhistory" element={<PickHistory />} />
               <Route path="/standings" element={<Standings />} />
             </Route>
+
             <Route element={<AdminRoute />}>
               <Route path="/calculatescoring" element={<CalculateScoring />} />
             </Route>
+
+            <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </AuthProvider>
       </Router>
