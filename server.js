@@ -20,8 +20,7 @@ app.use(cors({
     }
 }));
 
-app.use(express.static(path.resolve(__dirname, './client/build')));
-
+app.use(express.static(path.join(__dirname, 'client/build')));
 
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
@@ -230,9 +229,8 @@ app.route("/").get(function (req, res) {
     res.redirect("/login");
 });
 
-app.get("/api", (req, res) => {
-    console.log('/api')
-    res.json({ message: "Hello from server!" });
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 app.listen(port, () => {

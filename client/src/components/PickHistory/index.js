@@ -4,14 +4,14 @@ import { Container, Row, Col, Table, Button } from 'react-bootstrap';
 import axios from 'axios'
 
 const PickHistory = ()=>{
-    const auth = useAuth();
     const [error, setError] = useState("");
     const [picks, setPicks] = useState([])
+    const auth = useAuth();
 
     useEffect(()=>{
         const fetchPickHistory = async () => {
             try {
-            const response = await axios.get('http://localhost:5000/api/get-pick-history', {
+            const response = await axios.get(`${auth.apiBaseUrl}/api/get-pick-history`, {
                 params: {
                     username: auth.user?.username
                 }

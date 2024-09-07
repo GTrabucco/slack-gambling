@@ -6,11 +6,12 @@ import axios from 'axios'
 const Standings = ()=>{
     const [error, setError] = useState("");
     const [data, setData] = useState([]);
+    const auth = useAuth();
 
     useEffect(()=>{
         const fetchStandings = async () => {
             try {
-            const response = await axios.get('http://localhost:5000/api/get-standings');   
+            const response = await axios.get(`${auth.apiBaseUrl}/api/get-standings`);   
             if (response.data != null) {  
                 setData(response.data);
             }

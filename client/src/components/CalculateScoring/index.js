@@ -6,11 +6,11 @@ import axios from 'axios'
 const CalculateScoring = ()=>{
     const [error, setError] = useState("");
     const [picks, setPicks] = useState([])
-
+    const auth = useAuth()
     useEffect(()=>{
         const fetchPickHistory = async () => {
             try {
-            const response = await axios.get('http://localhost:5000/api/get-all-pick-history');
+            const response = await axios.get(`${auth.apiBaseUrl}/api/get-all-pick-history`);
             
             if (response.data != null) {  
                 setPicks(response.data);
@@ -38,7 +38,7 @@ const CalculateScoring = ()=>{
 
     const handleUpdateResult = async (id, updatedResult) => {
         try {
-          await axios.post('http://localhost:5000/api/update-pick-history', {
+          await axios.post(`${auth.apiBaseUrl}/api/update-pick-history`, {
             id: id,
             result: updatedResult
           });

@@ -7,9 +7,10 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(JSON.parse(localStorage.getItem("user")) || "");
   const [token, setToken] = useState(localStorage.getItem("site") || "");
   const navigate = useNavigate();
+  const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
   const loginAction = async (loginData) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/login', loginData);
+      const response = await axios.post(`${apiBaseUrl}/api/login`, loginData);
       if (response.data) {
         setUser(response.data.user);
         setToken(response.data.token);
@@ -34,7 +35,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ token, user, loginAction, logOut }}>
+    <AuthContext.Provider value={{ token, user, apiBaseUrl, loginAction, logOut }}>
       {children}
     </AuthContext.Provider>
   );

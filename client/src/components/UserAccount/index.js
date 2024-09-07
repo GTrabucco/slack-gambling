@@ -20,7 +20,7 @@ const UserAccount = ()=>{
         }
         
         try {
-            const response = await axios.post('http://localhost:5000/api/reset-password', resetData);
+            const response = await axios.post(`${auth.apiBaseUrl}/api/reset-password`, resetData);
             setNewPassword("")
         } catch (error) {
             setError('Error fetching data');

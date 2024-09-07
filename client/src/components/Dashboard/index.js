@@ -12,7 +12,7 @@ const Dashboard = () => {
   useEffect(()=>{
     const fetchGames = async () => {
         try {
-          const response = await axios.get('http://localhost:5000/api/games');
+          const response = await axios.get(`${auth.apiBaseUrl}/api/games`);
           setGames(response.data);
         } catch (error) {
             setError('Error fetching games');
@@ -21,7 +21,7 @@ const Dashboard = () => {
 
     const fetchPicks = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/get-weekly-picks', {
+        const response = await axios.get(`${auth.apiBaseUrl}/api/get-weekly-picks`, {
           params: {
             username: auth.user?.username
           }
@@ -82,7 +82,7 @@ const Dashboard = () => {
     try {
       const username = auth.user?.username;
       const data = {username, pickType, gameId, value}
-      await axios.post('http://localhost:5000/api/submit-picks', data);
+      await axios.post(`${auth.apiBaseUrl}/api/submit-picks`, data);
     } catch (error) {
       setError('Error submitting pick');
     }
