@@ -37,9 +37,11 @@ const PickHistory = ()=>{
               <Col>
                 <Table>
                     <thead>
-                        <th>Created At</th>
-                        <th>Bet</th>
-                        <th>Result</th>
+                        <tr>
+                            <th>Created At</th>
+                            <th>Bet</th>
+                            <th>Result</th>
+                        </tr>
                     </thead>
                     <tbody>
                         {picks

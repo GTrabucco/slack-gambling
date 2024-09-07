@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
 require('dotenv').config();
-
+const path = require('path');
 const app = express();
 const port = process.env.PORT || 5000;
 const allowedOrigins = [
@@ -20,6 +20,9 @@ app.use(cors({
     }
 }));
 
+app.use(express.static(path.resolve(__dirname, './client/build')));
+
+
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri);
 const connectDB = async ()=>{
@@ -34,8 +37,6 @@ const connectDB = async ()=>{
 }
 
 connectDB();
-
-app.use(express.json());
 
 app.get('/api/games', async (req, res) => {
     try {
@@ -122,10 +123,6 @@ app.post('/api/submit-picks', async (req, res) => {
     } catch (error) {
         console.error('Error updating/inserting pick:', error);
     }
-});
-
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
 });
 
 app.get('/api/get-weekly-picks', async (req, res) => {
@@ -229,5 +226,15 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.route("/").get(function (req, res) {
+    console.log('/')
     res.redirect("/login");
+});
+
+app.get("/api", (req, res) => {
+    console.log('/api')
+    res.json({ message: "Hello from server!" });
+});
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
 });
