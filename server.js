@@ -35,8 +35,6 @@ const connectDB = async ()=>{
 
 connectDB();
 
-app.use(express.json());
-
 app.get('/api/games', async (req, res) => {
     try {
         const db = client.db('SlackGambling'); 
@@ -227,3 +225,5 @@ app.post('/api/login', async (req, res) => {
         res.status(500).json({ error: 'Error logging in' });
     }
 });
+
+app.use(express.static(path.resolve(__dirname, './client/build')));
