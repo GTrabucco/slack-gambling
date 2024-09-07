@@ -226,4 +226,8 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+app.route("/").get(function (req, res) {
+    res.redirect("/login");
+});
+
 app.use(express.static(path.resolve(__dirname, './client/build')));
