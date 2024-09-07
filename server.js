@@ -35,6 +35,8 @@ const connectDB = async ()=>{
 
 connectDB();
 
+app.use(express.json());
+
 app.get('/api/games', async (req, res) => {
     try {
         const db = client.db('SlackGambling'); 
@@ -229,5 +231,3 @@ app.post('/api/login', async (req, res) => {
 app.route("/").get(function (req, res) {
     res.redirect("/login");
 });
-
-app.use(express.static(path.resolve(__dirname, './client/build')));
