@@ -6,7 +6,7 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 5000;
 const allowedOrigins = [
-    'https://slackgambling-babd5a00a8e8.herokuapp.com',
+    'https://slackgambling.org',
     'http://localhost:3000' 
   ];
   
