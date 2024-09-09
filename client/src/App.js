@@ -6,9 +6,11 @@ import PrivateRoute from "./router/PrivateRouter";
 import UserAccount from "./components/UserAccount";
 import PickHistory from "./components/PickHistory";
 import Standings from "./components/Standings";
-import CalculateScoring from "./components/CalculateScoring";
+import CalculateScoring from "./components/Admin/CalculateScoring";
 import AdminRoute from "./router/AdminRouter";
 import { disableReactDevTools } from '@fvilers/disable-react-devtools';
+import ReportIssue from "./components/ReportIssue";
+import ViewReports from "./components/Admin/ViewReports";
 
 if (process.env.NODE_ENV === 'production') disableReactDevTools();
 
@@ -31,10 +33,12 @@ function App() {
               <Route path="/account" element={<UserAccount />} />
               <Route path="/pickhistory" element={<PickHistory />} />
               <Route path="/standings" element={<Standings />} />
+              <Route path="/reportissue" element={<ReportIssue />} />
             </Route>
 
             <Route element={<AdminRoute />}>
               <Route path="/calculatescoring" element={<CalculateScoring />} />
+              <Route path="/viewreports" element={<ViewReports />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" />} />

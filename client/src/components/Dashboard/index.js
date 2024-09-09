@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../hooks/AuthProvider";
 import axios from 'axios';
-import { Container, Row, Col, Table, Button } from 'react-bootstrap';
+import { Container, Row, Col, Table, Button, Alert } from 'react-bootstrap';
 import './style.css'
 const Dashboard = () => {
   var auth = useAuth();
   const [games, setGames]=useState([]);
   const [selectedPicks, setSelectedPicks]=useState([])
   const [errors, setError]=useState("")
+  const [message, setMessage]=useState("");
+  const [messageVisible, setMessageVisible]=useState(false);
 
   useEffect(()=>{
     const fetchGames = async () => {
@@ -44,6 +46,20 @@ const Dashboard = () => {
     fetchGames();
     fetchPicks();
   }, [])
+
+  useEffect(()=>{
+    const showMessage = ()=>{
+      setMessageVisible(true)
+      window.setTimeout(()=>{
+        setMessageVisible(false)
+        setMessage("")
+      },2000)
+    }  
+
+    if (message != "") {
+      showMessage()
+    }
+  }, [message])
 
   const getCommenceTimeByGameId = (gameId) => {
     const obj = games.find(item => item["_id"] === gameId);
@@ -83,6 +99,7 @@ const Dashboard = () => {
       const username = auth.user?.username;
       const data = {username, pickType, gameId, value}
       await axios.post(`${auth.apiBaseUrl}/api/submit-picks`, data);
+      setMessage(value + " Selected")
     } catch (error) {
       setError('Error submitting pick');
     }
@@ -100,36 +117,43 @@ const Dashboard = () => {
 
   return (
     <Container>
-        <Row>
-          <Col>
-            <Table>
-              <tbody>
-                {games
-                  .sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]))
-                  .map((game) => {
-                    let home_team = game["home_team"];
-                    let away_team = game["away_team"];
-                    let home_spread = game["home_spread"];
-                    let away_spread = game["away_spread"]
-                    let over = game["over"]
-                    let under = game["under"]
-                    let commenceTime = game["commence_time"]
-                    let favorite = +home_spread > +away_spread ? away_team + " " + away_spread : home_team + " " + home_spread
-                    let underdog = +home_spread > +away_spread ? home_team + " +" + home_spread : away_team + " +" + away_spread
-                    return (
-                      <tr key={game["_id"]}>
-                        <td>{new Date(commenceTime).toLocaleString()}</td>
-                        <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-favorite`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "favorite", favorite)}>{favorite}</Button></td>
-                        <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-dog`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "dog", underdog)}>{underdog}</Button></td>
-                        <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-over`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "over",  `${home_team} ${away_team} Over ${over}`)}>Over {over}</Button></td>
-                        <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-under`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "under", `${home_team} ${away_team} Under ${under}`)}>Under {under}</Button></td>
-                      </tr>
-                    );
-                })}
-              </tbody>
-            </Table>       
-          </Col>
-        </Row>
+      <Row>
+        {messageVisible && (
+          <Alert variant="success" >
+          {message}
+        </Alert>    
+        )}      
+      </Row>
+      <Row>
+        <Col>
+          <Table>
+            <tbody>
+              {games
+                .sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]))
+                .map((game) => {
+                  let home_team = game["home_team"];
+                  let away_team = game["away_team"];
+                  let home_spread = game["home_spread"];
+                  let away_spread = game["away_spread"]
+                  let over = game["over"]
+                  let under = game["under"]
+                  let commenceTime = game["commence_time"]
+                  let favorite = +home_spread > +away_spread ? away_team + " " + away_spread : home_team + " " + home_spread
+                  let underdog = +home_spread > +away_spread ? home_team + " +" + home_spread : away_team + " +" + away_spread
+                  return (
+                    <tr key={game["_id"]}>
+                      <td>{new Date(commenceTime).toLocaleString()}</td>
+                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-favorite`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "favorite", favorite)}>{favorite}</Button></td>
+                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-dog`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "dog", underdog)}>{underdog}</Button></td>
+                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-over`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "over",  `${home_team} ${away_team} Over ${over}`)}>Over {over}</Button></td>
+                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-under`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "under", `${home_team} ${away_team} Under ${under}`)}>Under {under}</Button></td>
+                    </tr>
+                  );
+              })}
+            </tbody>
+          </Table>       
+        </Col>
+      </Row>
     </Container>       
   );
 };

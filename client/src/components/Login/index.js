@@ -34,17 +34,17 @@ const Login = () => {
   };
 
   return (
-    <Container fluid style={{ overflow: 'hidden' }}>
-      <Row className="no-gutters" style={{ height: '100vh', overflow: 'hidden' }}>
-        <Col md={8} style={{ padding: 0, height: '100%' }}>
+    <Container fluid className="p-0" style={{ height: '100vh' }}>
+      <Row className="no-gutters h-100">
+        <Col md={8} className="d-none d-md-block p-0">
           <img
             src="stevenlogo.png"
             alt="Steven"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            className="w-100 h-100 object-fit-cover"
           />
         </Col>
-        <Col md={4} className="d-flex align-items-center justify-content-center" style={{ backgroundColor: '#f8f9fa', height: '100vh' }}>
-          <Form onSubmit={handleSubmitEvent}>
+        <Col md={4} className="d-flex align-items-center justify-content-center bg-light">
+          <Form onSubmit={handleSubmitEvent} className="w-75 mx-auto">
             {error && (
               <Alert variant="danger">
                 {error}
@@ -57,6 +57,7 @@ const Login = () => {
                 name="username"
                 placeholder="Enter username"
                 onChange={handleInput}
+                required
               />
             </Form.Group>
 
@@ -69,10 +70,11 @@ const Login = () => {
                 aria-describedby="user-password"
                 aria-invalid="false"
                 onChange={handleInput}
+                required
               />
             </Form.Group>
 
-            <Button variant="primary" type="submit" style={{ width: "100%" }}>
+            <Button variant="primary" type="submit" className="w-100">
               Login
             </Button>
           </Form>

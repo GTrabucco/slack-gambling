@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../hooks/AuthProvider";
+import { useAuth } from "../../../hooks/AuthProvider";
 import { Container, Row, Col, Table, Button, Form } from 'react-bootstrap';
 import axios from 'axios'
 
@@ -56,11 +56,13 @@ const CalculateScoring = ()=>{
               <Col>
                 <Table>
                     <thead>
-                        <th>Created At</th>
-                        <th>User</th>
-                        <th>Bet</th>
-                        <th>Result</th>
-                        <th></th>
+                        <tr>
+                            <th>Created At</th>
+                            <th>User</th>
+                            <th>Bet</th>
+                            <th>Result</th>
+                            <th></th>
+                        </tr>                    
                     </thead>
                     <tbody>
                         {picks
