@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/AuthProvider";
 import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
-import "./style.css";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-const Login = () => {
+const Register = () => {
   const [creds, setCreds] = useState({
     username: "",
     password: "",
@@ -18,7 +18,14 @@ const Login = () => {
     e.preventDefault();
     if (creds.username !== "" && creds.password !== "") {
       try {
-        await auth.loginAction(creds);
+        let response = await axios.post(`${auth.apiBaseUrl}/api/register`, creds);
+        if (response.data) {
+            if (response.data.error){
+                setError(response.data.error)
+            } else {
+                navigate("/login");
+            }
+        }
       } catch (err) {
         setError(err.message);
       }
@@ -64,7 +71,7 @@ const Login = () => {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="formPassword">
-              <Form.Label>Password</Form.Label>
+              <Form.Label>Password (HEADS UP! I CAN SEE ALL PASSWORDS SO DON'T USE A REAL ONE!)</Form.Label>
               <Form.Control
                 type="password"
                 name="password"
@@ -77,13 +84,12 @@ const Login = () => {
             </Form.Group>
 
             <Button variant="primary" type="submit" className="w-100 mb-3">
-              Login
+              Submit
             </Button>
             
-            <Button variant="primary" className="w-100" onClick={()=>navigate("/register")}>
-              Register
+            <Button variant="primary" className="w-100" onClick={()=>navigate("/login")}>
+              Back To Login
             </Button>
-
           </Form>
         </Col>
       </Row>
@@ -91,4 +97,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

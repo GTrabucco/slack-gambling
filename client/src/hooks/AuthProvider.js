@@ -25,6 +25,23 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const registerAction = async (loginData) => {
+    try {
+      const response = await axios.post(`${apiBaseUrl}/api/login`, loginData);
+      if (response.data) {
+        setUser(response.data.user);
+        setToken(response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem("site", response.data.token);
+        navigate("/dashboard");
+        return;
+      }
+
+    } catch (error) {
+      throw new Error(error.response ? error.response.data.error : 'An error occurred during login');
+    }
+  };
+
   const logOut = () => {
     setUser(null);
     setToken("");

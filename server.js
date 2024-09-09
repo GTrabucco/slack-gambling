@@ -64,9 +64,35 @@ app.post('/api/reset-password', async (req, res) => {
         }
 
         await db.collection('Users').updateOne(filter, updateUser);
+        res.json({ success: true });
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: 'Error logging in' });
+    }
+})
+
+app.post('/api/register', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const db = client.db(DATABASE_NAME);
+        const filter = { username: username }
+        const existingUser = await db.collection('Users').findOne(filter);
+        if (existingUser) {
+            res.json({ error: `Username ${username} taken` });
+        } else {
+            const createUser = {
+                username: username,
+                password: password,
+                receiveSundayReminder: false,
+                admin: false        
+            }
+    
+            await db.collection('Users').insertOne(createUser);
+            res.json({ success: true });
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ error: 'Error registering user' });
     }
 })
 

@@ -11,6 +11,7 @@ import AdminRoute from "./router/AdminRouter";
 import { disableReactDevTools } from '@fvilers/disable-react-devtools';
 import ReportIssue from "./components/ReportIssue";
 import ViewReports from "./components/Admin/ViewReports";
+import Register from "./components/Register";
 
 if (process.env.NODE_ENV === 'production') disableReactDevTools();
 
@@ -27,7 +28,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
             <Route path="/login" element={<Login />} />
-            
+            <Route path="/register" element={<Register />} />
             <Route element={<PrivateRoute />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/account" element={<UserAccount />} />
