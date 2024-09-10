@@ -162,8 +162,9 @@ app.post('/api/update-pick-history', async (req, res) => {
 })
 
 app.post('/api/submit-picks', async (req, res) => {
-    const { username, pickType, gameId, value } = req.body;
-    if (!username || !pickType || !gameId || !value) {
+    const { username, homeTeam, awayTeam, pickType, gameId, value, text } = req.body;
+    console.log(req.body)
+    if (!username || !homeTeam || !awayTeam || !pickType || !gameId || !value || !text) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -172,16 +173,19 @@ app.post('/api/submit-picks', async (req, res) => {
         const picksCollection = db.collection('Picks');
         const filter = { username: username, type: pickType };
         const existingPick = await picksCollection.findOne(filter);
-        if (existingPick && existingPick.gameId === gameId && existingPick.text === value) {
+        if (existingPick && existingPick.gameId === gameId && existingPick.text === text) {
             await picksCollection.deleteOne(filter);
-            console.log(`Deleted pick for username: ${username}, type: ${pickType}, text: ${value}`);
+            console.log(`Deleted pick for username: ${username}, type: ${pickType}, text: ${text}`);
             return res.status(200).json({ message: 'Pick deleted as it matched the existing entry' });
         }
 
         const update = {
             $set: {
                 gameId: gameId,
-                text: value,
+                homeTeam: homeTeam,
+                awayTeam: awayTeam,
+                text: text,
+                value: value,
                 username: username,
                 type: pickType,
                 createdAt: new Date()
@@ -191,9 +195,9 @@ app.post('/api/submit-picks', async (req, res) => {
         const options = { upsert: true };
         const result = await picksCollection.updateOne(filter, update, options);
         if (result.upsertedCount > 0) {
-            console.log(`Inserted new pick for username: ${username}, type: ${pickType}, text: ${value}`);
+            console.log(`Inserted new pick for username: ${username}, type: ${pickType}, text: ${text}`);
         } else if (result.matchedCount > 0) {
-            console.log(`Updated pick for username: ${username}, type: ${pickType}, text: ${value}`);
+            console.log(`Updated pick for username: ${username}, type: ${pickType}, text: ${text}`);
         }
 
         res.json({ success: true });

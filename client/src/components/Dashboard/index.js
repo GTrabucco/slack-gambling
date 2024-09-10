@@ -66,7 +66,7 @@ const Dashboard = () => {
     return obj.commence_time
   }
 
-  const submitPick = async (gameId, pickType, value) => {
+  const submitPick = async (gameId, homeTeam, awayTeam, pickType, value, text) => {
     const pickIdentifier = `${gameId}-${pickType}`;
     const existingPick = Object.keys(selectedPicks).find(pickId => pickId.includes(`-${pickType}`));
     if (existingPick) {
@@ -84,29 +84,30 @@ const Dashboard = () => {
           if (existingPick) {
             delete newState[existingPick];
           }
-          newState[pickIdentifier] = value;
+          newState[pickIdentifier] = text;
         }        
         return newState;
       });
     } else {
       setSelectedPicks(prevState => ({
         ...prevState,
-        [pickIdentifier]: value,
+        [pickIdentifier]: text,
       }));
     }
 
     try {
       const username = auth.user?.username;
-      const data = {username, pickType, gameId, value}
+      const data = {username, homeTeam, awayTeam, pickType, gameId, value, text}
+      console.log(data)
       await axios.post(`${auth.apiBaseUrl}/api/submit-picks`, data);
-      setMessage(value + " Selected")
+      setMessage(text + " Selected")
     } catch (error) {
       setError('Error submitting pick');
     }
   }
 
-  const handleButtonClick = (gameId, pickType, value) => {
-    submitPick(gameId, pickType, value);
+  const handleButtonClick = (gameId, homeTeam, awayTeam, pickType, value, text) => {
+    submitPick(gameId, homeTeam, awayTeam, pickType, value, text);
   };
 
   const gameStarted = (commenceTime) => {
@@ -140,13 +141,16 @@ const Dashboard = () => {
                   let commenceTime = game["commence_time"]
                   let favorite = +home_spread > +away_spread ? away_team + " " + away_spread : home_team + " " + home_spread
                   let underdog = +home_spread > +away_spread ? home_team + " +" + home_spread : away_team + " +" + away_spread
+                  let favorite_spread = +home_spread > +away_spread ? away_spread : home_spread
+                  let underdog_spread = +home_spread > +away_spread ? away_spread : home_spread
+                  console.log(game["_id"], home_team, away_team, "under", under, `${home_team} ${away_team} Under ${under}`)
                   return (
                     <tr key={game["_id"]}>
                       <td>{new Date(commenceTime).toLocaleString()}</td>
-                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-favorite`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "favorite", favorite)}>{favorite}</Button></td>
-                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-dog`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "dog", underdog)}>{underdog}</Button></td>
-                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-over`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "over",  `${home_team} ${away_team} Over ${over}`)}>Over {over}</Button></td>
-                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-under`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], "under", `${home_team} ${away_team} Under ${under}`)}>Under {under}</Button></td>
+                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-favorite`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], home_team, away_team, "favorite", favorite_spread, favorite)}>{favorite}</Button></td>
+                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-dog`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], home_team, away_team, "dog", underdog_spread, underdog)}>{underdog}</Button></td>
+                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-over`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], home_team, away_team, "over",  over, `${home_team} ${away_team} Over ${over}`)}>Over {over}</Button></td>
+                      <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-under`] ? 'selected' : ''}`} onClick={()=>handleButtonClick(game["_id"], home_team, away_team, "under", under, `${home_team} ${away_team} Under ${under}`)}>Under {under}</Button></td>
                     </tr>
                   );
               })}
