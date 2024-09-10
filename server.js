@@ -163,7 +163,6 @@ app.post('/api/update-pick-history', async (req, res) => {
 
 app.post('/api/submit-picks', async (req, res) => {
     const { username, homeTeam, awayTeam, pickType, gameId, value, text } = req.body;
-    console.log(req.body)
     if (!username || !homeTeam || !awayTeam || !pickType || !gameId || !value || !text) {
         return res.status(400).json({ error: 'Missing required fields' });
     }

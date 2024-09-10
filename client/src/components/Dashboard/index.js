@@ -98,7 +98,6 @@ const Dashboard = () => {
     try {
       const username = auth.user?.username;
       const data = {username, homeTeam, awayTeam, pickType, gameId, value, text}
-      console.log(data)
       await axios.post(`${auth.apiBaseUrl}/api/submit-picks`, data);
       setMessage(text + " Selected")
     } catch (error) {
@@ -143,7 +142,6 @@ const Dashboard = () => {
                   let underdog = +home_spread > +away_spread ? home_team + " +" + home_spread : away_team + " +" + away_spread
                   let favorite_spread = +home_spread > +away_spread ? away_spread : home_spread
                   let underdog_spread = +home_spread > +away_spread ? away_spread : home_spread
-                  console.log(game["_id"], home_team, away_team, "under", under, `${home_team} ${away_team} Under ${under}`)
                   return (
                     <tr key={game["_id"]}>
                       <td>{new Date(commenceTime).toLocaleString()}</td>
