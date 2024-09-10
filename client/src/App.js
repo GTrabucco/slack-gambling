@@ -12,6 +12,7 @@ import { disableReactDevTools } from '@fvilers/disable-react-devtools';
 import ReportIssue from "./components/ReportIssue";
 import ViewReports from "./components/Admin/ViewReports";
 import Register from "./components/Register";
+import Statistics from "./components/Statistics";
 
 if (process.env.NODE_ENV === 'production') disableReactDevTools();
 
@@ -35,6 +36,7 @@ function App() {
               <Route path="/pickhistory" element={<PickHistory />} />
               <Route path="/standings" element={<Standings />} />
               <Route path="/reportissue" element={<ReportIssue />} />
+              <Route path="/statistics" element={<Statistics />} />
             </Route>
 
             <Route element={<AdminRoute />}>

@@ -27,6 +27,7 @@ const StevenNavbar = () => {
                             <Nav.Link onClick={() => navigate("/dashboard")} style={{ cursor: "pointer" }}>Dashboard</Nav.Link>
                             <Nav.Link onClick={() => navigate("/standings")} style={{ cursor: "pointer" }}>Standings</Nav.Link>
                             <Nav.Link onClick={() => navigate("/pickhistory")} style={{ cursor: "pointer" }}>Pick History</Nav.Link>
+                            <Nav.Link onClick={() => navigate("/statistics")} style={{ cursor: "pointer" }}>Statistics</Nav.Link>
                             <Nav.Link onClick={() => navigate("/reportissue")} style={{ cursor: "pointer" }}>Report An Issue</Nav.Link>
                             {auth.user?.admin && (
                                 <React.Fragment>

@@ -1,32 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../../../hooks/AuthProvider";
 import { Container, Row, Col, Table, Button, Form } from 'react-bootstrap';
-import axios from 'axios'
+import axios from 'axios';
 
-const CalculateScoring = ()=>{
+const CalculateScoring = () => {
     const [error, setError] = useState("");
-    const [picks, setPicks] = useState([])
-    const auth = useAuth()
-    useEffect(()=>{
+    const [picks, setPicks] = useState([]);
+    const [filteredPicks, setFilteredPicks] = useState([]);
+    const [betFilter, setBetFilter] = useState("");
+    const [userFilter, setUserFilter] = useState("");
+    const [dateFilter, setDateFilter] = useState("")
+    const auth = useAuth();
+
+    useEffect(() => {
         const fetchPickHistory = async () => {
             try {
-            const response = await axios.get(`${auth.apiBaseUrl}/api/get-all-pick-history`);
-            
-            if (response.data != null) {  
-                setPicks(response.data);
-            }
+                const response = await axios.get(`${auth.apiBaseUrl}/api/get-all-pick-history`);
+                if (response.data != null) {  
+                    setPicks(response.data);
+                    setFilteredPicks(response.data);
+                }
             } catch (error) {
                 setError('Error fetching picks');
             }
         };
 
         fetchPickHistory();
-    }, [])
+    }, [auth.apiBaseUrl]);
 
     const handleResultChange = (event, pick) => {
         const value = event.target.value;
         if (!isNaN(value)) {
-            setPicks((prevPicks) =>
+            setFilteredPicks((prevPicks) =>
                 prevPicks.map((p) =>
                     p._id === pick["_id"]
                     ? { ...p, result: value }
@@ -47,51 +52,109 @@ const CalculateScoring = ()=>{
         }
     };
 
+    useEffect(() => {
+        if (betFilter) {
+            const filtered = picks.filter(pick =>
+                pick.text.toLowerCase().includes(betFilter.toLowerCase())
+            );
+            setFilteredPicks(filtered);
+        } else {
+            setFilteredPicks(picks);
+        }
+    }, [betFilter, picks]);
+
+    useEffect(() => {
+        if (userFilter) {
+            const filtered = picks.filter(pick =>
+                pick.username.toLowerCase().includes(userFilter.toLowerCase())
+            );
+            setFilteredPicks(filtered);
+        } else {
+            setFilteredPicks(picks);
+        }
+    }, [userFilter, picks]);
+
+    useEffect(() => {
+        if (dateFilter) {
+            const filtered = picks.filter(pick => 
+                new Date(pick.createdAt).toLocaleString().includes(dateFilter)
+            );
+            setFilteredPicks(filtered);
+        } else {
+            setFilteredPicks(picks);
+        }
+    }, [dateFilter, picks]);
+
     return (
         <Container>
             <Row>
-                <h2>Pick History</h2>
+                <h2>Calculate Scoring</h2>
             </Row>
             <Row>
               <Col>
                 <Table>
                     <thead>
                         <tr>
-                            <th>Created At</th>
-                            <th>User</th>
-                            <th>Bet</th>
+                            <th>
+                                Created At
+                                <br />
+                                <input
+                                    type="text"
+                                    value={dateFilter}
+                                    onChange={(e) => setDateFilter(e.target.value)}
+                                />
+                            </th>
+                            <th>
+                                User
+                                <br />
+                                <input
+                                    type="text"
+                                    value={userFilter}
+                                    onChange={(e) => setUserFilter(e.target.value)}
+                                />
+                            </th>
+                            <th>
+                                Bet
+                                <br/>
+                                <input
+                                    type="text"
+                                    value={betFilter}
+                                    onChange={(e) =>
+                                        setBetFilter(e.target.value )
+                                    }
+                                />
+                            </th>
                             <th>Result</th>
                             <th></th>
                         </tr>                    
                     </thead>
                     <tbody>
-                        {picks
+                        {filteredPicks
                             .sort((a, b) => new Date(a["createdAt"]) - new Date(b["createdAt"]))
                             .map((pick) => {
-                                let text = pick["text"]
-                                let user = pick["username"]
-                                let result = pick["result"]
-                                let createdAt = pick["createdAt"]
+                                let text = pick["text"];
+                                let user = pick["username"];
+                                let result = pick["result"];
+                                let createdAt = pick["createdAt"];
                                 return (
                                     <tr key={pick["_id"]}>
                                         <td>{new Date(createdAt).toLocaleString()}</td>
                                         <td>{user}</td>
                                         <td>{text}</td>
-                                        <td>{
-                                            <React.Fragment>
-                                                <Form.Control
-                                                    type="number"
-                                                    min="-1"
-                                                    max="1"
-                                                    step="1"
-                                                    value={result}
-                                                    onChange={(e) => handleResultChange(e, pick)}
-                                                />
-                                            </React.Fragment>
-                                            }
+                                        <td>
+                                            <Form.Control
+                                                type="number"
+                                                min="-1"
+                                                max="1"
+                                                step="1"
+                                                value={result}
+                                                onChange={(e) => handleResultChange(e, pick)}
+                                            />
                                         </td>
                                         <td>
-                                            <Button onClick={()=>handleUpdateResult(pick["_id"], result)}>Update</Button>
+                                            <Button onClick={() => handleUpdateResult(pick["_id"], result)}>
+                                                Update
+                                            </Button>
                                         </td>
                                     </tr>
                                 );
@@ -102,7 +165,7 @@ const CalculateScoring = ()=>{
               </Col>
             </Row>
         </Container>       
-      );
-}
+    );
+};
 
 export default CalculateScoring;
