@@ -10,6 +10,11 @@ const root = createRoot(document.getElementById('root'));
 const domain = process.env.REACT_APP_AUTH0_DOMAIN;
 const clientId = process.env.REACT_APP_AUTH0_CLIENT_ID;
 const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
+
+console.log("Auth0 Domain: ", process.env.REACT_APP_AUTH0_DOMAIN);
+console.log("Auth0 Client ID: ", process.env.REACT_APP_AUTH0_CLIENT_ID);
+console.log("Auth0 Audience: ", process.env.REACT_APP_AUTH0_AUDIENCE);
+
 root.render(
   <React.StrictMode>
     <BrowserRouter>
@@ -19,7 +24,7 @@ root.render(
         authorizationParams={{
           redirect_uri: window.location.origin,
           audience: audience,
-          scope: "openid profile email read:current_user update:current_user_metadata"  // Important!
+          scope: "openid profile email read:current_user update:current_user_metadata" 
         }}
       >
         <App />

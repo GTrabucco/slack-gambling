@@ -5,6 +5,7 @@ import axios from "axios";
 
 export const LoginButton = () => {
   const { loginWithRedirect, getAccessTokenSilently, isAuthenticated } = useAuth0();
+  const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
   const handleLogin = async () => {
     await loginWithRedirect({
@@ -19,7 +20,7 @@ export const LoginButton = () => {
       if (isAuthenticated) {
         try {
           const token = await getAccessTokenSilently();
-          await axios.post('/api/set-cookie', { token }, { withCredentials: true });
+          await axios.post(`${apiBaseUrl}/api/set-cookie`, { token }, { withCredentials: true });
         } catch (error) {
           console.error("Error setting token to backend", error);
         }

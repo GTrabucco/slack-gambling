@@ -5,7 +5,6 @@ import axios from "axios";
 
 export const LogoutButton = () => {
   const { logout } = useAuth0();
-  const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
   const handleLogout = async () => {
     try {
