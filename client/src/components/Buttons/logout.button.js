@@ -10,7 +10,7 @@ export const LogoutButton = () => {
     try {
       logout({
         logoutParams: {
-          returnTo: window.location.origin,
+          returnTo: "https://www.slackgambling.org/login",
         },
       });
     } catch (error) {
