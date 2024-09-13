@@ -1,12 +1,11 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import { useAuth } from "../../hooks/AuthProvider";
-import StevenNavbar from "../../components/StevenNavbar";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const AdminRoute = () => {
-  const auth = useAuth();
-  if (!auth.user.admin) auth.logOut();
-  return <React.Fragment><StevenNavbar></StevenNavbar><Outlet /></React.Fragment>;
+  const {user} = useAuth0();
+  if (user.email.toLowerCase() !== 'giulian.trabucco@gmail.com') return <Navigate to="/dashboard" />;
+  return <Outlet />;
 };
 
 export default AdminRoute;

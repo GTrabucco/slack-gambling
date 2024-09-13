@@ -1,39 +1,11 @@
 import { useState } from "react";
-import { useAuth } from "../../hooks/AuthProvider";
-import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Form } from 'react-bootstrap';
 import "./style.css";
-import { useNavigate } from "react-router-dom";
+import { LoginButton } from "../Buttons/login-button";
+import { SignupButton } from "../Buttons/signup-button";
 
 const Login = () => {
-  const [creds, setCreds] = useState({
-    username: "",
-    password: "",
-  });
-
   const [error, setError] = useState("");
-  const auth = useAuth();
-  const navigate = useNavigate();
-
-  const handleSubmitEvent = async (e) => {
-    e.preventDefault();
-    if (creds.username !== "" && creds.password !== "") {
-      try {
-        await auth.loginAction(creds);
-      } catch (err) {
-        setError(err.message);
-      }
-      return;
-    }
-    setError("Please provide a valid input");
-  };
-
-  const handleInput = (e) => {
-    const { name, value } = e.target;
-    setCreds((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
 
   return (
     <Container fluid className="p-0" style={{ height: '100vh' }}>
@@ -46,45 +18,14 @@ const Login = () => {
           />
         </Col>
         <Col md={4} className="d-flex align-items-center justify-content-center bg-light">
-          <Form onSubmit={handleSubmitEvent} className="w-75 mx-auto">
-            {error && (
-              <Alert variant="danger">
-                {error}
-              </Alert>
-            )}
-            <Form.Group className="mb-3" controlId="formUsername">
-              <Form.Label>Username</Form.Label>
-              <Form.Control
-                type="text"
-                name="username"
-                placeholder="Enter username"
-                onChange={handleInput}
-                required
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formPassword">
-              <Form.Label>Password</Form.Label>
-              <Form.Control
-                type="password"
-                name="password"
-                placeholder="Enter password"
-                aria-describedby="user-password"
-                aria-invalid="false"
-                onChange={handleInput}
-                required
-              />
-            </Form.Group>
-
-            <Button variant="primary" type="submit" className="w-100 mb-3">
-              Login
-            </Button>
-            
-            <Button variant="primary" className="w-100" onClick={()=>navigate("/register")}>
-              Register
-            </Button>
-
-          </Form>
+          <div className="d-flex flex-column">
+            <Row className="mb-4">
+              <LoginButton />
+            </Row> 
+            <Row>
+              <SignupButton />
+            </Row>             
+          </div>
         </Col>
       </Row>
     </Container>

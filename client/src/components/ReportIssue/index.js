@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
-import { useAuth } from "../../hooks/AuthProvider";
 import axios from 'axios';
+import { useAuth0 } from '@auth0/auth0-react';
 
 const ReportIssue = () => {
   const [issueDescription, setIssueDescription] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const auth = useAuth();
+  const { user } = useAuth0();
+  const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const issueData = {
-      username: auth.user?.username,
+      username: user.name,
       description: issueDescription
     };
 
     try {
-      await axios.post(`${auth.apiBaseUrl}/api/report-issue`, issueData);
+      await axios.post(`${apiBaseUrl}/api/report-issue`, issueData);
       setSubmitted(true); 
       setIssueDescription('');
     } catch (error) {

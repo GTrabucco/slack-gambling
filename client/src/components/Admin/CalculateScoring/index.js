@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../../hooks/AuthProvider";
 import { Container, Row, Col, Table, Button, Form } from 'react-bootstrap';
 import axios from 'axios';
 
@@ -10,12 +9,12 @@ const CalculateScoring = () => {
     const [betFilter, setBetFilter] = useState("");
     const [userFilter, setUserFilter] = useState("");
     const [dateFilter, setDateFilter] = useState("")
-    const auth = useAuth();
+    const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
     useEffect(() => {
         const fetchPickHistory = async () => {
             try {
-                const response = await axios.get(`${auth.apiBaseUrl}/api/get-all-pick-history`);
+                const response = await axios.get(`${apiBaseUrl}/api/get-all-pick-history`);
                 if (response.data != null) {  
                     setPicks(response.data);
                     setFilteredPicks(response.data);
@@ -26,7 +25,7 @@ const CalculateScoring = () => {
         };
 
         fetchPickHistory();
-    }, [auth.apiBaseUrl]);
+    }, []);
 
     const handleResultChange = (event, pick) => {
         const value = event.target.value;
@@ -43,7 +42,7 @@ const CalculateScoring = () => {
 
     const handleUpdateResult = async (id, updatedResult) => {
         try {
-          await axios.post(`${auth.apiBaseUrl}/api/update-pick-history`, {
+          await axios.post(`${apiBaseUrl}/api/update-pick-history`, {
             id: id,
             result: updatedResult
           });

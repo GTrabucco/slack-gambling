@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../../../hooks/AuthProvider";
 import { Container, Row, Col, Table, Button, Alert } from 'react-bootstrap';
 import axios from 'axios';
 
 const ViewReports = () => {
     const [error, setError] = useState("");
     const [reports, setReports] = useState([]);
-    const auth = useAuth();
+    const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
     const fetchReports = async () => {
         try {
-            const response = await axios.get(`${auth.apiBaseUrl}/api/get-reports`);
+            const response = await axios.get(`${apiBaseUrl}/api/get-reports`);
             if (response.data) {
                 setReports(response.data);
                 setError("");
@@ -38,7 +37,7 @@ const ViewReports = () => {
 
     const closeReport = async (id) => {
         try {
-            await axios.post(`${auth.apiBaseUrl}/api/close-report`, { id });
+            await axios.post(`${apiBaseUrl}/api/close-report`, { id });
         } catch (error) {
             console.error('Error closing report:', error);
             setError('Error closing report');

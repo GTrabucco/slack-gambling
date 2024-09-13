@@ -52,50 +52,6 @@ app.get('/api/games', async (req, res) => {
     }
 });
 
-app.post('/api/reset-password', async (req, res) => {
-    const { username, newPassword } = req.body;
-    try {
-        const db = client.db(DATABASE_NAME);
-        const filter = { username: username }
-        const updateUser = {
-            $set: {
-                password: newPassword
-            }
-        }
-
-        await db.collection('Users').updateOne(filter, updateUser);
-        res.json({ success: true });
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({ error: 'Error logging in' });
-    }
-})
-
-app.post('/api/register', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        const db = client.db(DATABASE_NAME);
-        const filter = { username: username }
-        const existingUser = await db.collection('Users').findOne(filter);
-        if (existingUser) {
-            res.json({ error: `Username ${username} taken` });
-        } else {
-            const createUser = {
-                username: username,
-                password: password,
-                receiveSundayReminder: false,
-                admin: false        
-            }
-    
-            await db.collection('Users').insertOne(createUser);
-            res.json({ success: true });
-        }
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({ error: 'Error registering user' });
-    }
-})
-
 app.post('/api/report-issue', async (req, res) => {
     const { username, description } = req.body;
     const database = client.db(DATABASE_NAME);
@@ -163,6 +119,7 @@ app.post('/api/update-pick-history', async (req, res) => {
 
 app.post('/api/submit-picks', async (req, res) => {
     const { username, homeTeam, awayTeam, pickType, gameId, value, text } = req.body;
+    console.log(req.body)
     if (!username || !homeTeam || !awayTeam || !pickType || !gameId || !value || !text) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -274,35 +231,30 @@ app.get('/api/get-standings', async (req, res) => {
     }
 });
 
-app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) {
-        return res.status(400).json({ error: 'Username and password are required' });
+app.post('/api/set-cookie', (req, res) => {
+    const { token } = req.body;
+    
+    if (!token) {
+        return res.status(400).json({ error: 'Token is required' });
     }
 
-    try {
-        const db = client.db(DATABASE_NAME);
-        const user = await db.collection('Users').findOne({ username: username });
+    res.cookie('authToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', 
+        sameSite: 'Strict', 
+        maxAge: 24 * 60 * 60 * 1000
+    });
 
-        if (user) {
-            const passwordMatch = password == user.password;
-            if (passwordMatch) {
-                const token = username
-                user.password = "*******"
-                res.json({
-                    message: 'Login successful',
-                    user: user, 
-                    token: token
-                });
-            } else {
-                res.status(401).json({ error: 'Invalid username or password' });
-            }
-        } else {
-            res.status(401).json({ error: 'Invalid username or password' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: 'Error logging in' });
-    }
+    res.json({ success: true });
+});
+
+app.post('/api/logout', (req, res) => {
+    res.clearCookie('authToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict'
+    });
+    res.json({ success: true });
 });
 
 app.get('*', (req, res) => {

@@ -29,4 +29,4 @@ except Exception as error:
 
 client.close()
 
-print("Thursday Job Success")
+print("Friday Job Success")

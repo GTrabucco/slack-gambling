@@ -20,23 +20,25 @@ def process_picks(season, week, picks):
         for id in event_ids:
             response = requests.get(game_summary_url + id)
             teams = response.json()["header"]["competitions"][0]["competitors"]
-            for team in teams:
-                data = {
+            data = {
                     "homeTeam": "",
                     "awayTeam": "",
                     "homeScore": "",
                     "awayScore": ""
                 }
-
-                if team["homeAway"] == 'home':
+            for team in teams:
+                if team["homeAway"] == "home":
                     data["homeTeam"] = team["team"]["displayName"]
                     data["homeScore"] = team["score"]
                 else:
                     data["awayTeam"] = team["team"]["displayName"]
                     data["awayScore"] = team["score"]
-                    results.append(data)
+            results.append(data)
     except Exception as error:
         print("Error getting game summary:", error)
+
+    print(results)
+    exit()
 
     for pick in picks:
         result = next((res for res in results if res["homeTeam"] == pick["homeTeam"] and res["awayTeam"] == pick["awayTeam"]), None)
@@ -91,3 +93,5 @@ def process_picks(season, week, picks):
                 print("Error Processing Picks", pick)
 
     return picks
+
+process_picks("2024", 1, None)

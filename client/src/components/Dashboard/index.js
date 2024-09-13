@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../../hooks/AuthProvider";
 import axios from 'axios';
 import { Container, Row, Col, Table, Button, Alert } from 'react-bootstrap';
 import './style.css'
+import { useAuth0 } from "@auth0/auth0-react";
+
 const Dashboard = () => {
-  var auth = useAuth();
   const [games, setGames]=useState([]);
   const [selectedPicks, setSelectedPicks]=useState([])
   const [errors, setError]=useState("")
   const [message, setMessage]=useState("");
   const [messageVisible, setMessageVisible]=useState(false);
+  const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
+  const { user } = useAuth0();
 
   useEffect(()=>{
     const fetchGames = async () => {
         try {
-          const response = await axios.get(`${auth.apiBaseUrl}/api/games`);
+          const response = await axios.get(`${apiBaseUrl}/api/games`);
           setGames(response.data);
         } catch (error) {
             setError('Error fetching games');
@@ -23,9 +25,10 @@ const Dashboard = () => {
 
     const fetchPicks = async () => {
       try {
-        const response = await axios.get(`${auth.apiBaseUrl}/api/get-weekly-picks`, {
+        console.log(user)
+        const response = await axios.get(`${apiBaseUrl}/api/get-weekly-picks`, {
           params: {
-            username: auth.user?.username
+            username: user.name
           }
         });
         
@@ -56,7 +59,7 @@ const Dashboard = () => {
       },2000)
     }  
 
-    if (message != "") {
+    if (message !== "") {
       showMessage()
     }
   }, [message])
@@ -96,9 +99,9 @@ const Dashboard = () => {
     }
 
     try {
-      const username = auth.user?.username;
+      const username = user.name;
       const data = {username, homeTeam, awayTeam, pickType, gameId, value, text}
-      await axios.post(`${auth.apiBaseUrl}/api/submit-picks`, data);
+      await axios.post(`${apiBaseUrl}/api/submit-picks`, data);
       setMessage(text + " Selected")
     } catch (error) {
       setError('Error submitting pick');

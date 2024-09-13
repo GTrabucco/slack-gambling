@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { useAuth } from "../../hooks/AuthProvider";
 import { Container, Row, Col, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Statistics = () => {
   const [error, setError] = useState("");
-  const auth = useAuth();
   const navigate = useNavigate();
 
   return (
