@@ -6,21 +6,21 @@ import { useAuth0 } from "@auth0/auth0-react";
 const PickHistory = ()=>{
     const [error, setError] = useState("");
     const [picks, setPicks] = useState([])
-    const {user} = useAuth0;
+    const { user } = useAuth0();
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
     useEffect(()=>{
         const fetchPickHistory = async () => {
             try {
-            const response = await axios.get(`${apiBaseUrl}/api/get-pick-history`, {
-                params: {
-                    username: user.name
+                const response = await axios.get(`${apiBaseUrl}/api/get-pick-history`, {
+                    params: {
+                        username: user.name
+                    }
+                });
+                
+                if (response.data != null) {  
+                    setPicks(response.data);
                 }
-            });
-            
-            if (response.data != null) {  
-                setPicks(response.data);
-            }
             } catch (error) {
                 setError('Error fetching picks');
             }
