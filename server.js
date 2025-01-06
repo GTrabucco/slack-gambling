@@ -9,6 +9,7 @@ const allowedOrigins = [
     'https://slackgambling.com',            
     'https://www.slackgambling.com',        
     'https://slackgambling-babd5a00a8e8.herokuapp.com', 
+    'https://slackgambling-babd5a00a8e8.herokuapp.com',
     'http://localhost:3000'                
 ];
   
