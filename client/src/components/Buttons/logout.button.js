@@ -1,7 +1,6 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import React from "react";
 import { Button } from "react-bootstrap";
-import axios from "axios";
 
 export const LogoutButton = () => {
   const { logout } = useAuth0();
@@ -10,7 +9,7 @@ export const LogoutButton = () => {
     try {
       logout({
         logoutParams: {
-          returnTo: "https://www.slackgambling.org/login",
+          returnTo: "https://www.slackgambling.com",
         },
       });
     } catch (error) {

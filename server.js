@@ -6,8 +6,8 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 5000;
 const allowedOrigins = [
-    'https://slackgambling.org',            
-    'https://www.slackgambling.org',        
+    'https://slackgambling.com',            
+    'https://www.slackgambling.com',        
     'https://slackgambling-babd5a00a8e8.herokuapp.com', 
     'http://localhost:3000'                
 ];
@@ -183,6 +183,41 @@ app.get('/api/get-pick-history', async (req, res) => {
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: 'Error fetching data from MongoDB' });
+    }
+});
+
+app.get('/api/userdetails', async (req, res) => {
+    try {
+        const { username } = req.query;
+        const db = client.db(DATABASE_NAME); 
+        const data = await db.collection('User_Details').find({username: username}).toArray();
+        res.json(data);
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ error: 'Error fetching data from MongoDB' });
+    }
+});
+
+app.post('/api/update-userdetails', async (req, res) => {
+    try {
+        const { username, receiveSundayReminder } = req.body;
+        const db = client.db(DATABASE_NAME);
+        const userDetails = db.collection('User_Details');
+        const filter = { username: username };
+
+        const update = {
+            $set: {
+                username: username,
+                receiveSundayReminder: receiveSundayReminder
+            }
+        };
+
+        const options = { upsert: true };
+        await userDetails.updateOne(filter, update, options);
+        console.log(`Updated Details for username: ${username}, receiveSundayReminder: ${receiveSundayReminder}`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating user details:', error);
     }
 });
 

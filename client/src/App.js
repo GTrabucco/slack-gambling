@@ -12,7 +12,6 @@ import ReportIssue from "./components/ReportIssue";
 import ViewReports from "./components/Admin/ViewReports";
 import Statistics from "./components/Statistics";
 import PageLoader from "./components/PageLoader";
-import { CallbackPage } from "./components/callback-page";
 import { AuthenticationGuard } from "./components/authentication-guard";
 if (process.env.NODE_ENV === 'production') disableReactDevTools();
 
@@ -28,6 +27,7 @@ function App() {
   }
 
   function HomeRedirect() {
+    console.log('homeredirect')
     return isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />;
   }
 
@@ -41,7 +41,6 @@ function App() {
         <Route path="/standings" element={<AuthenticationGuard component={Standings} /> } />
         <Route path="/reportissue" element={<AuthenticationGuard component={ReportIssue} /> } />
         <Route path="/statistics" element={<AuthenticationGuard component={Statistics} /> } />
-        <Route path="/callback" element={<AuthenticationGuard component={CallbackPage} /> } />
 
         <Route element={<AdminRoute />}>
           <Route path="/calculatescoring" element={<AuthenticationGuard component={CalculateScoring} /> } />

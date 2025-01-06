@@ -1,60 +1,86 @@
-import React from "react";
-import { Container, Navbar, NavDropdown, Nav } from 'react-bootstrap';
+import React, { useState } from "react";
+import { Container, Navbar, Nav, Offcanvas, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { LogoutButton } from "../Buttons/logout.button";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const StevenNavbar = () => {
-    const {user } = useAuth0();
+    const { user } = useAuth0();
+    const [show, setShow] = useState(false);
+    const handleShow = () => setShow(true);
+    const handleClose = () => setShow(false);
     const navigate = useNavigate();
-    const text = `Signed in as: ${user.name}`;
+
+    const handleNavigate = (path) => {
+        navigate(path);
+        setShow(false);
+    };
+
+    const menuLinks = [
+        { path: "/dashboard", label: "Dashboard" },
+        { path: "/standings", label: "Standings" },
+        { path: "/pickhistory", label: "Pick History" },
+        { path: "/statistics", label: "Statistics" },
+        { path: "/reportissue", label: "Report An Issue" },
+        { path: "/calculatescoring", label: "Calculate Scoring", show: true },
+        { path: "/viewReports", label: "View Reports", show: true },
+        { path: "/account", label: "Account Details" },
+    ];
+
     return (
-        <Container>
+        <Container fluid>
             <Navbar className="bg-body-tertiary" expand="lg">
                 <Container>
-                    <Navbar.Brand onClick={() => navigate("/dashboard")} style={{ cursor: "pointer" }}>
-                        <img
-                            src="stevenlogo.png"
-                            width="30"
-                            height="30"
-                            className="d-inline-block align-top"
-                            alt="Steven"
-                        />
-                    </Navbar.Brand>          
-                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                        <Navbar.Collapse id="basic-navbar-nav">
-                            <Nav>
-                                <Nav.Link onClick={() => navigate("/dashboard")} style={{ cursor: "pointer" }}>Dashboard</Nav.Link>
-                                <Nav.Link onClick={() => navigate("/standings")} style={{ cursor: "pointer" }}>Standings</Nav.Link>
-                                <Nav.Link onClick={() => navigate("/pickhistory")} style={{ cursor: "pointer" }}>Pick History</Nav.Link>
-                                <Nav.Link onClick={() => navigate("/statistics")} style={{ cursor: "pointer" }}>Statistics</Nav.Link>
-                                <Nav.Link onClick={() => navigate("/reportissue")} style={{ cursor: "pointer" }}>Report An Issue</Nav.Link>
-                                {true && (
-                                    <React.Fragment>
-                                        <Nav.Link onClick={() => navigate("/calculatescoring")} style={{ cursor: "pointer" }}>
-                                            Calculate Scoring
+                    {/* Menu button for Offcanvas */}
+                    <Navbar.Brand style={{ cursor: "pointer" }}>
+                        <Button variant="primary" onClick={handleShow}>
+                            ☰
+                        </Button>
+                    </Navbar.Brand>
+
+                    <Navbar.Collapse id="responsive-navbar-nav" className="d-none d-lg-flex">
+                        <Nav className="me-auto">
+                            {menuLinks.map(
+                                (link) =>
+                                    (link.show === undefined || link.show) && (
+                                        <Nav.Link
+                                            key={link.path}
+                                            onClick={() => handleNavigate(link.path)}
+                                            style={{ cursor: "pointer" }}
+                                        >
+                                            {link.label}
                                         </Nav.Link>
-                                        <Nav.Link onClick={() => navigate("/viewReports")} style={{ cursor: "pointer" }}>
-                                            View Reports
-                                        </Nav.Link>
-                                    </React.Fragment>                              
-                                )}
-                            </Nav>
-                        </Navbar.Collapse>
-                        <Navbar.Collapse className="justify-content-end">
-                            <NavDropdown title={text}>
-                                <NavDropdown.Item onClick={() => navigate("/account")} style={{ cursor: "pointer" }}>
-                                    Account Details
-                                </NavDropdown.Item>
-                                <NavDropdown.Item >
-                                    <LogoutButton />
-                                </NavDropdown.Item>
-                            </NavDropdown>
-                        </Navbar.Collapse>
+                                    )
+                            )}
+                        </Nav>
+                    </Navbar.Collapse>
+                    <LogoutButton />
                 </Container>
             </Navbar>
+
+            <Offcanvas show={show} onHide={handleClose} backdrop="static">
+                <Offcanvas.Header closeButton>
+                    <Offcanvas.Title>Menu</Offcanvas.Title>
+                </Offcanvas.Header>
+                <Offcanvas.Body>
+                    <Nav className="flex-column">
+                        {menuLinks.map(
+                            (link) =>
+                                (link.show === undefined || link.show) && (
+                                    <Nav.Link
+                                        key={link.path}
+                                        onClick={() => handleNavigate(link.path)}
+                                        style={{ cursor: "pointer" }}
+                                    >
+                                        {link.label}
+                                    </Nav.Link>
+                                )
+                        )}
+                    </Nav>
+                </Offcanvas.Body>
+            </Offcanvas>
         </Container>
     );
-}
+};
 
 export default StevenNavbar;

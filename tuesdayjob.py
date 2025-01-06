@@ -11,7 +11,7 @@ if not mongodb_uri:
     raise ValueError("MONGODB_URI not found in .env file")
 
 SEASON = "2024"
-WEEK = 2
+WEEK = 17
 client = MongoClient(mongodb_uri)
 db = client['SlackGambling']
 picks_collection = db['Picks']
@@ -37,10 +37,10 @@ def load_games(session):
 try:
     with client.start_session() as session:
         with session.start_transaction():
-            processed_picks = process_picks(SEASON, WEEK, picks_collection)
-            picks_history_collection.insert_many(processed_picks, session=session)
-            picks_collection.delete_many({}, session=session)
-            copy_and_clear_collection(games_collection, games_history_collection, session)
+            #processed_picks = process_picks(SEASON, WEEK, list(picks_collection.find()))
+            #picks_history_collection.insert_many(processed_picks, session=session)
+            #picks_collection.delete_many({}, session=session)
+            #copy_and_clear_collection(games_collection, games_history_collection, session)
             load_games(session)
 
 except errors.PyMongoError as error:
