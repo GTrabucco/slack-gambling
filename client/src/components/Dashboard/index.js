@@ -62,15 +62,18 @@ const Dashboard = () => {
       const existingPickGameId = existingPick.split('-')[0];
       const existingPickCommenceTime = getCommenceTimeByGameId(existingPickGameId)
       if (gameStarted(existingPickCommenceTime)) {
+        setMessage("Game already started dummy")
         return;
       }
 
       setSelectedPicks(prevState => {
         const newState = { ...prevState };
         if (existingPick === pickIdentifier) {
+          setMessage(`Removed ${newState[existingPick]}`)
           delete newState[existingPick];
         } else {
           if (existingPick) {
+            setMessage(`Added ${text} Removed ${newState[existingPick]}`)
             delete newState[existingPick];
           }
           newState[pickIdentifier] = text;
@@ -78,6 +81,7 @@ const Dashboard = () => {
         return newState;
       });
     } else {
+      setMessage(`Added ${text}`)
       setSelectedPicks(prevState => ({
         ...prevState,
         [pickIdentifier]: text,

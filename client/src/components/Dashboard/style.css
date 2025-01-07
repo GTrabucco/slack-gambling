@@ -48,6 +48,9 @@
   font-size: 14px; 
 }
 
+.game-row {
+  border: 1px black;
+}
 
 
 @media (max-width: 768px) {

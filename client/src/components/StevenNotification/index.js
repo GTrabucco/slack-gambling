@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Alert } from 'react-bootstrap';
+import { Toast } from 'react-bootstrap';
 
 const StevenNotification = ({ message, setMessage, type }) => {
     const [messageVisible, setMessageVisible] = useState(false)
-    useEffect(()=>{
+    useEffect(() => {
         const showMessage = () => {
-                setMessageVisible(true)
-                window.setTimeout(()=>{
+            setMessageVisible(true)
+            window.setTimeout(() => {
                 setMessageVisible(false)
                 setMessage("")
-            },2000)
-        }  
+            }, 2000)
+        }
 
         if (message) {
             console.log(message)
@@ -19,12 +19,21 @@ const StevenNotification = ({ message, setMessage, type }) => {
     }, [message])
 
     return (
-        messageVisible && (
-            <Alert variant="success" >
-                {message}
-            </Alert>    
-        ) 
-    )
+        <div>
+            <div
+                aria-live="polite"
+                aria-atomic="true"
+                className="position-fixed top-0 start-0 p-3"
+                style={{ zIndex: 1050 }}
+            >
+                <Toast onClose={() => setMessageVisible(false)} show={messageVisible} delay={3000} autohide>
+                    <Toast.Header>
+                        <strong className="me-auto">{message}</strong>
+                    </Toast.Header>
+                </Toast>
+            </div>
+        </div>
+    );
 }
 
 export default StevenNotification
