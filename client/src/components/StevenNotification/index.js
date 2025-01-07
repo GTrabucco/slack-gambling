@@ -9,7 +9,7 @@ const StevenNotification = ({ message, setMessage, type }) => {
             window.setTimeout(() => {
                 setMessageVisible(false)
                 setMessage("")
-            }, 2000)
+            }, 3000)
         }
 
         if (message) {
