@@ -13,7 +13,6 @@ const StevenNotification = ({ message, setMessage, type }) => {
         }
 
         if (message) {
-            console.log(message)
             showMessage()
         }
     }, [message])

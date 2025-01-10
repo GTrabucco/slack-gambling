@@ -4,7 +4,6 @@ import PageLoader from "./PageLoader";
 import StevenNavbar from "./StevenNavbar";
 
 export const AuthenticationGuard = ({ component }) => {
-  console.log('authenticationguard')
   const { isAuthenticated, getAccessTokenSilently, loginWithRedirect, error } = useAuth0();
   const WrappedComponent = withAuthenticationRequired(component, {
     onRedirecting: () => (

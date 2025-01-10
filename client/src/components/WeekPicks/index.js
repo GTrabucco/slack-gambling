@@ -5,7 +5,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import './style.css'
 import { useLocation } from 'react-router-dom';
 
-const PickHistory = (props) => {
+const WeekPicks = (props) => {
     const [error, setError] = useState("");
     const [picks, setPicks] = useState([])
     const { user } = useAuth0();
@@ -18,11 +18,7 @@ const PickHistory = (props) => {
     useEffect(() => {
         const fetchPickHistory = async () => {
             try {
-                const response = await axios.get(`${apiBaseUrl}/api/get-pick-history`, {
-                    params: {
-                        username: usernameDisplay
-                    }
-                });
+                const response = await axios.get(`${apiBaseUrl}/api/get-weekly-picks`);
 
                 if (response.data != null) {
                     setPicks(response.data);
@@ -38,24 +34,23 @@ const PickHistory = (props) => {
     return (
         <Container>
             <Row>
-                <h5>{ usernameDisplay }</h5>
-                <h5>Pick History</h5>
+                <h5>Week Picks</h5>
             </Row>
             <Row>
-                <table striped bordered hover class="ph-table">
+                <table striped bordered hover class="wp-table">
                     <thead>
                         <tr>
                         <th>Submitted</th>
+                        <th>User</th>
                         <th>Pick</th>
-                        <th>Result</th>
                         </tr>
                     </thead>
                     <tbody>
                         {picks.map((item) => (
-                            <tr key={item._id} class="ph-row">
-                                <td class="ph-cell">{new Date(item.createdAt).toLocaleString()}</td>
-                                <td class="ph-cell">{item.text}</td>
-                                <td class="ph-cell">{item.result}</td>
+                            <tr key={item._id} class="wp-row">
+                                <td class="wp-cell">{new Date(item.createdAt).toLocaleString()}</td>
+                                <td class="wp-cell">{item.username}</td>
+                                <td class="wp-cell">{item.text}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -65,4 +60,4 @@ const PickHistory = (props) => {
     );
 }
 
-export default PickHistory;
+export default WeekPicks;

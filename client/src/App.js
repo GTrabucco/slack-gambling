@@ -13,6 +13,7 @@ import ViewReports from "./components/Admin/ViewReports";
 import Statistics from "./components/Statistics";
 import PageLoader from "./components/PageLoader";
 import { AuthenticationGuard } from "./components/authentication-guard";
+import WeekPicks from "./components/WeekPicks";
 if (process.env.NODE_ENV === 'production') disableReactDevTools();
 
 function App() {
@@ -27,7 +28,6 @@ function App() {
   }
 
   function HomeRedirect() {
-    console.log('homeredirect')
     return isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />;
   }
 
@@ -36,6 +36,7 @@ function App() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<AuthenticationGuard component={Dashboard} />}/>
+        <Route path="/weekpicks" element={<AuthenticationGuard component={WeekPicks} />}/>
         <Route path="/account" element={<AuthenticationGuard component={UserAccount} /> } />
         <Route path="/pickhistory" element={<AuthenticationGuard component={PickHistory} /> } />
         <Route path="/standings" element={<AuthenticationGuard component={Standings} /> } />

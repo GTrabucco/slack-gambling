@@ -8,7 +8,6 @@ const port = process.env.PORT || 5000;
 const allowedOrigins = [
     'https://slackgambling.com',            
     'https://www.slackgambling.com',        
-    'https://slackgambling-babd5a00a8e8.herokuapp.com', 
     'https://slackgambling-babd5a00a8e8.herokuapp.com',
     'http://localhost:3000'                
 ];
@@ -167,7 +166,13 @@ app.get('/api/get-weekly-picks', async (req, res) => {
     try {
         const { username } = req.query;
         const db = client.db(DATABASE_NAME); 
-        const data = await db.collection('Picks').find({username: username}).toArray();
+        let data;
+        if (username) {
+            data = await db.collection('Picks').find({username: username}).toArray();
+        } else {
+            data = await db.collection('Picks').find({}).toArray();
+        }    
+            
         res.json(data);
     } catch (error) {
         console.log(error)

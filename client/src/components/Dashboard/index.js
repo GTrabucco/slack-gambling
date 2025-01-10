@@ -117,7 +117,7 @@ const Dashboard = () => {
       </Row>
       <Row>
         <Col>
-          <Accordion defaultActiveKey="0" flush clas>
+          <Accordion defaultActiveKey="0" flush>
             {games
               .sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]))
               .map((game) => {
@@ -132,8 +132,8 @@ const Dashboard = () => {
                 let favorite_team_name = favorite_team.split(" ").pop()
                 let underdog_team_name = underdog_team.split(" ").pop()
 
-                let favorite_logo = `logos/${favorite_team_name}.gif`;
-                let underdog_logo = `logos/${underdog_team_name}.gif`;
+                let favorite_logo = `logos/${favorite_team_name}.png`;
+                let underdog_logo = `logos/${underdog_team_name}.png`;
                 
                 let over = game["over"]
                 let under = game["under"]
@@ -199,7 +199,7 @@ const Dashboard = () => {
                 );
 
                 return (
-                  <Accordion.Item eventKey={game["_id"]}>
+                  <Accordion.Item eventKey={game["_id"]} >
                     <Accordion.Header>{header}</Accordion.Header>
                     <Accordion.Body>
                       <Table>

@@ -27,7 +27,7 @@ def copy_and_clear_collection(source_collection, target_collection, session):
 
 def load_games(session):
     commence_time_from = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    commence_time_to = (commence_time_from + timedelta(days=4)).replace(
+    commence_time_to = (commence_time_from + timedelta(days=9)).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
 
