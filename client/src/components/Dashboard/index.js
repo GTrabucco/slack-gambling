@@ -62,7 +62,7 @@ const Dashboard = () => {
       const existingPickGameId = existingPick.split('-')[0];
       const existingPickCommenceTime = getCommenceTimeByGameId(existingPickGameId)
       if (gameStarted(existingPickCommenceTime)) {
-        setMessage("Game already started dummy")
+        setMessage(`You already selected a ${pickType} in a game that has started`)
         return;
       }
 
