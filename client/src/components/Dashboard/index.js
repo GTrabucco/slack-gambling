@@ -164,6 +164,12 @@ const Dashboard = () => {
                     </div>
 
                     <div className="team-container">
+                      {
+                        away_team == favorite_team ? <b>@</b> : <span></span>
+                      }
+                    </div>
+
+                    <div className="team-container">
                       <img
                         src={underdog_logo}
                         alt={underdog_team}
