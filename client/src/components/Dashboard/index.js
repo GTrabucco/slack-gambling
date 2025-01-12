@@ -126,29 +126,29 @@ const Dashboard = () => {
         <Col>
           {
             Object.keys(selectedPicks).some(key => key.endsWith('-favorite') && selectedPicks[key])
-              ? <i className="bi bi-check-circle-fill" style={{ color: 'green' }}></i>
-              : <i className="bi bi-x-circle-fill" style={{ color: 'red' }}></i>
+              ? <i className="bi bi-check-circle-fill" style={{ color: 'green', fontSize: '1.5rem' }}></i>
+              : <i className="bi bi-x-circle-fill" style={{ color: 'red', fontSize: '1.5rem' }}></i>
           }
         </Col>
         <Col>
           {
             Object.keys(selectedPicks).some(key => key.endsWith('-dog') && selectedPicks[key])
-              ? <i className="bi bi-check-circle-fill" style={{ color: 'green' }}></i>
-              : <i className="bi bi-x-circle-fill" style={{ color: 'red' }}></i>
+              ? <i className="bi bi-check-circle-fill" style={{ color: 'green', fontSize: '1.5rem' }}></i>
+              : <i className="bi bi-x-circle-fill" style={{ color: 'red', fontSize: '1.5rem' }}></i>
           }
         </Col>
         <Col>
           {
             Object.keys(selectedPicks).some(key => key.endsWith('-over') && selectedPicks[key])
-              ? <i className="bi bi-check-circle-fill" style={{ color: 'green' }}></i>
-              : <i className="bi bi-x-circle-fill" style={{ color: 'red' }}></i>
+              ? <i className="bi bi-check-circle-fill" style={{ color: 'green', fontSize: '1.5rem' }}></i>
+              : <i className="bi bi-x-circle-fill" style={{ color: 'red', fontSize: '1.5rem' }}></i>
           }
         </Col>
         <Col>
           {
             Object.keys(selectedPicks).some(key => key.endsWith('-under') && selectedPicks[key])
-              ? <i className="bi bi-check-circle-fill" style={{ color: 'green' }}></i>
-              : <i className="bi bi-x-circle-fill" style={{ color: 'red' }}></i>
+              ? <i className="bi bi-check-circle-fill" style={{ color: 'green', fontSize: '1.5rem' }}></i>
+              : <i className="bi bi-x-circle-fill" style={{ color: 'red', fontSize: '1.5rem' }}></i>
           }
         </Col>
 
