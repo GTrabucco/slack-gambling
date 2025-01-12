@@ -115,6 +115,45 @@ const Dashboard = () => {
           setMessage={setMessage}
         />
       </Row>
+      <hr></hr>
+      <Row>
+        <Col><b>Favorite Selected</b></Col>
+        <Col><b>Underdog Selected</b></Col>
+        <Col><b>Over Selected</b></Col>
+        <Col><b>Under Selected</b></Col>
+      </Row>
+      <Row>
+        <Col>
+          {
+            Object.keys(selectedPicks).some(key => key.endsWith('-favorite') && selectedPicks[key])
+              ? <i className="bi bi-check-circle-fill" style={{ color: 'green' }}></i>
+              : <i className="bi bi-x-circle-fill" style={{ color: 'red' }}></i>
+          }
+        </Col>
+        <Col>
+          {
+            Object.keys(selectedPicks).some(key => key.endsWith('-dog') && selectedPicks[key])
+              ? <i className="bi bi-check-circle-fill" style={{ color: 'green' }}></i>
+              : <i className="bi bi-x-circle-fill" style={{ color: 'red' }}></i>
+          }
+        </Col>
+        <Col>
+          {
+            Object.keys(selectedPicks).some(key => key.endsWith('-over') && selectedPicks[key])
+              ? <i className="bi bi-check-circle-fill" style={{ color: 'green' }}></i>
+              : <i className="bi bi-x-circle-fill" style={{ color: 'red' }}></i>
+          }
+        </Col>
+        <Col>
+          {
+            Object.keys(selectedPicks).some(key => key.endsWith('-under') && selectedPicks[key])
+              ? <i className="bi bi-check-circle-fill" style={{ color: 'green' }}></i>
+              : <i className="bi bi-x-circle-fill" style={{ color: 'red' }}></i>
+          }
+        </Col>
+
+      </Row>
+      <hr />
       <Row>
         <Col>
           <Accordion defaultActiveKey="0" flush>
@@ -126,15 +165,12 @@ const Dashboard = () => {
                 let home_spread = game["home_spread"]
                 let away_spread = game["away_spread"]
 
-                let favorite_team = +home_spread > +away_spread ? away_team : home_team
-                let underdog_team = +home_spread > +away_spread ? home_team : away_team
+                let home_team_name = home_team.split(" ").pop()
+                let away_team_name = away_team.split(" ").pop()
 
-                let favorite_team_name = favorite_team.split(" ").pop()
-                let underdog_team_name = underdog_team.split(" ").pop()
+                let home_logo = `logos/${home_team_name}.png`;
+                let away_logo = `logos/${away_team_name}.png`;
 
-                let favorite_logo = `logos/${favorite_team_name}.png`;
-                let underdog_logo = `logos/${underdog_team_name}.png`;
-                
                 let over = game["over"]
                 let under = game["under"]
                 let commenceTime = game["commence_time"]
@@ -143,8 +179,14 @@ const Dashboard = () => {
                 let favorite_spread = +home_spread > +away_spread ? +away_spread : +home_spread
                 let underdog_spread = +home_spread > +away_spread ? +home_spread : +away_spread
 
-                let dog_picked = selectedPicks[`${game["_id"]}-dog`] ? true : false;
-                let fav_picked = selectedPicks[`${game["_id"]}-favorite`] ? true : false;
+                let away_picked =
+                  (selectedPicks[`${game["_id"]}-dog`] && selectedPicks[`${game["_id"]}-dog`].includes(away_team_name)) ||
+                  (selectedPicks[`${game["_id"]}-favorite`] && selectedPicks[`${game["_id"]}-favorite`].includes(away_team_name));
+
+                let home_picked =
+                  (selectedPicks[`${game["_id"]}-dog`] && selectedPicks[`${game["_id"]}-dog`].includes(home_team_name)) ||
+                  (selectedPicks[`${game["_id"]}-favorite`] && selectedPicks[`${game["_id"]}-favorite`].includes(home_team_name));
+
                 let over_picked = selectedPicks[`${game["_id"]}-over`] ? true : false;
                 let under_picked = selectedPicks[`${game["_id"]}-under`] ? true : false;
 
@@ -152,36 +194,28 @@ const Dashboard = () => {
                   <>
                     <div className="team-container">
                       <img
-                        src={favorite_logo}
-                        alt={favorite_team}
+                        src={away_logo}
+                        alt={away_team}
                         className="logo"
                       />
-                      {fav_picked ?
-                        <div><div className="team-name picked">{favorite_team}</div>
-                          <b className="picked">{favorite_spread}</b></div> :
-                        <div><div className="team-name">{favorite_team}</div><b>{favorite_spread}</b></div>
+                      {away_picked ?
+                        <div><div className="team-name picked">{away_team}</div>
+                          <b className="picked">{away_spread}</b></div> :
+                        <div><div className="team-name">{away_team}</div><b>{away_spread}</b></div>
                       }
                     </div>
-
-                    <div className="team-container">
-                      {
-                        away_team == favorite_team ? <b>@</b> : <span></span>
-                      }
-                    </div>
-
                     <div className="team-container">
                       <img
-                        src={underdog_logo}
-                        alt={underdog_team}
+                        src={home_logo}
+                        alt={home_team}
                         className="logo"
                       />
-                      {dog_picked ?
-                        <div><div className="team-name picked">{underdog_team}</div>
-                          <b className="picked">+{underdog_spread}</b></div> :
-                        <div><div className="team-name">{underdog_team}</div><b>+{underdog_spread}</b></div>
+                      {home_picked ?
+                        <div><div className="team-name picked">{home_team}</div>
+                          <b className="picked">{home_spread}</b></div> :
+                        <div><div className="team-name">{home_team}</div><b>{home_spread}</b></div>
                       }
                     </div>
-
                     <div className="icon-text-container">
                       {over_picked ? (
                         <span className="picked">
