@@ -18,7 +18,7 @@ const StevenNavbar = () => {
 
     const menuLinks = [
         { path: "/dashboard", label: "Dashboard" },
-        { path: "/weekpicks", label: "Week Picks" },
+        //{ path: "/weekpicks", label: "Week Picks" },
         { path: "/standings", label: "Standings" },
         { path: "/pickhistory", label: "Pick History" },
         { path: "/statistics", label: "Statistics" },
