@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
-import { Container, Row, Col, Table, Button, Accordion } from 'react-bootstrap';
+import { Container, Row, Col, Table, Button, Accordion, Form } from 'react-bootstrap';
 import './style.css'
 import { useAuth0 } from "@auth0/auth0-react";
 import StevenNotification from "../StevenNotification";
@@ -8,9 +8,10 @@ import StevenNotification from "../StevenNotification";
 const Dashboard = () => {
   const [games, setGames] = useState([]);
   const [selectedPicks, setSelectedPicks] = useState([])
+  const [tempPicks, setTempPicks] = useState([])
   const [errors, setError] = useState("")
+  const [submitButtonText, setSubmitButtonText] = useState("Submit");
   const [message, setMessage] = useState("");
-  const [messageVisible, setMessageVisible] = useState(false);
   const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
   const { user } = useAuth0();
 
@@ -40,6 +41,7 @@ const Dashboard = () => {
           });
 
           setSelectedPicks(picks);
+          setTempPicks(picks)
         }
       } catch (error) {
         setError('Error fetching picks');
@@ -55,7 +57,32 @@ const Dashboard = () => {
     return obj.commence_time
   }
 
-  const submitPick = async (gameId, homeTeam, awayTeam, pickType, value, text) => {
+  const addPick = (updater, pickIdentifier, text) => {
+    updater(prevState => ({
+      ...prevState,
+      [pickIdentifier]: text,
+    }));
+  }
+
+  const replacePick = (updater, existingPick, pickIdentifier, text) => {
+    updater(prevState => {
+      const newState = { ...prevState };
+      if (existingPick === pickIdentifier) {
+        setMessage(`Removed ${newState[existingPick]}`)
+        delete newState[existingPick];
+      } else {
+        if (existingPick) {
+          setMessage(`Added ${text} Removed ${newState[existingPick]}`)
+          delete newState[existingPick];
+        }
+        newState[pickIdentifier] = text;
+      }
+      return newState;
+    });
+  }
+
+  const submitPick = async (data) => {
+    const { gameId, homeTeam, awayTeam, pickType, value, text } = data;
     const pickIdentifier = `${gameId}-${pickType}`;
     const existingPick = Object.keys(selectedPicks).find(pickId => pickId.includes(`-${pickType}`));
     if (existingPick) {
@@ -66,26 +93,12 @@ const Dashboard = () => {
         return;
       }
 
-      setSelectedPicks(prevState => {
-        const newState = { ...prevState };
-        if (existingPick === pickIdentifier) {
-          setMessage(`Removed ${newState[existingPick]}`)
-          delete newState[existingPick];
-        } else {
-          if (existingPick) {
-            setMessage(`Added ${text} Removed ${newState[existingPick]}`)
-            delete newState[existingPick];
-          }
-          newState[pickIdentifier] = text;
-        }
-        return newState;
-      });
+      replacePick(setSelectedPicks, existingPick, pickIdentifier, text)
+      replacePick(setTempPicks, existingPick, pickIdentifier, text)
     } else {
       setMessage(`Added ${text}`)
-      setSelectedPicks(prevState => ({
-        ...prevState,
-        [pickIdentifier]: text,
-      }));
+      addPick(setSelectedPicks, pickIdentifier, text)
+      addPick(setTempPicks, pickIdentifier, text)
     }
 
     try {
@@ -97,14 +110,86 @@ const Dashboard = () => {
     }
   }
 
-  const handleButtonClick = (gameId, homeTeam, awayTeam, pickType, value, text) => {
-    submitPick(gameId, homeTeam, awayTeam, pickType, value, text);
-  };
+  const removePick = async (pickIdentifier, text) => {
+    try {
+      const gameId = pickIdentifier.split('-')[0]
+      const pickType = pickIdentifier.split('-')[1]
+      const username = user.name;
+      const data = { username, gameId, pickType, text }
+      await axios.post(`${apiBaseUrl}/api/remove-pick`, data);
+
+      setSelectedPicks(prevState => {
+        const newState = { ...prevState };
+        setMessage(`Removed ${newState[pickIdentifier]}`)
+        delete newState[pickIdentifier];
+        return newState;
+      });
+
+    } catch (error) {
+      setError('Error submitting pick');
+    }
+  }
+
+  const submitPicks = async (e, gameId) => {
+    e.preventDefault();
+    // additions
+    const additions = Object.entries(tempPicks).filter(
+      ([key, value]) => !selectedPicks.hasOwnProperty(key) || selectedPicks[key] !== value
+    );
+    for (let pick in additions) {
+      await submitPick(additions[pick][1])
+    }
+
+    // removals
+    const removals = Object.entries(selectedPicks).filter(
+      ([key, value]) => !tempPicks.hasOwnProperty(key) || tempPicks[key] !== value
+    );
+
+    for (let pick in removals) {
+      await removePick(removals[pick][0], removals[pick][1])
+    }
+  }
+
+  const updatePick = (gameId, homeTeam, awayTeam, pickType, value, text) => {
+    const pickIdentifier = `${gameId}-${pickType}`;
+    const existingPick = Object.keys(tempPicks).find(pickId => pickId.includes(`-${pickType}`));
+    if (existingPick) {
+      const existingPickGameId = existingPick.split('-')[0];
+      const existingPickCommenceTime = getCommenceTimeByGameId(existingPickGameId)
+      if (gameStarted(existingPickCommenceTime)) {
+        setMessage(`You already selected a ${pickType} in a game that has started`)
+        return;
+      }
+
+      setTempPicks(prevState => {
+        const newState = { ...prevState };
+        if (existingPick === pickIdentifier) {
+          delete newState[existingPick];
+        } else {
+          if (existingPick) {
+            delete newState[existingPick];
+          }
+          newState[pickIdentifier] = { gameId, homeTeam, awayTeam, pickType, value, text };
+        }
+        return newState;
+      });
+    } else {
+      setTempPicks(prevState => ({
+        ...prevState,
+        [pickIdentifier]: { gameId, homeTeam, awayTeam, pickType, value, text },
+      }));
+    }
+  }
 
   const gameStarted = (commenceTime) => {
     const currentTime = new Date();
     const targetTime = new Date(commenceTime);
     return currentTime > targetTime
+  }
+
+  const resetTempPicks = () => {
+    setTempPicks(selectedPicks)
+    setSubmitButtonText("Submit")
   }
 
   return (
@@ -156,7 +241,7 @@ const Dashboard = () => {
       <hr />
       <Row>
         <Col>
-          <Accordion defaultActiveKey="0" flush>
+          <Accordion defaultActiveKey="0" flush onSelect={resetTempPicks}>
             {games
               .sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]))
               .map((game) => {
@@ -239,20 +324,92 @@ const Dashboard = () => {
                 );
 
                 return (
-                  <Accordion.Item eventKey={game["_id"]} >
+                  <Accordion.Item eventKey={game["_id"]} key={game["_id"]}>
                     <Accordion.Header>{header}</Accordion.Header>
                     <Accordion.Body>
-                      <Table>
-                        <tbody>
-                          <tr key={game["_id"]}>
-                            <td>{new Date(commenceTime).toLocaleString()}</td>
-                            <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-favorite`] ? 'selected' : ''}`} onClick={() => handleButtonClick(game["_id"], home_team, away_team, "favorite", favorite_spread, favorite)}>{favorite}</Button></td>
-                            <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-dog`] ? 'selected' : ''}`} onClick={() => handleButtonClick(game["_id"], home_team, away_team, "dog", underdog_spread, underdog)}>{underdog}</Button></td>
-                            <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-over`] ? 'selected' : ''}`} onClick={() => handleButtonClick(game["_id"], home_team, away_team, "over", over, `${home_team} ${away_team} Over ${over}`)}>Over {over}</Button></td>
-                            <td><Button disabled={gameStarted(commenceTime)} className={`bet-btn ${selectedPicks[`${game["_id"]}-under`] ? 'selected' : ''}`} onClick={() => handleButtonClick(game["_id"], home_team, away_team, "under", under, `${home_team} ${away_team} Under ${under}`)}>Under {under}</Button></td>
-                          </tr>
-                        </tbody>
-                      </Table>
+                      <Form onSubmit={(e) => submitPicks(e, game["_id"])}>
+                        <Table>
+                          <tbody>
+                            <tr key={game["_id"]} style={{ border: "none" }}>
+                              <td style={{ border: "none" }}>
+                                <b>{new Date(commenceTime).toLocaleString()}</b>
+                              </td>
+                              <td style={{ border: "none" }}>
+                                <Form.Check
+                                  disabled={gameStarted(commenceTime)}
+                                  checked={tempPicks[`${game["_id"]}-favorite`] || false}
+                                  onChange={() =>
+                                    updatePick(
+                                      game["_id"],
+                                      home_team,
+                                      away_team,
+                                      "favorite",
+                                      favorite_spread,
+                                      favorite
+                                    )
+                                  }
+                                  label={favorite}
+                                />
+                              </td>
+                              <td style={{ border: "none" }}>
+                                <Form.Check
+                                  disabled={gameStarted(commenceTime)}
+                                  checked={tempPicks[`${game["_id"]}-dog`] || false}
+                                  onChange={() =>
+                                    updatePick(
+                                      game["_id"],
+                                      home_team,
+                                      away_team,
+                                      "dog",
+                                      underdog_spread,
+                                      underdog
+                                    )
+                                  }
+                                  label={underdog}
+                                />
+                              </td>
+                              <td style={{ border: "none" }}>
+                                <Form.Check
+                                  disabled={gameStarted(commenceTime)}
+                                  checked={tempPicks[`${game["_id"]}-over`] || false}
+                                  onChange={() =>
+                                    updatePick(
+                                      game["_id"],
+                                      home_team,
+                                      away_team,
+                                      "over",
+                                      over,
+                                      `${home_team} ${away_team} Over ${over}`
+                                    )
+                                  }
+                                  label={<span>Over {over}</span>}
+                                />
+                              </td>
+                              <td style={{ border: "none" }}>
+                                <Form.Check
+                                  disabled={gameStarted(commenceTime)}
+                                  checked={tempPicks[`${game["_id"]}-under`] || false}
+                                  onChange={() =>
+                                    updatePick(
+                                      game["_id"],
+                                      home_team,
+                                      away_team,
+                                      "under",
+                                      under,
+                                      `${home_team} ${away_team} Under ${under}`
+                                    )
+                                  }
+                                  label={<span>Under {under}</span>}
+                                />
+                              </td>
+                            </tr>
+                          </tbody>
+                        </Table>
+                        {/* Right-aligned submit button */}
+                        <div className="d-flex justify-content-end">
+                          <Button className="submit-btn" type="submit">{submitButtonText}</Button>
+                        </div>
+                      </Form>
                     </Accordion.Body>
                   </Accordion.Item>
                 );

@@ -1,20 +1,27 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Table } from 'react-bootstrap';
+import { Container, Row, Table, Nav, Button } from 'react-bootstrap';
 import axios from 'axios'
 import { useAuth0 } from "@auth0/auth0-react";
 import './style.css'
 import { useLocation } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const PickHistory = (props) => {
     const [error, setError] = useState("");
     const [picks, setPicks] = useState([])
     const { user } = useAuth0();
+    const navigate = useNavigate();
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const userParam = queryParams.get('user');
     const usernameDisplay = userParam ? userParam : user.name
-
+    const options = {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    };
+      
     useEffect(() => {
         const fetchPickHistory = async () => {
             try {
@@ -25,6 +32,10 @@ const PickHistory = (props) => {
                 });
 
                 if (response.data != null) {
+                    const sortedPicks = response.data.sort((a, b) => 
+                        new Date(b.createdAt) - new Date(a.createdAt)
+                    );
+
                     setPicks(response.data);
                 }
             } catch (error) {
@@ -40,26 +51,39 @@ const PickHistory = (props) => {
             <Row>
                 <h5>{ usernameDisplay }</h5>
                 <h5>Pick History</h5>
+                <Button id="back">
+                    <Nav.Link
+                        key={`/standings`}
+                        onClick={() => navigate(`/standings`)}
+                        style={{ cursor: "pointer" }}
+                    >
+                        Back to Standings
+                    </Nav.Link>
+                </Button>              
             </Row>
             <Row>
-                <table striped bordered hover class="ph-table">
+                <Table striped bordered hover>
                     <thead>
                         <tr>
-                        <th>Submitted</th>
-                        <th>Pick</th>
-                        <th>Result</th>
+                            <th>Submitted</th>
+                            <th>Pick</th>
+                            <th>Result</th>
                         </tr>
                     </thead>
                     <tbody>
                         {picks.map((item) => (
-                            <tr key={item._id} class="ph-row">
-                                <td class="ph-cell">{new Date(item.createdAt).toLocaleString()}</td>
-                                <td class="ph-cell">{item.text}</td>
-                                <td class="ph-cell">{item.result}</td>
+                            <tr className="ph-row" key={item._id}>
+                                <td className="ph1-cell"><b>{new Date(item.createdAt).toLocaleDateString(undefined, options)}</b></td>
+                                <td className="ph2-cell">{item.result > 0 ? <span style={{"color": "green"}}><b>{item.text}</b></span> : 
+                                                          item.result < 0 ? <span style={{"color": "red"}}><b>{item.text}</b></span> :
+                                                          <b>{item.text}</b>}</td>
+                                <td className="ph3-cell">{item.result > 0 ? <span style={{"color": "green"}}><b>1</b></span> : 
+                                                          item.result < 0 ? <span style={{"color": "red"}}><b>-1</b></span> :
+                                                          <b>0</b>}</td>
                             </tr>
                         ))}
                     </tbody>
-                </table>
+                </Table>
             </Row>
         </Container>
     );

@@ -1,14 +1,28 @@
-.ph-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 20px 0;
-  font-size: 12px;
-  text-align: left;
-  background-color: #ffffff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.ph1-cell {
+  width: 25%;
 }
 
-.ph-cell {
-  padding: 12px 15px;
-  border: 1px solid black;
+.ph2-cell {
+  width: 65%;
+  text-wrap: auto;
+}
+
+.ph3-cell {
+  width: 10%;
+}
+
+#back {
+  margin: 10px;
+  width: 20%;
+}
+
+@media (max-width: 768px) {
+  .ph-row {
+    display: flex !important;
+    flex-direction: row !important;
+  }
+
+  #back {
+    width: 40%;
+  }
 }

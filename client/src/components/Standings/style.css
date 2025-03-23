@@ -1,15 +1,26 @@
-.s-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-    font-size: 12px;
-    text-align: left;
-    background-color: #ffffff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.s1-cell {
+  width: 80%;
+}
+
+.s2-cell {
+  width: 20%;
+}
+
+.first {
+  background-color: gold !important;
+}
+
+.second {
+  background-color: silver !important;
+}
+
+.third {
+  background-color: brown !important;
+}
+
+@media (max-width: 768px) {
+  .s-row {
+    display: flex !important;
+    flex-direction: row !important;
   }
-  
-  .s-cell {
-    padding: 12px 15px;
-    border: 1px solid black;
-  }
-  
+}

@@ -5,6 +5,7 @@ require('dotenv').config();
 const path = require('path');
 const app = express();
 const port = process.env.PORT || 5000;
+const SEASON = "2025"
 const allowedOrigins = [
     'https://slackgambling.com',            
     'https://www.slackgambling.com',        
@@ -117,9 +118,31 @@ app.post('/api/update-pick-history', async (req, res) => {
     }
 })
 
+app.post('/api/remove-pick', async (req, res) => {
+    const {gameId, pickType, username, text} = req.body;
+    if (!pickType || !gameId || !text || !username) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+        const db = client.db(DATABASE_NAME);
+        const picksCollection = db.collection('Picks');
+        const filter = { username: username, type: pickType };
+        const existingPick = await picksCollection.findOne(filter);
+        if (existingPick && existingPick.gameId === gameId && existingPick.text === text) {
+            await picksCollection.deleteOne(filter);
+            console.log(`Deleted pick for username: ${username}, type: ${pickType}, text: ${text}`);
+            return res.status(200).json({ message: 'Pick deleted as it matched the existing entry' });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error removing pick:', error);
+    }
+})
+
 app.post('/api/submit-picks', async (req, res) => {
     const { username, homeTeam, awayTeam, pickType, gameId, value, text } = req.body;
-    console.log(req.body)
     if (!username || !homeTeam || !awayTeam || !pickType || !gameId || !value || !text) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -144,7 +167,8 @@ app.post('/api/submit-picks', async (req, res) => {
                 value: value,
                 username: username,
                 type: pickType,
-                createdAt: new Date()
+                createdAt: new Date(),
+                season: SEASON
             }
         };
 

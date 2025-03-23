@@ -34,7 +34,7 @@ const StevenNavbar = () => {
                 <Container>
                     {/* Menu button for Offcanvas */}
                     <Navbar.Brand style={{ cursor: "pointer" }}>
-                        <Button variant="primary" onClick={handleShow}>
+                        <Button onClick={handleShow}>
                             ☰
                         </Button>
                     </Navbar.Brand>

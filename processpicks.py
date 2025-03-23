@@ -1,7 +1,7 @@
 import requests
 
 def process_picks(season, week, picks):
-    week_type = 3  # 2 is regular season
+    week_type = 2  # 2 is regular season
     boxscores_url = f"https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{season}/types/{week_type}/weeks/{week}/events?lang=en&region=us"
     game_summary_url = f"https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event="
     event_ids = []

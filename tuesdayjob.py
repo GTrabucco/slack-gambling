@@ -10,15 +10,18 @@ mongodb_uri = os.getenv('MONGODB_URI')
 if not mongodb_uri:
     raise ValueError("MONGODB_URI not found in .env file")
 
-SEASON = "2024"
+SEASON = "2025"
 WEEK = 1
-exit()
 client = MongoClient(mongodb_uri)
 db = client['SlackGambling']
 picks_collection = db['Picks']
 picks_history_collection = db['Picks_History']
 games_collection = db['Games']
 games_history_collection = db['Games_History']
+
+def add_info_to_picks(session):
+    picks_collection.update_many({}, {"$set": {"season": SEASON}}, session=session)
+    picks_collection.update_many({}, {"$set": {"week": WEEK}}, session=session)
 
 def copy_and_clear_collection(source_collection, target_collection, session):
     documents = list(source_collection.find({}))
@@ -35,14 +38,28 @@ def load_games(session):
     games = theoddsapi.get_games(commence_time_from, commence_time_to)
     games_collection.insert_many(games, session=session)
 
+def backup_data(session):
+    f = open(f"backup/{SEASON}/{WEEK}.txt", "x")
+    data = str(list(picks_collection.find({}, {"_id": 0})))
+    print(data)
+    print()
+    data = data.replace("'", "\"")
+    print(data)
+    f.write(data)
+    f.close()
+
+
 try:
     with client.start_session() as session:
         with session.start_transaction():
-            processed_picks = process_picks(SEASON, WEEK, list(picks_collection.find()))
-            picks_history_collection.insert_many(processed_picks, session=session)
-            picks_collection.delete_many({}, session=session)
-            copy_and_clear_collection(games_collection, games_history_collection, session)
-            load_games(session)
+            backup_data(session)
+            #add_week_to_picks(session)
+            #processed_picks = process_picks(SEASON, WEEK, list(picks_collection.find()))
+            #picks_history_collection.insert_many(processed_picks, session=session)
+            #picks_collection.delete_many({}, session=session)
+            #copy_and_clear_collection(games_collection, games_history_collection, session)
+            #load_games(session)
+            print("hello")
 
 except errors.PyMongoError as error:
     print("Error during transaction: ", error)

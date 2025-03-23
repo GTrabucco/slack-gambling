@@ -48,6 +48,10 @@
   font-size: 14px; 
 }
 
+.submit-btn:focus {
+  background-color: green !important;
+}
+
 @media (max-width: 768px) {
     .bet-btn {
       display: block;
@@ -102,6 +106,10 @@
       padding-left: 8px;
       font-weight: bold;
       white-space: nowrap;
+    }
+
+    .no-border {
+      border: none;
     }
   }
   

@@ -58,7 +58,7 @@ const UserAccount = () => {
                 />
             </Row>
             <Row>
-                <table class="ua-table">
+                <Table striped bordered hover>
                     <thead>
                         <tr>
                             <th class="ua-cell">Username</th>
@@ -82,7 +82,7 @@ const UserAccount = () => {
                             </td>
                         </tr>
                     </tbody>
-                </table>
+                </Table>
             </Row>
             
         </Container>

@@ -1,0 +1,14 @@
+.st1-cell {
+    width: 50%;
+}
+
+.st2-cell {
+    width: 50%;
+}
+
+@media (max-width: 768px) {
+    .st-row {
+        display: flex !important;
+        flex-direction: row !important;
+    }
+}

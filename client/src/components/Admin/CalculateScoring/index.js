@@ -10,14 +10,23 @@ const CalculateScoring = () => {
     const [userFilter, setUserFilter] = useState("");
     const [dateFilter, setDateFilter] = useState("")
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
+    const options = {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+    };
 
     useEffect(() => {
         const fetchPickHistory = async () => {
             try {
                 const response = await axios.get(`${apiBaseUrl}/api/get-all-pick-history`);
                 if (response.data != null) {  
-                    setPicks(response.data);
-                    setFilteredPicks(response.data);
+                    const sortedPicks = response.data.sort((a, b) => 
+                        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                    );
+
+                    setPicks(sortedPicks);
+                    setFilteredPicks(sortedPicks);
                 }
             } catch (error) {
                 setError('Error fetching picks');
@@ -91,7 +100,7 @@ const CalculateScoring = () => {
             </Row>
             <Row>
               <Col>
-                <Table>
+                <Table striped bordered hover responsive>
                     <thead>
                         <tr>
                             <th>
@@ -129,7 +138,6 @@ const CalculateScoring = () => {
                     </thead>
                     <tbody>
                         {filteredPicks
-                            .sort((a, b) => new Date(a["createdAt"]) - new Date(b["createdAt"]))
                             .map((pick) => {
                                 let text = pick["text"];
                                 let user = pick["username"];
@@ -137,8 +145,8 @@ const CalculateScoring = () => {
                                 let createdAt = pick["createdAt"];
                                 return (
                                     <tr key={pick["_id"]}>
-                                        <td>{new Date(createdAt).toLocaleString()}</td>
-                                        <td>{user}</td>
+                                        <td>{new Date(createdAt).toLocaleDateString(undefined, options)}</td>
+                                        <td>{user.split("@")[0]}</td>
                                         <td>{text}</td>
                                         <td>
                                             <Form.Control
@@ -150,7 +158,7 @@ const CalculateScoring = () => {
                                                 onChange={(e) => handleResultChange(e, pick)}
                                             />
                                         </td>
-                                        <td>
+                                        <td className="cs5-cell">
                                             <Button onClick={() => handleUpdateResult(pick["_id"], result)}>
                                                 Update
                                             </Button>
