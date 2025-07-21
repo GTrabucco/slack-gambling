@@ -1,9 +1,12 @@
-from pymongo import MongoClient, errors
+from bson import ObjectId
+from pymongo import MongoClient, errors, UpdateOne
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import os
 import theoddsapi
 from processpicks import process_picks
+from itertools import groupby
+import pandas as pd
 
 load_dotenv()
 mongodb_uri = os.getenv('MONGODB_URI')
@@ -52,7 +55,7 @@ def backup_data(session):
 try:
     with client.start_session() as session:
         with session.start_transaction():
-            backup_data(session)
+            #backup_data(session)
             #add_week_to_picks(session)
             #processed_picks = process_picks(SEASON, WEEK, list(picks_collection.find()))
             #picks_history_collection.insert_many(processed_picks, session=session)
@@ -67,3 +70,6 @@ finally:
     client.close()
 
 print("Tuesday Job Success")
+
+
+

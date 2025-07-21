@@ -126,25 +126,25 @@ const Statistics = () => {
               <tr className="st-row">
                 <td className="st1-cell">Favorites Record</td>
                 <td className="st2-cell">{picks.filter(item => item.type === "favorite" && item.result === 1).length} -
-                  {picks.filter(item => item.type === "favorite" && item.result === -1).length} -
+                  {picks.filter(item => item.type === "favorite" && item.result === -1).length} - 
                   {picks.filter(item => item.type === "favorite" && item.result === 0).length}</td>
               </tr>
               <tr className="st-row">
                 <td className="st1-cell">Underdogs Record</td>
                 <td className="st2-cell">{picks.filter(item => item.type === "dog" && item.result === 1).length} -
-                  {picks.filter(item => item.type === "dog" && item.result === -1).length} -
+                  {picks.filter(item => item.type === "dog" && item.result === -1).length} - 
                   {picks.filter(item => item.type === "dog" && item.result === 0).length}</td>
               </tr>
               <tr className="st-row">
                 <td className="st1-cell">Overs Record</td>
                 <td className="st2-cell">{picks.filter(item => item.type === "over" && item.result === 1).length} -
-                  {picks.filter(item => item.type === "over" && item.result === -1).length} -
+                  {picks.filter(item => item.type === "over" && item.result === -1).length} - 
                   {picks.filter(item => item.type === "over" && item.result === 0).length}</td>
               </tr>
               <tr className="st-row">
                 <td className="st1-cell">Unders Record</td>
                 <td className="st2-cell">{picks.filter(item => item.type === "under" && item.result === 1).length} -
-                  {picks.filter(item => item.type === "under" && item.result === -1).length} -
+                  {picks.filter(item => item.type === "under" && item.result === -1).length} - 
                   {picks.filter(item => item.type === "under" && item.result === 0).length}</td>
               </tr>
               <tr className="st-row">
@@ -167,7 +167,7 @@ const Statistics = () => {
           const seasonData = group[1]
           const season = seasonData[0].season;
           return (
-            <Container>
+            <Container key={season}>
               <Row>
                 <h4>{season} Stats</h4>
               </Row>
@@ -179,25 +179,25 @@ const Statistics = () => {
                     <tr className="st-row">
                       <td className="st1-cell">Favorites Record</td>
                       <td className="st2-cell">{seasonData.filter(item => item.type === "favorite" && item.result === 1).length} -
-                        {seasonData.filter(item => item.type === "favorite" && item.result === -1).length} -
+                        {seasonData.filter(item => item.type === "favorite" && item.result === -1).length} - 
                         {seasonData.filter(item => item.type === "favorite" && item.result === 0).length}</td>
                     </tr>
                     <tr className="st-row">
                       <td className="st1-cell">Underdogs Record</td>
                       <td className="st2-cell">{seasonData.filter(item => item.type === "dog" && item.result === 1).length} -
-                        {seasonData.filter(item => item.type === "dog" && item.result === -1).length} -
+                        {seasonData.filter(item => item.type === "dog" && item.result === -1).length} - 
                         {seasonData.filter(item => item.type === "dog" && item.result === 0).length}</td>
                     </tr>
                     <tr className="st-row">
                       <td className="st1-cell">Overs Record</td>
                       <td className="st2-cell">{seasonData.filter(item => item.type === "over" && item.result === 1).length} -
-                        {seasonData.filter(item => item.type === "over" && item.result === -1).length} -
+                        {seasonData.filter(item => item.type === "over" && item.result === -1).length} -  
                         {seasonData.filter(item => item.type === "over" && item.result === 0).length}</td>
                     </tr>
                     <tr className="st-row">
                       <td className="st1-cell">Unders Record</td>
                       <td className="st2-cell">{seasonData.filter(item => item.type === "under" && item.result === 1).length} -
-                        {seasonData.filter(item => item.type === "under" && item.result === -1).length} -
+                        {seasonData.filter(item => item.type === "under" && item.result === -1).length} - 
                         {seasonData.filter(item => item.type === "under" && item.result === 0).length}</td>
                     </tr>
                     <tr className="st-row">

@@ -1,15 +1,15 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import React from "react";
 import { Button } from "react-bootstrap";
 
 export const LogoutButton = () => {
   const { logout } = useAuth0();
+  const enviornment = process.env.NODE_ENV === 'production' ? 'https://www.slackgambling.com' : 'http://localhost:3000';
 
   const handleLogout = async () => {
     try {
       logout({
         logoutParams: {
-          returnTo: "https://www.slackgambling.com",
+          returnTo: enviornment,
         },
       });
     } catch (error) {
@@ -18,8 +18,6 @@ export const LogoutButton = () => {
   };
 
   return (
-    <Button className="button__logout" onClick={handleLogout}>
-      Log Out
-    </Button>
+    <span style={{fontFamily: "Segoe UI", fontWeight: 500, fontSize: 16, color: "black"}} onClick={handleLogout}>Log Out</span>
   );
 };

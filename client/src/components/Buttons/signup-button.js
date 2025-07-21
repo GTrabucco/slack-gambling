@@ -33,7 +33,7 @@ export const SignupButton = () => {
   }, [isAuthenticated, getAccessTokenSilently]);
 
   return (
-    <Button className="button__sign-up" onClick={handleSignUp}>
+    <Button className="btn" onClick={handleSignUp}>
       Sign Up
     </Button>
   );

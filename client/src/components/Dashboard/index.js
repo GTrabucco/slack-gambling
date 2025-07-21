@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
-import { Container, Row, Col, Table, Button, Accordion, Form } from 'react-bootstrap';
+import { Container, Row, Col, Table, Button, Accordion, Form, Card } from 'react-bootstrap';
 import './style.css'
 import { useAuth0 } from "@auth0/auth0-react";
 import StevenNotification from "../StevenNotification";
@@ -200,12 +200,13 @@ const Dashboard = () => {
           setMessage={setMessage}
         />
       </Row>
+      <br/>
       <hr></hr>
       <Row>
-        <Col><b>Favorite Selected</b></Col>
-        <Col><b>Underdog Selected</b></Col>
-        <Col><b>Over Selected</b></Col>
-        <Col><b>Under Selected</b></Col>
+        <Col><b>Favorite</b></Col>
+        <Col><b>Underdog</b></Col>
+        <Col><b>Over</b></Col>
+        <Col><b>Under</b></Col>
       </Row>
       <Row>
         <Col>
@@ -285,8 +286,8 @@ const Dashboard = () => {
                       />
                       {away_picked ?
                         <div><div className="team-name picked">{away_team}</div>
-                          <b className="picked">{away_spread}</b></div> :
-                        <div><div className="team-name">{away_team}</div><b>{away_spread}</b></div>
+                          <b className="picked">{away_spread > 0 ? "+" + away_spread : away_spread}</b></div> :
+                        <div><div className="team-name">{away_team}</div><b>{away_spread > 0 ? "+" + away_spread : away_spread }</b></div>
                       }
                     </div>
                     <div className="team-container">
@@ -297,8 +298,8 @@ const Dashboard = () => {
                       />
                       {home_picked ?
                         <div><div className="team-name picked">{home_team}</div>
-                          <b className="picked">{home_spread}</b></div> :
-                        <div><div className="team-name">{home_team}</div><b>{home_spread}</b></div>
+                          <b className="picked">{home_spread > 0 ? "+" + home_spread : home_spread}</b></div> :
+                        <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
                       }
                     </div>
                     <div className="icon-text-container">
@@ -329,33 +330,16 @@ const Dashboard = () => {
                     <Accordion.Body>
                       <Form onSubmit={(e) => submitPicks(e, game["_id"])}>
                         <Table>
-                          <tbody>
-                            <tr key={game["_id"]} style={{ border: "none" }}>
+                          <tbody key={game["_id"]} style={{ border: "none" }}>
+                            <tr>                             
                               <td style={{ border: "none" }}>
                                 <b>{new Date(commenceTime).toLocaleString()}</b>
                               </td>
-                              <td style={{ border: "none" }}>
-                                <Form.Check
-                                  disabled={gameStarted(commenceTime)}
-                                  checked={tempPicks[`${game["_id"]}-favorite`] || false}
-                                  onChange={() =>
-                                    updatePick(
-                                      game["_id"],
-                                      home_team,
-                                      away_team,
-                                      "favorite",
-                                      favorite_spread,
-                                      favorite
-                                    )
-                                  }
-                                  label={favorite}
-                                />
-                              </td>
-                              <td style={{ border: "none" }}>
-                                <Form.Check
-                                  disabled={gameStarted(commenceTime)}
-                                  checked={tempPicks[`${game["_id"]}-dog`] || false}
-                                  onChange={() =>
+                            </tr>
+                            { home_spread < 0 ? (
+                              <>
+                                <tr>
+                                  <td style={{ border: "none" }} onClick={() =>
                                     updatePick(
                                       game["_id"],
                                       home_team,
@@ -363,12 +347,118 @@ const Dashboard = () => {
                                       "dog",
                                       underdog_spread,
                                       underdog
-                                    )
-                                  }
-                                  label={underdog}
-                                />
-                              </td>
-                              <td style={{ border: "none" }}>
+                                    )}>
+                                    <Form.Check
+                                      disabled={gameStarted(commenceTime)}
+                                      checked={tempPicks[`${game["_id"]}-dog`] || false}
+                                      onChange={() =>
+                                        updatePick(
+                                          game["_id"],
+                                          home_team,
+                                          away_team,
+                                          "dog",
+                                          underdog_spread,
+                                          underdog
+                                        )
+                                      }
+                                      label={underdog}
+                                    />
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td style={{ border: "none" }} onClick={() => updatePick(
+                                    game["_id"],
+                                    home_team,
+                                    away_team,
+                                    "favorite",
+                                    favorite_spread,
+                                    favorite
+                                  )}>
+                                    <Form.Check
+                                      disabled={gameStarted(commenceTime)}
+                                      checked={tempPicks[`${game["_id"]}-favorite`] || false}
+                                      onChange={() =>
+                                        updatePick(
+                                          game["_id"],
+                                          home_team,
+                                          away_team,
+                                          "favorite",
+                                          favorite_spread,
+                                          favorite
+                                        )
+                                      }
+                                      label={favorite}
+                                    />
+                                  </td>
+                                </tr>
+                              </>
+                            ) : (
+                              <>
+                                <tr>
+                                  <td style={{ border: "none" }} onClick={() => updatePick(
+                                    game["_id"],
+                                    home_team,
+                                    away_team,
+                                    "favorite",
+                                    favorite_spread,
+                                    favorite
+                                  )}>
+                                    <Form.Check
+                                      disabled={gameStarted(commenceTime)}
+                                      checked={tempPicks[`${game["_id"]}-favorite`] || false}
+                                      onChange={() =>
+                                        updatePick(
+                                          game["_id"],
+                                          home_team,
+                                          away_team,
+                                          "favorite",
+                                          favorite_spread,
+                                          favorite
+                                        )
+                                      }
+                                      label={favorite}
+                                    />
+                                  </td>
+                                </tr>
+                                <tr>
+                                  <td style={{ border: "none" }} onClick={() =>
+                                    updatePick(
+                                      game["_id"],
+                                      home_team,
+                                      away_team,
+                                      "dog",
+                                      underdog_spread,
+                                      underdog
+                                    )}>
+                                    <Form.Check
+                                      disabled={gameStarted(commenceTime)}
+                                      checked={tempPicks[`${game["_id"]}-dog`] || false}
+                                      onChange={() =>
+                                        updatePick(
+                                          game["_id"],
+                                          home_team,
+                                          away_team,
+                                          "dog",
+                                          underdog_spread,
+                                          underdog
+                                        )
+                                      }
+                                      label={underdog}
+                                    />
+                                  </td>
+                                </tr>
+                              </>
+                            )}                            
+                            <tr>
+                              <td style={{ border: "none" }} onClick={() =>
+                                updatePick(
+                                  game["_id"],
+                                  home_team,
+                                  away_team,
+                                  "over",
+                                  over,
+                                  `${home_team} ${away_team} Over ${over}`
+                                )}>
                                 <Form.Check
                                   disabled={gameStarted(commenceTime)}
                                   checked={tempPicks[`${game["_id"]}-over`] || false}
@@ -385,7 +475,17 @@ const Dashboard = () => {
                                   label={<span>Over {over}</span>}
                                 />
                               </td>
-                              <td style={{ border: "none" }}>
+                            </tr>
+                            <tr>
+                              <td style={{ border: "none" }} onClick={() =>
+                                updatePick(
+                                  game["_id"],
+                                  home_team,
+                                  away_team,
+                                  "under",
+                                  under,
+                                  `${home_team} ${away_team} Under ${under}`
+                                )}>
                                 <Form.Check
                                   disabled={gameStarted(commenceTime)}
                                   checked={tempPicks[`${game["_id"]}-under`] || false}
@@ -397,15 +497,13 @@ const Dashboard = () => {
                                       "under",
                                       under,
                                       `${home_team} ${away_team} Under ${under}`
-                                    )
-                                  }
+                                    )}
                                   label={<span>Under {under}</span>}
                                 />
                               </td>
                             </tr>
                           </tbody>
                         </Table>
-                        {/* Right-aligned submit button */}
                         <div className="d-flex justify-content-end">
                           <Button className="submit-btn" type="submit">{submitButtonText}</Button>
                         </div>

@@ -2,6 +2,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect } from "react";
 import { Button } from "react-bootstrap";
 import axios from "axios";
+import "./style.css";
 
 export const LoginButton = () => {
   const { loginWithRedirect, getAccessTokenSilently, isAuthenticated } = useAuth0();
@@ -30,7 +31,7 @@ export const LoginButton = () => {
   }, [isAuthenticated, getAccessTokenSilently]);
 
   return (
-    <Button className="button__login" onClick={handleLogin}>
+    <Button className="btn" onClick={handleLogin}>
       Log In
     </Button>
   );

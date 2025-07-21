@@ -207,8 +207,13 @@ app.get('/api/get-weekly-picks', async (req, res) => {
 app.get('/api/get-pick-history', async (req, res) => {
     try {
         const { username } = req.query;
-        const db = client.db(DATABASE_NAME); 
-        const data = await db.collection('Picks_History').find({username: username}).toArray();
+        const db = client.db(DATABASE_NAME);
+        let data = null 
+        if (username) {
+            data = await db.collection('Picks_History').find({username: username}).toArray();
+        } else {
+            data = await db.collection('Picks_History').find({}).toArray();  
+        }
         res.json(data);
     } catch (error) {
         console.log(error)
@@ -228,9 +233,20 @@ app.get('/api/userdetails', async (req, res) => {
     }
 });
 
+app.get('/api/get-users', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME); 
+        const data = await db.collection('User_Details').find({}).toArray();
+        res.json(data);
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ error: 'Error fetching data from MongoDB' });
+    }
+});
+
 app.post('/api/update-userdetails', async (req, res) => {
     try {
-        const { username, receiveSundayReminder } = req.body;
+        const { username, receiveSundayReminder, displayName } = req.body;
         const db = client.db(DATABASE_NAME);
         const userDetails = db.collection('User_Details');
         const filter = { username: username };
@@ -238,13 +254,14 @@ app.post('/api/update-userdetails', async (req, res) => {
         const update = {
             $set: {
                 username: username,
-                receiveSundayReminder: receiveSundayReminder
+                receiveSundayReminder: receiveSundayReminder,
+                displayName: displayName
             }
         };
 
         const options = { upsert: true };
         await userDetails.updateOne(filter, update, options);
-        console.log(`Updated Details for username: ${username}, receiveSundayReminder: ${receiveSundayReminder}`);
+        console.log(`Updated Details for username: ${username}, receiveSundayReminder: ${receiveSundayReminder}, displayName: ${displayName}`);
         res.json({ success: true });
     } catch (error) {
         console.error('Error updating user details:', error);

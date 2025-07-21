@@ -49,20 +49,7 @@ const PickHistory = (props) => {
     return (
         <Container>
             <Row>
-                <h5>{ usernameDisplay }</h5>
-                <h5>Pick History</h5>
-                <Button id="back">
-                    <Nav.Link
-                        key={`/standings`}
-                        onClick={() => navigate(`/standings`)}
-                        style={{ cursor: "pointer" }}
-                    >
-                        Back to Standings
-                    </Nav.Link>
-                </Button>              
-            </Row>
-            <Row>
-                <Table striped bordered hover>
+                <Table responsive bordered hover>
                     <thead>
                         <tr>
                             <th>Submitted</th>

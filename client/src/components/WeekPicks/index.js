@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Table } from 'react-bootstrap';
+import { useState, useEffect } from "react";
+import { Container, Row } from 'react-bootstrap';
 import axios from 'axios'
 import { useAuth0 } from "@auth0/auth0-react";
 import './style.css'

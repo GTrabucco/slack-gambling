@@ -10,7 +10,7 @@ const Login = () => {
   return (
     <Container fluid className="p-0" style={{ height: '100vh' }}>
       <Row className="no-gutters h-100">
-        <Col md={8} className="d-none d-md-block p-0">
+        <Col xs={12} md={8} className="p-0">  
           <img
             src="stevenlogo.png"
             alt="Steven"

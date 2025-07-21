@@ -1,13 +1,23 @@
 import React, { useState } from "react";
-import { Container, Navbar, Nav, Offcanvas, Button } from "react-bootstrap";
+import { Navbar, Nav, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { LogoutButton } from "../Buttons/logout.button";
 import { useAuth0 } from "@auth0/auth0-react";
+import {
+    BsClockHistory, BsBug, BsCalculator, BsCardChecklist,
+    BsPersonCircle, BsHouseDoor
+} from "react-icons/bs";
+import { IoLogOut, IoPodiumOutline } from "react-icons/io5";
+import { ImStatsDots } from "react-icons/im";
+import './style.css';
 
 const StevenNavbar = () => {
     const { user } = useAuth0();
     const [show, setShow] = useState(false);
-    const handleShow = () => setShow(true);
+    const handleShow = (e) => {
+        setShow(true);
+        e.currentTarget.blur();
+    };
     const handleClose = () => setShow(false);
     const navigate = useNavigate();
 
@@ -17,70 +27,54 @@ const StevenNavbar = () => {
     };
 
     const menuLinks = [
-        { path: "/dashboard", label: "Dashboard" },
-        //{ path: "/weekpicks", label: "Week Picks" },
-        { path: "/standings", label: "Standings" },
-        { path: "/pickhistory", label: "Pick History" },
-        { path: "/statistics", label: "Statistics" },
-        { path: "/reportissue", label: "Report An Issue" },
-        { path: "/calculatescoring", label: "Calculate Scoring", show: true },
-        { path: "/viewReports", label: "View Reports", show: true },
-        { path: "/account", label: "Account Details" },
+        { path: "/dashboard", label: "Home", icon: <BsHouseDoor /> },
+        { path: "/standings", label: "Standings", icon: <IoPodiumOutline /> },
+        { path: "/pickhistory", label: "History", icon: <BsClockHistory /> },
+        { path: "/statistics", label: "Statistics", icon: <ImStatsDots /> },
+        { path: "/reportissue", label: "Report Issue", icon: <BsBug /> },
+        { path: "/calculatescoring", label: "Calculate Scoring", icon: <BsCalculator />, show: true },
+        { path: "/viewReports", label: "Reports", icon: <BsCardChecklist />, show: true },
+        { path: "/account", label: "Account", icon: <BsPersonCircle /> }
     ];
 
     return (
-        <Container fluid>
+        <>
             <Navbar className="bg-body-tertiary" expand="lg">
-                <Container>
-                    {/* Menu button for Offcanvas */}
-                    <Navbar.Brand style={{ cursor: "pointer" }}>
-                        <Button onClick={handleShow}>
-                            ☰
-                        </Button>
-                    </Navbar.Brand>
-
-                    <Navbar.Collapse id="responsive-navbar-nav" className="d-none d-lg-flex">
-                        <Nav className="me-auto">
-                            {menuLinks.map(
-                                (link) =>
-                                    (link.show === undefined || link.show) && (
-                                        <Nav.Link
-                                            key={link.path}
-                                            onClick={() => handleNavigate(link.path)}
-                                            style={{ cursor: "pointer" }}
-                                        >
-                                            {link.label}
-                                        </Nav.Link>
-                                    )
-                            )}
-                        </Nav>
-                    </Navbar.Collapse>
-                    <LogoutButton />
-                </Container>
+                <Navbar.Brand style={{ cursor: "pointer" }}>
+                    <Button onClick={(e) => handleShow(e)} className="accordian" style={{ marginLeft: 15 }}>
+                        <img src="/menu.svg" alt="Menu" style={{ width: '45px', height: '24px' }} />
+                    </Button>
+                    <a className="navbar-brand text-body-secondary" href="/">
+                        <img alt="" className="spin" width="45" height="45" src="/stevenlogo.png" style={{ marginLeft: 15 }} />
+                        <span style={{ fontFamily: "Segoe UI", fontWeight: 400, fontSize: 16, marginLeft: 10 }}>Slack Gambling</span>
+                    </a>
+                </Navbar.Brand>
             </Navbar>
 
-            <Offcanvas show={show} onHide={handleClose} backdrop="static">
-                <Offcanvas.Header closeButton>
-                    <Offcanvas.Title>Menu</Offcanvas.Title>
-                </Offcanvas.Header>
-                <Offcanvas.Body>
-                    <Nav className="flex-column">
-                        {menuLinks.map(
-                            (link) =>
-                                (link.show === undefined || link.show) && (
-                                    <Nav.Link
-                                        key={link.path}
-                                        onClick={() => handleNavigate(link.path)}
-                                        style={{ cursor: "pointer" }}
-                                    >
-                                        {link.label}
-                                    </Nav.Link>
-                                )
-                        )}
-                    </Nav>
-                </Offcanvas.Body>
-            </Offcanvas>
-        </Container>
+            {show && <div className="custom-backdrop" onClick={handleClose}></div>}
+
+            <div className={`custom-offcanvas ${show ? "show" : ""}`}>
+                <Nav className="flex-column">
+                    {menuLinks.map(
+                        (link) =>
+                            (link.show === undefined || link.show) && (
+                                <Nav.Link
+                                    className="menu-links"
+                                    key={link.path}
+                                    onClick={() => handleNavigate(link.path)}
+                                    style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}
+                                >
+                                    {link.icon} {link.label}
+                                </Nav.Link>
+                            )
+                    )}
+                    <Nav.Link as="div" className="menu-links" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <IoLogOut />
+                        <LogoutButton />
+                    </Nav.Link>
+                </Nav>
+            </div>
+        </>
     );
 };
 

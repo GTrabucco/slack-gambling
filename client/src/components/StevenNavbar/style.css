@@ -1,0 +1,70 @@
+.accordian {
+  background-color: transparent;
+  padding: 0.25rem;
+  outline: none;
+  border-color: lightgray;
+}
+
+.accordian:focus,
+.accordian:active,
+.accordian:focus:active {
+  background-color: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  transition: width 0.3s ease;
+}
+
+.accordian:hover {
+  background-color: transparent;
+  border-color: lightgrey;
+}
+
+.menu-links:nth-child(1) {
+  margin-top: 10px;
+}
+
+.menu-links {
+  width: 100%;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: left;
+  font-family: "Segoe UI";
+  font-weight: 500;
+  font-size: 16px;
+  color: black;
+  display: block;
+}
+
+.menu-links:hover {
+  background-color: darkgrey;
+  color: black;
+}
+
+.custom-offcanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 190px;
+  height: 100%;
+  background-color: white;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1050;
+  overflow-y: auto;
+}
+
+.custom-offcanvas.show {
+  transform: translateX(0%);
+}
+
+.custom-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 1040;
+}

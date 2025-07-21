@@ -5,6 +5,7 @@ import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.css';
 import App from './App';
 import { BrowserRouter } from 'react-router-dom';
+import './index.css';
 
 const root = createRoot(document.getElementById('root'));
 const domain = process.env.REACT_APP_AUTH0_DOMAIN;

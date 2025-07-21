@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Container, Table, Form, Row } from 'react-bootstrap';
+import { Container, Table, Form, Row, Button } from 'react-bootstrap';
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import StevenNotification from "../StevenNotification";
@@ -8,8 +8,9 @@ import './style.css'
 const UserAccount = () => {
     const { user } = useAuth0();
     const [message, setMessage] = useState();
-    const [userDetails, setUserDetails] = useState();
+    const [displayName, setDisplayName] = useState(null);
     const [receiveSundayReminderChecked, setReceiveSundayReminderChecked] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
     useEffect(() => {
@@ -22,8 +23,12 @@ const UserAccount = () => {
                 });
 
                 const details = response.data[0];
-                setUserDetails(details);
+                if (!details) {
+                    updateUserDetails();
+                }
+
                 setReceiveSundayReminderChecked(details.receiveSundayReminder);
+                setDisplayName(details.displayName)
             } catch (error) {
                 setMessage('Error fetching user details');
             }
@@ -33,15 +38,12 @@ const UserAccount = () => {
     }, [user.name, apiBaseUrl]);
 
     const updateUserDetails = async (e) => {
-        const newReceiveSundayReminderChecked = e.target.checked;
-        setReceiveSundayReminderChecked(newReceiveSundayReminderChecked);
-
         try {
             const username = user.name;
-            const receiveSundayReminder = newReceiveSundayReminderChecked;
             await axios.post(`${apiBaseUrl}/api/update-userdetails`, {
                 username: username,
-                receiveSundayReminder: receiveSundayReminder
+                displayName: displayName,
+                receiveSundayReminder: receiveSundayReminderChecked
             });
             setMessage('Updated User Details');
         } catch (error) {
@@ -57,29 +59,54 @@ const UserAccount = () => {
                     setMessage={setMessage}
                 />
             </Row>
+            <br/>
             <Row>
                 <Table striped bordered hover>
                     <thead>
-                        <tr>
-                            <th class="ua-cell">Username</th>
-                            <th class="ua-cell">Email</th>
-                            <th class="ua-cell">Receive Sunday Morning (9am Eastern) Reminders</th>
-                        </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="ua-cell">{user.name}</td>
+                            <td><b>Display Name</b></td>
+                            <td
+                                className="ua-cell"
+                                onClick={() => setIsEditing(true)}
+                            >
+                            {isEditing ? (
+                                <input
+                                    type="text"
+                                    value={displayName}
+                                    autoFocus
+                                    onChange={(e) => setDisplayName(e.target.value)}
+                                    onBlur={() => setIsEditing(false)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            setIsEditing(false);
+                                        }
+                                    }}
+                                />
+                            ) : (
+                                displayName ? displayName : user.name
+                            )}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="ua-cell"><b>Email</b></td>
                             <td class="ua-cell">{user.email}</td>
+                        </tr>
+                        <tr>
+                            <td class="ua-cell"><b>Receive Sunday Morning (9am Eastern) Reminders</b></td>
                             <td class="ua-cell">
                                 <Form>
                                     <Form.Check 
-                                        type="switch"
-                                        id="custom-switch"
-                                        onChange={updateUserDetails}
                                         checked={receiveSundayReminderChecked}
+                                        onChange={() => setReceiveSundayReminderChecked(!receiveSundayReminderChecked)}
                                     />
                                 </Form>
                             </td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td><Button onClick={(()=>updateUserDetails())}>Save Changes</Button></td>
                         </tr>
                     </tbody>
                 </Table>
