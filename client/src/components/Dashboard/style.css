@@ -1,3 +1,8 @@
+.dashboard-container {
+  margin-left: 25px;
+  margin-right: 25px;
+}
+
 .bet-btn {
   display: block;
   width: 100%;
@@ -19,7 +24,7 @@
 }
 
 .team-container {
-  width: 200px;
+  width: 300px;
   text-align: center;
   margin-bottom: 10px;
 }
@@ -35,7 +40,7 @@
 }
 
 .icon-text-container {
-  width: 200px;
+  width: 300px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -48,12 +53,28 @@
   font-size: 14px;
 }
 
-.submit-btn:focus {
-  background-color: green !important;
+.dashboard-btn,
+.dashboard-btn:focus,
+.dashboard-btn:hover {
+  background-color: lightgray !important;
+  border-color: lightgray !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: black !important;
+  width:250px;
+}
+
+.dashboard-btn:active {
+  background-color: rgb(224, 224, 224) !important;
+  border-color: rgb(224, 224, 224) !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: black !important;
+  width:250px;
 }
 
 .pick-bubble {
-  background-color: red;
+  font-weight: bold;
   border-radius: 10px;
   color: white;
   font-weight: bold;
@@ -76,4 +97,13 @@
     color: black;
   }
 
+}
+
+.accordion-button {
+  justify-content: center !important;
+}
+
+.accordion-button {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }

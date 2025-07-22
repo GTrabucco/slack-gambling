@@ -96,7 +96,7 @@ const Standings = () => {
                 <h2>Standings</h2>
             </Row>
             {error && <div className="alert alert-danger">{error}</div>}
-            <Table responsive bordered hover>
+            <Table responsive bordered>
                 <thead>
                     <tr>
                         <th></th>

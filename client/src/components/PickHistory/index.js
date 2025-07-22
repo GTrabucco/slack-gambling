@@ -49,7 +49,7 @@ const PickHistory = (props) => {
     return (
         <Container>
             <Row>
-                <Table responsive bordered hover>
+                <Table responsive bordered>
                     <thead>
                         <tr>
                             <th>Submitted</th>

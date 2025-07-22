@@ -1,6 +1,10 @@
-.btn {
-    background-color: lightgray;
-    border-color: lightgray;
-    color:black;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+.steven-btn,
+.steven-btn:focus,
+.steven-btn:hover,
+.steven-btn:active {
+  background-color: lightgray !important;
+  border-color: lightgray !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: black !important;
 }

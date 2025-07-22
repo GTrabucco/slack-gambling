@@ -31,7 +31,7 @@ export const LoginButton = () => {
   }, [isAuthenticated, getAccessTokenSilently]);
 
   return (
-    <Button className="btn" onClick={handleLogin}>
+    <Button className="steven-btn" onClick={handleLogin}>
       Log In
     </Button>
   );

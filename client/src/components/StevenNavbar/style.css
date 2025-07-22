@@ -6,18 +6,17 @@
 }
 
 .accordian:focus,
-.accordian:active,
-.accordian:focus:active {
-  background-color: transparent;
-  border: none;
-  outline: none;
-  box-shadow: none;
-  transition: width 0.3s ease;
+.accordian:active {
+  background-color: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: width 0.3s ease !important;
+  background-color: transparent !important;
 }
 
 .accordian:hover {
-  background-color: transparent;
-  border-color: lightgrey;
+  background-color: transparent !important;
+  border-color: lightgrey !important;
 }
 
 .menu-links:nth-child(1) {

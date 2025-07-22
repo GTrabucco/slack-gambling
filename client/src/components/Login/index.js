@@ -10,15 +10,11 @@ const Login = () => {
   return (
     <Container fluid className="p-0" style={{ height: '100vh' }}>
       <Row className="no-gutters h-100">
-        <Col xs={12} md={8} className="p-0">  
-          <img
-            src="stevenlogo.png"
-            alt="Steven"
-            className="w-100 h-100 object-fit-cover"
-          />
-        </Col>
-        <Col md={4} className="d-flex align-items-center justify-content-center bg-light">
+        <Col md={4} className="d-flex align-items-center justify-content-center bg-light" style={{width: "100%"}}>
           <div className="d-flex flex-column">
+            <Row className="mb-4">
+              <h2>Slack Gambling</h2>
+            </Row>
             <Row className="mb-4">
               <LoginButton />
             </Row> 

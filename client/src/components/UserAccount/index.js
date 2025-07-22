@@ -61,7 +61,7 @@ const UserAccount = () => {
             </Row>
             <br/>
             <Row>
-                <Table striped bordered hover>
+                <Table striped bordered>
                     <thead>
                     </thead>
                     <tbody>
@@ -85,7 +85,12 @@ const UserAccount = () => {
                                     }}
                                 />
                             ) : (
-                                displayName ? displayName : user.name
+                                <>
+                                    <tr>
+                                        <td>{displayName ? displayName : user.name}</td>
+                                        <td><span style={{ color: "blue", paddingLeft: "5px" }}>(edit)</span></td>
+                                    </tr>
+                                </>
                             )}
                             </td>
                         </tr>

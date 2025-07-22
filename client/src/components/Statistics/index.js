@@ -119,7 +119,7 @@ const Statistics = () => {
           <h4>Overall Record</h4>
         </Row>
         <Row className="no-gutters h-100">
-          <Table striped bordered hover>
+          <Table striped bordered>
             <thead>
             </thead>
             <tbody>
@@ -172,7 +172,7 @@ const Statistics = () => {
                 <h4>{season} Stats</h4>
               </Row>
               <Row className="no-gutters h-100">
-                <Table striped bordered hover>
+                <Table striped bordered>
                   <thead>
                   </thead>
                   <tbody>
