@@ -111,7 +111,7 @@ const UserAccount = () => {
                         </tr>
                         <tr>
                             <td></td>
-                            <td><Button onClick={(()=>updateUserDetails())}>Save Changes</Button></td>
+                            <td><Button className="account-btn" onClick={(()=>updateUserDetails())}>Save Changes</Button></td>
                         </tr>
                     </tbody>
                 </Table>

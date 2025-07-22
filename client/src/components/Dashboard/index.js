@@ -181,7 +181,6 @@ const Dashboard = () => {
         <Col>
           {<div className="team-name">{selectedPicks[Object.keys(selectedPicks).find(key => key.endsWith('-under'))]}</div>}
         </Col>
-
       </Row>
       <hr />
       <Row className="justify-content-md-center">
@@ -217,7 +216,6 @@ const Dashboard = () => {
                     (tempPicks[`${game["_id"]}-favorite`] && tempPicks[`${game["_id"]}-favorite`].text.includes(home_team_name));
                   let over_picked = tempPicks[`${game["_id"]}-over`] ? true : false;
                   let under_picked = tempPicks[`${game["_id"]}-under`] ? true : false;
-
                   let header = (
                     <>
                       <div className="d-flex justify-content-center align-items-center text-center w-100">

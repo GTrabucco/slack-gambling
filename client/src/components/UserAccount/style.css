@@ -1,14 +1,32 @@
 .ua-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-    font-size: 12px;
-    text-align: left;
-    background-color: #ffffff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  .ua-cell {
-    padding: 12px 15px;
-    border: 1px solid black;
-  }
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 12px;
+  text-align: left;
+  background-color: #ffffff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.ua-cell {
+  padding: 12px 15px;
+  border: 1px solid black;
+}
+
+.account-btn,
+.account-btn:focus,
+.account-btn:hover {
+  background-color: lightgray !important;
+  border-color: lightgray !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: black !important;
+}
+
+.account-btn:active {
+  background-color: rgb(224, 224, 224) !important;
+  border-color: rgb(224, 224, 224) !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: black !important;
+}

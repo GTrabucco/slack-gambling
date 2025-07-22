@@ -1,9 +1,16 @@
 .steven-btn,
 .steven-btn:focus,
-.steven-btn:hover,
-.steven-btn:active {
+.steven-btn:hover {
   background-color: lightgray !important;
   border-color: lightgray !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: black !important;
+}
+
+.steven-btn:active {
+  background-color: rgb(224, 224, 224) !important;
+  border-color: rgb(224, 224, 224) !important;
   outline: none !important;
   box-shadow: none !important;
   color: black !important;
