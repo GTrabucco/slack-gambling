@@ -1,0 +1,18 @@
+.jobrunner-btn,
+.jobrunner-btn:focus,
+.jobrunner-btn:hover {
+  background-color: lightgray !important;
+  border-color: lightgray !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: black !important;
+  width: 250px;
+}
+
+.jobrunner-btn:active {
+  background-color: rgb(224, 224, 224) !important;
+  border-color: rgb(224, 224, 224) !important;
+  outline: none !important;
+  box-shadow: none !important;
+  color: black !important;
+}

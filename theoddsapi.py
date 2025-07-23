@@ -14,7 +14,8 @@ odds_api_key = os.getenv('ODDS_API_KEY')
 if not odds_api_key:
     raise ValueError('ODDS_API_KEY not found in .env file')
 
-SPORT = 'americanfootball_nfl'
+SPORT = 'americanfootball_nfl_preseason'
+#SPORT = 'americanfootball_nfl'
 REGIONS = 'us'
 MARKETS = 'totals,spreads'
 ODDS_FORMAT = 'american'

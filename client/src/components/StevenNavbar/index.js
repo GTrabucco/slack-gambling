@@ -7,8 +7,9 @@ import {
     BsClockHistory, BsBug, BsCalculator, BsCardChecklist,
     BsPersonCircle, BsHouseDoor
 } from "react-icons/bs";
-import { IoLogOut, IoPodiumOutline } from "react-icons/io5";
+import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
 import { ImStatsDots } from "react-icons/im";
+import { GiRunningNinja } from "react-icons/gi";
 import './style.css';
 
 const StevenNavbar = () => {
@@ -34,7 +35,8 @@ const StevenNavbar = () => {
         { path: "/reportissue", label: "Report Issue", icon: <BsBug /> },
         { path: "/calculatescoring", label: "Calculate Scoring", icon: <BsCalculator />, show: true },
         { path: "/viewReports", label: "Reports", icon: <BsCardChecklist />, show: true },
-        { path: "/account", label: "Account", icon: <BsPersonCircle /> }
+        { path: "/account", label: "Account", icon: <BsPersonCircle /> },
+        { path: "/jobrunner", label: "Job Runner", icon: <GiRunningNinja /> },
     ];
 
     return (
@@ -69,7 +71,7 @@ const StevenNavbar = () => {
                             )
                     )}
                     <Nav.Link as="div" className="menu-links" style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                        <IoLogOut />
+                        <IoLogOutOutline />
                         <LogoutButton />
                     </Nav.Link>
                 </Nav>

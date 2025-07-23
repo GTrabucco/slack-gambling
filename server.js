@@ -6,6 +6,7 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 5000;
 const SEASON = "2025"
+const { spawn } = require('child_process');
 const allowedOrigins = [
     'https://slackgambling.com',            
     'https://www.slackgambling.com',        
@@ -52,6 +53,80 @@ app.get('/api/games', async (req, res) => {
         res.status(500).json({ error: 'Error fetching data from MongoDB' });
     }
 });
+
+app.post('/api/tuesday-job', async (req, res) => {
+    const { season, week } = req.body;
+
+    const pythonProcess = spawn('python', ['tuesdayjob.py', season, week]);
+    let output = '';
+    let error = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+        output += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        error += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+        if (code === 0) {
+            console.log(output)
+            res.json({ output });
+        } else {
+            console.log('error', error)
+            res.status(500).json({ error });
+        }
+    });
+})
+
+app.post('/api/friday-job', async (req, res) => {
+    const pythonProcess = spawn('python', ['fridayjob.py']);
+    let output = '';
+    let error = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+        output += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        error += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+        if (code === 0) {
+            console.log(output)
+            res.json({ output });
+        } else {
+            console.log('error', error)
+            res.status(500).json({ error });
+        }
+    });
+})
+
+app.post('/api/sunday-reminder-job', async (req, res) => {
+    const pythonProcess = spawn('python', ['sundayreminder.py']);
+    let output = '';
+    let error = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+        output += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+        error += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+        if (code === 0) {
+            console.log(output)
+            res.json({ output });
+        } else {
+            console.log('error', error)
+            res.status(500).json({ error });
+        }
+    });
+})
 
 app.post('/api/report-issue', async (req, res) => {
     const { username, description } = req.body;
@@ -246,7 +321,7 @@ app.get('/api/get-users', async (req, res) => {
 
 app.post('/api/update-userdetails', async (req, res) => {
     try {
-        const { username, receiveSundayReminder, displayName } = req.body;
+        const { username, receiveSundayReminder, displayName, phoneNumber } = req.body;
         const db = client.db(DATABASE_NAME);
         const userDetails = db.collection('User_Details');
         const filter = { username: username };
@@ -255,7 +330,8 @@ app.post('/api/update-userdetails', async (req, res) => {
             $set: {
                 username: username,
                 receiveSundayReminder: receiveSundayReminder,
-                displayName: displayName
+                displayName: displayName,
+                phoneNumber: phoneNumber
             }
         };
 

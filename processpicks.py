@@ -2,6 +2,7 @@ import requests
 
 def process_picks(season, week, picks):
     week_type = 2  # 2 is regular season
+    week_type = 1 # 1 is preseason
     boxscores_url = f"https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/{season}/types/{week_type}/weeks/{week}/events?lang=en&region=us"
     game_summary_url = f"https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event="
     event_ids = []
@@ -31,6 +32,9 @@ def process_picks(season, week, picks):
                 data["awayTeam"] = team["team"]["displayName"]
                 data["awayScore"] = team["score"]
         results.append(data)
+    
+    print(results)
+    exit()
 
     for pick in picks:
         result = next((res for res in results if res["homeTeam"] == pick["homeTeam"] and res["awayTeam"] == pick["awayTeam"]), None)

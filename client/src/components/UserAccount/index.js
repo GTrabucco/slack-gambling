@@ -11,6 +11,7 @@ const UserAccount = () => {
     const [displayName, setDisplayName] = useState(null);
     const [receiveSundayReminderChecked, setReceiveSundayReminderChecked] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
+    const [phoneNumber, setPhoneNumber] = useState('');
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
     useEffect(() => {
@@ -29,6 +30,7 @@ const UserAccount = () => {
 
                 setReceiveSundayReminderChecked(details.receiveSundayReminder);
                 setDisplayName(details.displayName)
+                setPhoneNumber(details.phoneNumber)
             } catch (error) {
                 setMessage('Error fetching user details');
             }
@@ -43,7 +45,8 @@ const UserAccount = () => {
             await axios.post(`${apiBaseUrl}/api/update-userdetails`, {
                 username: username,
                 displayName: displayName,
-                receiveSundayReminder: receiveSundayReminderChecked
+                receiveSundayReminder: receiveSundayReminderChecked,
+                phoneNumber: phoneNumber
             });
             setMessage('Updated User Details');
         } catch (error) {
@@ -52,72 +55,78 @@ const UserAccount = () => {
     };
 
     return (
-        <Container>
+        <Container className="mt-4">
             <Row>
-                <StevenNotification 
-                    message={message}
-                    setMessage={setMessage}
-                />
+                <StevenNotification message={message} setMessage={setMessage} />
             </Row>
-            <br/>
-            <Row>
-                <Table striped bordered>
-                    <thead>
-                    </thead>
+
+            <Row className="mt-3">
+                <Table striped bordered responsive>
                     <tbody>
                         <tr>
                             <td><b>Display Name</b></td>
-                            <td
-                                className="ua-cell"
-                                onClick={() => setIsEditing(true)}
-                            >
-                            {isEditing ? (
-                                <input
-                                    type="text"
-                                    value={displayName}
-                                    autoFocus
-                                    onChange={(e) => setDisplayName(e.target.value)}
-                                    onBlur={() => setIsEditing(false)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            setIsEditing(false);
-                                        }
-                                    }}
-                                />
-                            ) : (
-                                <>
-                                    <tr>
-                                        <td>{displayName ? displayName : user.name}</td>
-                                        <td><span style={{ color: "blue", paddingLeft: "5px" }}>(edit)</span></td>
-                                    </tr>
-                                </>
-                            )}
+                            <td onClick={() => setIsEditing(true)} className="ua-cell" style={{ cursor: "pointer" }}>
+                                {isEditing ? (
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={displayName}
+                                        autoFocus
+                                        onChange={(e) => setDisplayName(e.target.value)}
+                                        onBlur={() => setIsEditing(false)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') setIsEditing(false);
+                                        }}
+                                    />
+                                ) : (
+                                    <>
+                                        {displayName || user.name}
+                                        <span style={{ color: "blue", paddingLeft: "10px" }}>(edit)</span>
+                                    </>
+                                )}
                             </td>
                         </tr>
                         <tr>
-                            <td class="ua-cell"><b>Email</b></td>
-                            <td class="ua-cell">{user.email}</td>
+                            <td><b>Email</b></td>
+                            <td>{user.email}</td>
                         </tr>
                         <tr>
-                            <td class="ua-cell"><b>Receive Sunday Morning (9am Eastern) Reminders</b></td>
-                            <td class="ua-cell">
+                            <td><b>Receive Sunday Morning (9am Eastern) Reminders</b></td>
+                            <td>
                                 <Form>
-                                    <Form.Check 
+                                    <Form.Check
                                         checked={receiveSundayReminderChecked}
                                         onChange={() => setReceiveSundayReminderChecked(!receiveSundayReminderChecked)}
+                                        label="Yes, send me reminders"
                                     />
+                                    {receiveSundayReminderChecked && (
+                                        <Form.Group controlId="formPhoneNumber" className="mt-2">
+                                            <Form.Label>Phone Number</Form.Label>
+                                            <Form.Control
+                                                type="tel"
+                                                placeholder="e.g. 123-456-7890"
+                                                value={phoneNumber}
+                                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                            />
+                                        </Form.Group>
+                                    )}
                                 </Form>
                             </td>
                         </tr>
                         <tr>
                             <td></td>
-                            <td><Button className="account-btn" onClick={(()=>updateUserDetails())}>Save Changes</Button></td>
+                            <td>
+                                <Button variant="primary" className="account-btn" onClick={updateUserDetails}>
+                                    Save Changes
+                                </Button>
+                            </td>
                         </tr>
                     </tbody>
                 </Table>
             </Row>
-            
         </Container>
+
+
     );
 };
 

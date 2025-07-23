@@ -14,6 +14,7 @@ import Statistics from "./components/Statistics";
 import PageLoader from "./components/PageLoader";
 import { AuthenticationGuard } from "./components/authentication-guard";
 import WeekPicks from "./components/WeekPicks";
+import JobRunner from "./components/Admin/JobRunner";
 if (process.env.NODE_ENV === 'production') disableReactDevTools();
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
         <Route element={<AdminRoute />}>
           <Route path="/calculatescoring" element={<AuthenticationGuard component={CalculateScoring} /> } />
           <Route path="/viewreports" element={<AuthenticationGuard component={ViewReports} /> } />
+          <Route path="/jobrunner" element={<AuthenticationGuard component={JobRunner} /> } />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />

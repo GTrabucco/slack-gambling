@@ -7,14 +7,15 @@ import theoddsapi
 from processpicks import process_picks
 from itertools import groupby
 import pandas as pd
+import sys
 
 load_dotenv()
 mongodb_uri = os.getenv('MONGODB_URI')
 if not mongodb_uri:
     raise ValueError("MONGODB_URI not found in .env file")
 
-SEASON = "2025"
-WEEK = 1
+SEASON = sys.argv[1]
+WEEK = sys.argv[2]
 client = MongoClient(mongodb_uri)
 db = client['SlackGambling']
 picks_collection = db['Picks']
@@ -34,11 +35,14 @@ def copy_and_clear_collection(source_collection, target_collection, session):
 
 def load_games(session):
     commence_time_from = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    commence_time_to = (commence_time_from + timedelta(days=9)).replace(
+    commence_time_to = (commence_time_from + timedelta(days=39)).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
 
     games = theoddsapi.get_games(commence_time_from, commence_time_to)
+    for game in games:
+        game["season"] = SEASON
+        game["week"] = WEEK
     games_collection.insert_many(games, session=session)
 
 def backup_data(session):
@@ -62,7 +66,7 @@ try:
             #picks_collection.delete_many({}, session=session)
             #copy_and_clear_collection(games_collection, games_history_collection, session)
             #load_games(session)
-            print("hello")
+            print("tuesdayjob", SEASON, WEEK)
 
 except errors.PyMongoError as error:
     print("Error during transaction: ", error)
