@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from 'axios';
-import { Row, Col, Table, Button, Accordion, Form, Card } from 'react-bootstrap';
+import { Row, Col, Accordion, Form } from 'react-bootstrap';
+import Button from '@mui/material/Button';
 import './style.css'
 import { useAuth0 } from "@auth0/auth0-react";
 import StevenNotification from "../StevenNotification";
@@ -276,7 +277,7 @@ const Dashboard = () => {
                           {(home_spread < 0 ? (
                             <>
                               <Col xs={12} sm={6} md={3}>
-                                <Button
+                                <Button variant="outlined"
                                   className="dashboard-btn w-100"
                                   disabled={gameStarted(commenceTime)}
                                   onClick={() =>
@@ -294,7 +295,7 @@ const Dashboard = () => {
                                 </Button>
                               </Col>
                               <Col xs={12} sm={6} md={3}>
-                                <Button
+                                <Button variant="outlined"
                                   className="dashboard-btn w-100"
                                   disabled={gameStarted(commenceTime)}
                                   onClick={() =>
@@ -315,7 +316,7 @@ const Dashboard = () => {
                           ) : (
                             <>
                               <Col xs={12} sm={6} md={3}>
-                                <Button
+                                <Button variant="outlined"
                                   className="dashboard-btn w-100"
                                   disabled={gameStarted(commenceTime)}
                                   onClick={() =>
@@ -333,7 +334,7 @@ const Dashboard = () => {
                                 </Button>
                               </Col>
                               <Col xs={12} sm={6} md={3}>
-                                <Button
+                                <Button variant="outlined"
                                   className="dashboard-btn w-100"
                                   disabled={gameStarted(commenceTime)}
                                   onClick={() =>
@@ -353,7 +354,7 @@ const Dashboard = () => {
                             </>
                           ))}
                           <Col xs={12} sm={6} md={3}>
-                            <Button
+                            <Button variant="outlined"
                               className="dashboard-btn w-100"
                               disabled={gameStarted(commenceTime)}
                               onClick={() =>
@@ -371,7 +372,7 @@ const Dashboard = () => {
                             </Button>
                           </Col>
                           <Col xs={12} sm={6} md={3}>
-                            <Button
+                            <Button variant="outlined"
                               className="dashboard-btn w-100"
                               disabled={gameStarted(commenceTime)}
                               onClick={() =>
@@ -396,7 +397,7 @@ const Dashboard = () => {
             </Accordion>
             <Row className="mt-5">
               <Col xs={12} md={{ span: 3, offset: 9 }} className="text-md-end text-center">
-                <Button className="dashboard-btn" type="submit">
+                <Button variant="outlined" className="dashboard-btn" type="submit">
                   {submitButtonText}
                 </Button>
               </Col>

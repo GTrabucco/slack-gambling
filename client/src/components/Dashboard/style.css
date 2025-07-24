@@ -14,6 +14,19 @@
   color: black;
 }
 
+.header-wrapper.no-wrap {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+  overflow-x: auto;  /* allows scrolling on overflow */
+  white-space: nowrap;
+  gap: 20px;
+  padding: 10px;
+}
+
 .logo {
   width: 30%;
 }
@@ -51,26 +64,6 @@
 
 .over-text {
   font-size: 14px;
-}
-
-.dashboard-btn,
-.dashboard-btn:focus,
-.dashboard-btn:hover {
-  background-color: lightgray !important;
-  border-color: lightgray !important;
-  outline: none !important;
-  box-shadow: none !important;
-  color: black !important;
-  width:250px;
-}
-
-.dashboard-btn:active {
-  background-color: rgb(224, 224, 224) !important;
-  border-color: rgb(224, 224, 224) !important;
-  outline: none !important;
-  box-shadow: none !important;
-  color: black !important;
-  width:250px;
 }
 
 .pick-bubble {
