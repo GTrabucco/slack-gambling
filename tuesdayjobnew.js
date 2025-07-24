@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { MongoClient } = require('mongodb');
 const { getGames } = require('./theoddsapinew');      // your converted theoddsapi.js
-const { processPicks } = require('./processPicks'); // your converted processPicks.js
+const { processPicks } = require('./processpicksnew'); // your converted processPicks.js
 const fs = require('fs');
 const path = require('path');
 
