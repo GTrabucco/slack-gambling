@@ -59,13 +59,12 @@ def backup_data(session):
 try:
     with client.start_session() as session:
         with session.start_transaction():
-            #backup_data(session)
-            #add_week_to_picks(session)
-            #processed_picks = process_picks(SEASON, WEEK, list(picks_collection.find()))
-            #picks_history_collection.insert_many(processed_picks, session=session)
-            #picks_collection.delete_many({}, session=session)
-            #copy_and_clear_collection(games_collection, games_history_collection, session)
-            #load_games(session)
+            backup_data(session)
+            processed_picks = process_picks(SEASON, WEEK, list(picks_collection.find()))
+            picks_history_collection.insert_many(processed_picks, session=session)
+            picks_collection.delete_many({}, session=session)
+            copy_and_clear_collection(games_collection, games_history_collection, session)
+            load_games(session)
             print("tuesdayjob", SEASON, WEEK)
 
 except errors.PyMongoError as error:

@@ -6,7 +6,9 @@ const path = require('path');
 const app = express();
 const port = process.env.PORT || 5000;
 const SEASON = "2025"
-const { spawn } = require('child_process');
+const fridayJob = require('./fridayjobnew');
+const tuesdayJob = require('./tuesdayjobnew');
+const sundayReminder = require('./sundayremindernew');
 const allowedOrigins = [
     'https://slackgambling.com',            
     'https://www.slackgambling.com',        
@@ -54,79 +56,38 @@ app.get('/api/games', async (req, res) => {
     }
 });
 
+
 app.post('/api/tuesday-job', async (req, res) => {
     const { season, week } = req.body;
 
-    const pythonProcess = spawn('python', ['tuesdayjob.py', season, week]);
-    let output = '';
-    let error = '';
-
-    pythonProcess.stdout.on('data', (data) => {
-        output += data.toString();
-    });
-
-    pythonProcess.stderr.on('data', (data) => {
-        error += data.toString();
-    });
-
-    pythonProcess.on('close', (code) => {
-        if (code === 0) {
-            console.log(output)
-            res.json({ output });
-        } else {
-            console.log('error', error)
-            res.status(500).json({ error });
-        }
-    });
-})
+    try {
+        const result = await tuesdayJob(season, week);
+        res.json({ message: 'Tuesday job executed successfully', result });
+    } catch (error) {
+        console.error('Tuesday Job Error:', error);
+        res.status(500).json({ error: 'Tuesday job failed', details: error.message });
+    }
+});
 
 app.post('/api/friday-job', async (req, res) => {
-    const pythonProcess = spawn('python', ['fridayjob.py']);
-    let output = '';
-    let error = '';
-
-    pythonProcess.stdout.on('data', (data) => {
-        output += data.toString();
-    });
-
-    pythonProcess.stderr.on('data', (data) => {
-        error += data.toString();
-    });
-
-    pythonProcess.on('close', (code) => {
-        if (code === 0) {
-            console.log(output)
-            res.json({ output });
-        } else {
-            console.log('error', error)
-            res.status(500).json({ error });
-        }
-    });
-})
+    try {
+        const result = await fridayJob();
+        res.json({ message: 'Friday job executed successfully', result });
+    } catch (error) {
+        console.error('Friday Job Error:', error);
+        res.status(500).json({ error: 'Friday job failed', details: error.message });
+    }
+});
 
 app.post('/api/sunday-reminder-job', async (req, res) => {
-    const pythonProcess = spawn('python', ['sundayreminder.py']);
-    let output = '';
-    let error = '';
-
-    pythonProcess.stdout.on('data', (data) => {
-        output += data.toString();
-    });
-
-    pythonProcess.stderr.on('data', (data) => {
-        error += data.toString();
-    });
-
-    pythonProcess.on('close', (code) => {
-        if (code === 0) {
-            console.log(output)
-            res.json({ output });
-        } else {
-            console.log('error', error)
-            res.status(500).json({ error });
-        }
-    });
-})
+    try {
+        const result = await sundayReminder();
+        res.json({ message: 'Sunday reminder sent successfully', result });
+    } catch (error) {
+        console.error('Sunday Reminder Job Error:', error);
+        res.status(500).json({ error: 'Sunday reminder failed', details: error.message });
+    }
+});
 
 app.post('/api/report-issue', async (req, res) => {
     const { username, description } = req.body;
