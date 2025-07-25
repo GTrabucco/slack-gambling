@@ -1,10 +1,18 @@
 import { useEffect, useState } from "react";
 import axios from 'axios';
 import { Row, Col, Accordion, Form } from 'react-bootstrap';
-import Button from '@mui/material/Button';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
 import './style.css'
 import { useAuth0 } from "@auth0/auth0-react";
 import StevenNotification from "../StevenNotification";
+import { FaTrash } from 'react-icons/fa';
+import StevenButton from "../Common/StevenButton";
 
 const Dashboard = () => {
   const [games, setGames] = useState([]);
@@ -163,26 +171,51 @@ const Dashboard = () => {
       </Row>
       <br />
       <hr></hr>
-      <Row>
-        <Col><b>Favorite</b></Col>
-        <Col><b>Underdog</b></Col>
-        <Col><b>Over</b></Col>
-        <Col><b>Under</b></Col>
-      </Row>
-      <Row>
-        <Col>
-          {<div className="team-name">{selectedPicks[Object.keys(selectedPicks).find(key => key.endsWith('-favorite'))]}</div>}
-        </Col>
-        <Col>
-          {<div className="team-name">{selectedPicks[Object.keys(selectedPicks).find(key => key.endsWith('-dog'))]}</div>}
-        </Col>
-        <Col>
-          {<div className="team-name">{selectedPicks[Object.keys(selectedPicks).find(key => key.endsWith('-over'))]}</div>}
-        </Col>
-        <Col>
-          {<div className="team-name">{selectedPicks[Object.keys(selectedPicks).find(key => key.endsWith('-under'))]}</div>}
-        </Col>
-      </Row>
+      <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableBody>
+              {['favorite', 'dog', 'over', 'under'].map((type) => {
+                const key = Object.keys(selectedPicks).find(k => k.endsWith(`-${type}`));
+                const value = selectedPicks[key];
+                return (
+                  <TableRow key={type}>
+                    <TableCell>
+                      <b>{type.charAt(0).toUpperCase() + type.slice(1)}</b>
+                    </TableCell>
+                    <TableCell>
+                      {value || "-"}
+                    </TableCell>
+                    <TableCell style={{ textAlign: 'center' }}>
+                      {value && (
+                        <span
+                          onClick={() => removePick(key, value)}
+                          style={{
+                            cursor: 'pointer',
+                            color: 'red',
+                            display: 'inline-flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            width: '100%',
+                          }}
+                          aria-label={`Remove ${type} pick`}
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') removePick(key, value);
+                          }}
+                        >
+                          <FaTrash />
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
       <hr />
       <Row className="justify-content-md-center">
         <Col>
@@ -272,13 +305,18 @@ const Dashboard = () => {
                       <Accordion.Header>{header}</Accordion.Header>
                       <Accordion.Body>
                         <div className="text-center mb-2">
-                          <b>{new Date(commenceTime).toLocaleString()}</b>
-                        </div>                        <Row className="g-2 mt-2">
+                          <b>
+                            {
+                              new Date(commenceTime).toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + new Date(commenceTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+                            }
+                          </b>
+                        </div>                        
+                        <Row className="g-2 mt-2">
                           {(home_spread < 0 ? (
                             <>
                               <Col xs={12} sm={6} md={3}>
-                                <Button variant="outlined"
-                                  className="dashboard-btn w-100"
+                                <StevenButton
+                                  className="w-100"
                                   disabled={gameStarted(commenceTime)}
                                   onClick={() =>
                                     updatePick(
@@ -292,11 +330,11 @@ const Dashboard = () => {
                                   }
                                 >
                                   {underdog}
-                                </Button>
+                                </StevenButton>
                               </Col>
                               <Col xs={12} sm={6} md={3}>
-                                <Button variant="outlined"
-                                  className="dashboard-btn w-100"
+                                <StevenButton
+                                  className="w-100"
                                   disabled={gameStarted(commenceTime)}
                                   onClick={() =>
                                     updatePick(
@@ -310,14 +348,14 @@ const Dashboard = () => {
                                   }
                                 >
                                   {favorite}
-                                </Button>
+                                </StevenButton>
                               </Col>
                             </>
                           ) : (
                             <>
                               <Col xs={12} sm={6} md={3}>
-                                <Button variant="outlined"
-                                  className="dashboard-btn w-100"
+                                <StevenButton
+                                  className="w-100"
                                   disabled={gameStarted(commenceTime)}
                                   onClick={() =>
                                     updatePick(
@@ -331,11 +369,11 @@ const Dashboard = () => {
                                   }
                                 >
                                   {favorite}
-                                </Button>
+                                </StevenButton>
                               </Col>
                               <Col xs={12} sm={6} md={3}>
-                                <Button variant="outlined"
-                                  className="dashboard-btn w-100"
+                                <StevenButton
+                                  className="w-100"
                                   disabled={gameStarted(commenceTime)}
                                   onClick={() =>
                                     updatePick(
@@ -349,13 +387,13 @@ const Dashboard = () => {
                                   }
                                 >
                                   {underdog}
-                                </Button>
+                                </StevenButton>
                               </Col>
                             </>
                           ))}
                           <Col xs={12} sm={6} md={3}>
-                            <Button variant="outlined"
-                              className="dashboard-btn w-100"
+                            <StevenButton
+                              className="w-100"
                               disabled={gameStarted(commenceTime)}
                               onClick={() =>
                                 updatePick(
@@ -369,11 +407,11 @@ const Dashboard = () => {
                               }
                             >
                               <span>Over {over}</span>
-                            </Button>
+                            </StevenButton>
                           </Col>
                           <Col xs={12} sm={6} md={3}>
-                            <Button variant="outlined"
-                              className="dashboard-btn w-100"
+                            <StevenButton
+                              className="w-100"
                               disabled={gameStarted(commenceTime)}
                               onClick={() =>
                                 updatePick(
@@ -387,7 +425,7 @@ const Dashboard = () => {
                               }
                             >
                               <span>Under {under}</span>
-                            </Button>
+                            </StevenButton>
                           </Col>
                         </Row>
                       </Accordion.Body>
@@ -397,12 +435,12 @@ const Dashboard = () => {
             </Accordion>
             <Row className="mt-5">
               <Col xs={12} md={{ span: 3, offset: 9 }} className="text-md-end text-center">
-                <Button variant="outlined" className="dashboard-btn" type="submit">
+                <StevenButton className="w-100" type="submit">
                   {submitButtonText}
-                </Button>
+                </StevenButton>
               </Col>
             </Row>
-            <br/>
+            <br />
           </Form>
         </Col>
       </Row>

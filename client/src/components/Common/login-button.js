@@ -1,19 +1,16 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import React, { useEffect } from "react";
-import Button from '@mui/material/Button';
+import { useEffect } from "react";
 import axios from "axios";
+import StevenButton from "./StevenButton";
 
-export const SignupButton = () => {
+export const LoginButton = () => {
   const { loginWithRedirect, getAccessTokenSilently, isAuthenticated } = useAuth0();
   const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
-  const handleSignUp = async () => {
+  const handleLogin = async () => {
     await loginWithRedirect({
       appState: {
         returnTo: "/dashboard",
-      },
-      authorizationParams: {
-        screen_hint: "signup",
       },
     });
   };
@@ -33,8 +30,8 @@ export const SignupButton = () => {
   }, [isAuthenticated, getAccessTokenSilently]);
 
   return (
-    <Button className="steven-btn" onClick={handleSignUp}>
-      Sign Up
-    </Button>
+    <StevenButton onClick={handleLogin}>
+      Log In
+    </StevenButton>
   );
 };

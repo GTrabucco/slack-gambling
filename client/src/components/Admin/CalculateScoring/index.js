@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Table, Button, Form } from 'react-bootstrap';
 import axios from 'axios';
+import StevenButton from "../../Common/StevenButton";
 
 const CalculateScoring = () => {
     const [error, setError] = useState("");
@@ -159,9 +160,9 @@ const CalculateScoring = () => {
                                             />
                                         </td>
                                         <td className="cs5-cell">
-                                            <Button onClick={() => handleUpdateResult(pick["_id"], result)}>
+                                            <StevenButton onClick={() => handleUpdateResult(pick["_id"], result)}>
                                                 Update
-                                            </Button>
+                                            </StevenButton>
                                         </td>
                                     </tr>
                                 );

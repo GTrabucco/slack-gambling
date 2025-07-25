@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Table, Button, Alert } from 'react-bootstrap';
+import { useState, useEffect } from "react";
+import { Container, Row, Col, Table, Alert } from 'react-bootstrap';
+import StevenButton from "../../Common/StevenButton";
 import axios from 'axios';
 
 const ViewReports = () => {
@@ -71,7 +72,7 @@ const ViewReports = () => {
                                             <td>{report.username}</td>
                                             <td>{report.description}</td>
                                             <td>
-                                                <Button variant="danger" onClick={() => handleClose(report._id)}>Close Report</Button>
+                                                <StevenButton onClick={() => handleClose(report._id)}>Close Report</StevenButton>
                                             </td>
                                         </tr>
                                     ))

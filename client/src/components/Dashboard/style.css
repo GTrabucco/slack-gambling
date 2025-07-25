@@ -3,17 +3,6 @@
   margin-right: 25px;
 }
 
-.bet-btn {
-  display: block;
-  width: 100%;
-  margin-bottom: 10px;
-}
-
-.bet-btn.selected {
-  background-color: gold;
-  color: black;
-}
-
 .header-wrapper.no-wrap {
   display: flex;
   flex-direction: row;
@@ -21,7 +10,7 @@
   align-items: center;
   text-align: center;
   width: 100%;
-  overflow-x: auto;  /* allows scrolling on overflow */
+  overflow-x: auto; 
   white-space: nowrap;
   gap: 20px;
   padding: 10px;
@@ -73,25 +62,6 @@
   font-weight: bold;
 }
 
-@media (max-width: 768px) {
-  .bet-btn {
-    display: block;
-    width: 100%;
-    margin-bottom: 10px;
-  }
-
-  .bet-btn.selected {
-    background-color: gold;
-    color: black;
-  }
-
-  .bet-btn.selected:disabled {
-    background-color: gold;
-    color: black;
-  }
-
-}
-
 .accordion-button {
   justify-content: center !important;
 }
@@ -100,3 +70,4 @@
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
+

@@ -2,14 +2,14 @@ body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: monospace, Tahoma, Geneva, Verdana, sans-serif;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: monospace, source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
 
 body, html, * {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  font-family: monospace, Tahoma, Geneva, Verdana, sans-serif !important;
 }

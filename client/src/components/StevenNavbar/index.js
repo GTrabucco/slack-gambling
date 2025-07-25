@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Navbar, Nav, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { LogoutButton } from "../Buttons/logout.button";
+import { LogoutButton } from "../Common/logout.button";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
     BsClockHistory, BsBug, BsCalculator, BsCardChecklist,
@@ -48,7 +48,7 @@ const StevenNavbar = () => {
                     </Button>
                     <a className="navbar-brand text-body-secondary" href="/">
                         <img alt="" className="spin" width="45" height="45" src="/stevenlogo.png" style={{ marginLeft: 15 }} />
-                        <span style={{ fontFamily: "Segoe UI", fontWeight: 400, fontSize: 16, marginLeft: 10 }}>Slack Gambling</span>
+                        <span style={{ fontFamily: "Segoe UI", fontWeight: 400, fontSize: 18, marginLeft: 10 }}>Slack Gambling</span>
                     </a>
                 </Navbar.Brand>
             </Navbar>

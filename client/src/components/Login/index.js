@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Container, Row, Col, Form } from 'react-bootstrap';
 import "./style.css";
-import { LoginButton } from "../Buttons/login-button";
-import { SignupButton } from "../Buttons/signup-button";
+import { LoginButton } from "../Common/login-button";
+import { SignupButton } from "../Common/signup-button";
 
 const Login = () => {
   const [error, setError] = useState("");

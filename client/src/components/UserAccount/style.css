@@ -12,21 +12,3 @@
   padding: 12px 15px;
   border: 1px solid black;
 }
-
-.account-btn,
-.account-btn:focus,
-.account-btn:hover {
-  background-color: lightgray !important;
-  border-color: lightgray !important;
-  outline: none !important;
-  box-shadow: none !important;
-  color: black !important;
-}
-
-.account-btn:active {
-  background-color: rgb(224, 224, 224) !important;
-  border-color: rgb(224, 224, 224) !important;
-  outline: none !important;
-  box-shadow: none !important;
-  color: black !important;
-}

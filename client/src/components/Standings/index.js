@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Table, Nav } from 'react-bootstrap';
+import { useState, useEffect } from "react";
+import { Container, Row, Table, Nav } from 'react-bootstrap';
 import axios from 'axios'
 import './style.css'
 import { useNavigate } from "react-router-dom";
@@ -30,7 +30,6 @@ const Standings = () => {
             try {
                 const response = await axios.get(`${apiBaseUrl}/api/get-users`);
                 if (response.data != null) {
-                    console.log(Object.groupBy(response.data, ({username}) => username))
                     setUsers(Object.groupBy(response.data, ({username}) => username));
                 }
             } catch (error) {

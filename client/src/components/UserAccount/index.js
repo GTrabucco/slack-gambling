@@ -4,6 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import StevenNotification from "../StevenNotification";
 import './style.css'
+import StevenButton from "../Common/StevenButton";
 
 const UserAccount = () => {
     const { user } = useAuth0();
@@ -116,9 +117,9 @@ const UserAccount = () => {
                         <tr>
                             <td></td>
                             <td>
-                                <Button variant="primary" className="account-btn" onClick={updateUserDetails}>
+                                <StevenButton onClick={updateUserDetails}>
                                     Save Changes
-                                </Button>
+                                </StevenButton>
                             </td>
                         </tr>
                     </tbody>

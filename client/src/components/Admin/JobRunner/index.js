@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
+import { useState } from "react";
+import { Container, Row, Col, Form } from 'react-bootstrap';
+import StevenButton from "../../Common/StevenButton";
 import axios from 'axios';
 import './style.css'
 
@@ -40,7 +41,7 @@ const JobRunner = () => {
         }
     };
 
-    const isJobDisabled = !season.trim() || !week.trim();
+    const isJobDisabled = !season.trim() || !week.trim() || !weekType.trim();
 
     return (
         <Container className="mt-4 p-4 border rounded bg-light">
@@ -70,7 +71,7 @@ const JobRunner = () => {
                     </Col>
                     <Col md={4}>
                         <Form.Group controlId="formWeek">
-                            <Form.Label>Week Type</Form.Label>
+                            <Form.Label>Week Type (Preseason = 1, Regular = 2, Playoffs = 3)</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={weekType}
@@ -82,33 +83,27 @@ const JobRunner = () => {
                 </Row>
                 <Row className="mb-3">
                     <Col className="d-grid">
-                        <Button
-                            className="jobrunner-btn"
-                            variant="primary"
+                        <StevenButton
                             onClick={tuesdayJob}
                             disabled={isJobDisabled}
                         >
                             Run Tuesday Job
-                        </Button>
+                        </StevenButton>
                     </Col>
                     <Col className="d-grid">
-                        <Button
-                            className="jobrunner-btn"
-                            variant="secondary"
+                        <StevenButton
                             onClick={fridayJob}
                             disabled={isJobDisabled}
                         >
                             Run Friday Job
-                        </Button>
+                        </StevenButton>
                     </Col>
                     <Col className="d-grid">
-                        <Button
-                            className="jobrunner-btn"
-                            variant="secondary"
+                        <StevenButton
                             onClick={sundayReminderJob}
                         >
                             Run Sunday Reminder
-                        </Button>
+                        </StevenButton>
                     </Col>
                 </Row>
                 <Row>
