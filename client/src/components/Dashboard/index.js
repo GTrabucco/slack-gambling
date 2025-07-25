@@ -170,7 +170,6 @@ const Dashboard = () => {
         />
       </Row>
       <br />
-      <hr></hr>
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         <TableContainer component={Paper}>
           <Table>
