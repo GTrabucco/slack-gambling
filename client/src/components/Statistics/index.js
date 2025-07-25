@@ -148,11 +148,11 @@ const Statistics = () => {
                   {picks.filter(item => item.type === "under" && item.result === 0).length}</td>
               </tr>
               <tr className="st-row">
-                <td className="st1-cell">Perfect Weeks</td>
+                <td className="st1-cell">4/4 Weeks</td>
                 <td className="st2-cell">{getPerfectWeeks()}</td>
               </tr>
               <tr className="st-row">
-                <td className="st1-cell">-4 Weeks</td>
+                <td className="st1-cell">0/4 Weeks</td>
                 <td className="st2-cell">{getNegativeFourWeeks()}</td>
               </tr>
             </tbody>
@@ -201,11 +201,11 @@ const Statistics = () => {
                         {seasonData.filter(item => item.type === "under" && item.result === 0).length}</td>
                     </tr>
                     <tr className="st-row">
-                      <td className="st1-cell">Perfect Weeks</td>
+                      <td className="st1-cell">4/4 Weeks</td>
                       <td className="st2-cell">{getPerfectWeeks(season)}</td>
                     </tr>
                     <tr className="st-row">
-                      <td className="st1-cell">-4 Weeks</td>
+                      <td className="st1-cell">0/4 Weeks</td>
                       <td className="st2-cell">{getNegativeFourWeeks(season)}</td>
                     </tr>
                   </tbody>

@@ -20,25 +20,36 @@
   width: 30%;
 }
 
-.picked {
-  color: red;
-  font-weight: bold;
+.team-container {
+  width: 150px;            
+  height: 150px;           
+  padding: 10px;
+  margin: 10px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.2s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.team-container {
-  width: 300px;
-  text-align: center;
-  margin-bottom: 10px;
+.team-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 5px;
+}
+
+.picked {
+  box-shadow: inset 0 0 10px #1976d2;
+  background-color: #f0f0f0;
+  border-radius: 12px;
 }
 
 .logo {
   width: 50px;
   height: auto;
-}
-
-.team-name {
-  font-size: 14px;
-  margin-top: 5px;
 }
 
 .icon-text-container {
@@ -49,25 +60,14 @@
   gap: 5px;
   text-align: center;
   margin-top: 10px;
+  cursor: pointer;
 }
 
 .over-text {
   font-size: 14px;
+  margin-bottom: 10px;
 }
 
-.pick-bubble {
-  font-weight: bold;
-  border-radius: 10px;
-  color: white;
-  font-weight: bold;
+.total-picked {
+  color: #1976d2;
 }
-
-.accordion-button {
-  justify-content: center !important;
-}
-
-.accordion-button {
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-}
-

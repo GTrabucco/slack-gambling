@@ -5,7 +5,6 @@ import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import './style.css'
@@ -20,7 +19,6 @@ const Dashboard = () => {
   const [activeKey, setActiveKey] = useState(null)
   const [tempPicks, setTempPicks] = useState([])
   const [errors, setError] = useState("")
-  const [submitButtonText, setSubmitButtonText] = useState("Submit");
   const [message, setMessage] = useState("");
   const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
   const { user } = useAuth0();
@@ -125,6 +123,7 @@ const Dashboard = () => {
   }
 
   const updatePick = (gameId, homeTeam, awayTeam, pickType, value, text) => {
+    console.log(gameId, homeTeam, awayTeam, pickType, value, text)
     const pickIdentifier = `${gameId}-${pickType}`;
     const existingPick = Object.keys(tempPicks).find(pickId => pickId.includes(`-${pickType}`));
     if (existingPick) {
@@ -169,6 +168,7 @@ const Dashboard = () => {
           setMessage={setMessage}
         />
       </Row>
+
       <br />
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         <TableContainer component={Paper}>
@@ -217,231 +217,148 @@ const Dashboard = () => {
       </div>
       <hr />
       <Row className="justify-content-md-center">
-        <Col>
-          <Form onSubmit={(e) => submitPicks(e)}>
-            <Accordion activeKey={activeKey} onSelect={setActiveKey} flush>
-              {games
-                .sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]))
-                .map((game) => {
-                  let home_team = game["home_team"];
-                  let away_team = game["away_team"];
-                  let home_spread = game["home_spread"]
-                  let away_spread = game["away_spread"]
+        <Form onSubmit={(e) => submitPicks(e)}>
+          {games
+            .sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]))
+            .map((game) => {
+              let home_team = game["home_team"];
+              let away_team = game["away_team"];
+              let home_spread = game["home_spread"]
+              let away_spread = game["away_spread"]
 
-                  let home_team_name = home_team.split(" ").pop()
-                  let away_team_name = away_team.split(" ").pop()
+              let home_team_name = home_team.split(" ").pop()
+              let away_team_name = away_team.split(" ").pop()
 
-                  let home_logo = `logos/${home_team_name}.png`;
-                  let away_logo = `logos/${away_team_name}.png`;
+              let home_logo = `logos/${home_team_name}.png`;
+              let away_logo = `logos/${away_team_name}.png`;
 
-                  let over = game["over"]
-                  let under = game["under"]
-                  let commenceTime = game["commence_time"]
-                  let favorite = +home_spread > +away_spread ? away_team + " " + away_spread : home_team + " " + home_spread
-                  let underdog = +home_spread > +away_spread ? home_team + " +" + home_spread : away_team + " +" + away_spread
-                  let favorite_spread = +home_spread > +away_spread ? +away_spread : +home_spread
-                  let underdog_spread = +home_spread > +away_spread ? +home_spread : +away_spread
-                  let away_picked =
-                    (tempPicks[`${game["_id"]}-dog`] && tempPicks[`${game["_id"]}-dog`].text.includes(away_team_name)) ||
-                    (tempPicks[`${game["_id"]}-favorite`] && tempPicks[`${game["_id"]}-favorite`].text.includes(away_team_name));
-                  let home_picked =
-                    (tempPicks[`${game["_id"]}-dog`] && tempPicks[`${game["_id"]}-dog`].text.includes(home_team_name)) ||
-                    (tempPicks[`${game["_id"]}-favorite`] && tempPicks[`${game["_id"]}-favorite`].text.includes(home_team_name));
-                  let over_picked = tempPicks[`${game["_id"]}-over`] ? true : false;
-                  let under_picked = tempPicks[`${game["_id"]}-under`] ? true : false;
-                  let header = (
-                    <>
-                      <div className="d-flex justify-content-center align-items-center text-center w-100">
-                        <div className="team-container">
-                          <img
-                            src={away_logo}
-                            alt={away_team}
-                            className="logo"
-                          />
-                          {away_picked ?
-                            <div><div className="team-name picked">{away_team}</div>
-                              <b className="picked">{away_spread > 0 ? "+" + away_spread : away_spread}</b></div> :
-                            <div><div className="team-name">{away_team}</div><b>{away_spread > 0 ? "+" + away_spread : away_spread}</b></div>
-                          }
-                        </div>
-                        <div className="team-container">
-                          <img
-                            src={home_logo}
-                            alt={home_team}
-                            className="logo"
-                          />
-                          {home_picked ?
-                            <div><div className="team-name picked">{home_team}</div>
-                              <b className="picked">{home_spread > 0 ? "+" + home_spread : home_spread}</b></div> :
-                            <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
-                          }
-                        </div>
-                        <div className="icon-text-container">
-                          {over_picked ? (
-                            <span className="picked">
-                              <i className="bi bi-arrow-up-square-fill"></i>
-                            </span>
-                          ) : (
-                            <i className="bi bi-arrow-up-square-fill"></i>
-                          )}
-                          <div className="over-text">
-                            <b>{over}</b>
-                          </div>
-                          {under_picked ? (
-                            <span className="picked">
-                              <i className="bi bi-arrow-down-square-fill"></i>
-                            </span>
-                          ) : (
-                            <i className="bi bi-arrow-down-square-fill"></i>
-                          )}
-                        </div>
+              let over = game["over"]
+              let under = game["under"]
+              let commenceTime = game["commence_time"]
+              let favorite = +home_spread > +away_spread ? away_team + " " + away_spread : home_team + " " + home_spread
+              let underdog = +home_spread > +away_spread ? home_team + " +" + home_spread : away_team + " +" + away_spread
+              let favorite_spread = +home_spread > +away_spread ? +away_spread : +home_spread
+              let underdog_spread = +home_spread > +away_spread ? +home_spread : +away_spread
+              let away_picked =
+                (tempPicks[`${game["_id"]}-dog`] && tempPicks[`${game["_id"]}-dog`].text.includes(away_team_name)) ||
+                (tempPicks[`${game["_id"]}-favorite`] && tempPicks[`${game["_id"]}-favorite`].text.includes(away_team_name));
+              let home_picked =
+                (tempPicks[`${game["_id"]}-dog`] && tempPicks[`${game["_id"]}-dog`].text.includes(home_team_name)) ||
+                (tempPicks[`${game["_id"]}-favorite`] && tempPicks[`${game["_id"]}-favorite`].text.includes(home_team_name));
+              let over_picked = tempPicks[`${game["_id"]}-over`] ? true : false;
+              let under_picked = tempPicks[`${game["_id"]}-under`] ? true : false;
+              let header = (
+                <Paper style={{ marginBottom: 20 }}>
+                  <Row>
+                    <b style={{margin: 10}}>
+                      { new Date(commenceTime).toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + new Date(commenceTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) }
+                    </b>
+                  </Row>
+                  <div className="d-flex justify-content-center align-items-center text-center w-100">
+                    <div className={`team-container ${away_picked ? "picked" : ""}`} onClick={() =>
+                      updatePick(
+                        game["_id"],
+                        home_team,
+                        away_team,
+                        away_spread > 0 ? "dog" : "favorite",
+                        away_spread > 0 ? underdog_spread : favorite_spread,
+                        away_spread > 0 ? underdog : favorite
+                      )
+                    }>
+                      <img
+                        src={away_logo}
+                        alt={away_team}
+                        className="logo"
+                      />
+                      <div><div className="team-name">{away_team}</div><b>{away_spread > 0 ? "+" + away_spread : away_spread}</b></div>
+                    </div>
+                    <div className={`team-container ${home_picked ? "picked" : ""}`} onClick={() =>
+                      updatePick(
+                        game["_id"],
+                        home_team,
+                        away_team,
+                        away_spread > 0 ? "favorite" : "dog",
+                        away_spread > 0 ? favorite_spread : underdog_spread,
+                        away_spread > 0 ? favorite : underdog
+                      )
+                    }>
+                      <img
+                        src={home_logo}
+                        alt={home_team}
+                        className="logo"
+                      />
+                      <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
+                    </div>
+                    <div className="icon-text-container">
+                      {over_picked ? (
+                        <span className="total-picked">
+                          <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
+                            updatePick(
+                              game["_id"],
+                              home_team,
+                              away_team,
+                              "over",
+                              over,
+                              `${home_team} ${away_team} Over ${over}`
+                            )
+                          }></h2>
+                        </span>
+                      ) : (
+                        <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
+                          updatePick(
+                            game["_id"],
+                            home_team,
+                            away_team,
+                            "over",
+                            over,
+                            `${home_team} ${away_team} Over ${over}`
+                          )
+                        }></h2>
+                      )}
+                      <div className="over-text">
+                        <b>{over}</b>
                       </div>
-                    </>
-                  );
+                      {under_picked ? (
+                        <span className="total-picked">
+                          <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
+                            updatePick(
+                              game["_id"],
+                              home_team,
+                              away_team,
+                              "under",
+                              under,
+                              `${home_team} ${away_team} Under ${under}`
+                            )
+                          }></h2>
+                        </span>
+                      ) : (
+                        <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
+                          updatePick(
+                            game["_id"],
+                            home_team,
+                            away_team,
+                            "under",
+                            under,
+                            `${home_team} ${away_team} Under ${under}`
+                          )
+                        }></h2>
+                      )}
+                    </div>
+                  </div>
+                </Paper>
+              );
 
-                  return (
-                    <Accordion.Item eventKey={game["_id"]} key={game["_id"]}>
-                      <Accordion.Header>{header}</Accordion.Header>
-                      <Accordion.Body>
-                        <div className="text-center mb-2">
-                          <b>
-                            {
-                              new Date(commenceTime).toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + new Date(commenceTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
-                            }
-                          </b>
-                        </div>                        
-                        <Row className="g-2 mt-2">
-                          {(home_spread < 0 ? (
-                            <>
-                              <Col xs={12} sm={6} md={3}>
-                                <StevenButton
-                                  className="w-100"
-                                  disabled={gameStarted(commenceTime)}
-                                  onClick={() =>
-                                    updatePick(
-                                      game["_id"],
-                                      home_team,
-                                      away_team,
-                                      "dog",
-                                      underdog_spread,
-                                      underdog
-                                    )
-                                  }
-                                >
-                                  {underdog}
-                                </StevenButton>
-                              </Col>
-                              <Col xs={12} sm={6} md={3}>
-                                <StevenButton
-                                  className="w-100"
-                                  disabled={gameStarted(commenceTime)}
-                                  onClick={() =>
-                                    updatePick(
-                                      game["_id"],
-                                      home_team,
-                                      away_team,
-                                      "favorite",
-                                      favorite_spread,
-                                      favorite
-                                    )
-                                  }
-                                >
-                                  {favorite}
-                                </StevenButton>
-                              </Col>
-                            </>
-                          ) : (
-                            <>
-                              <Col xs={12} sm={6} md={3}>
-                                <StevenButton
-                                  className="w-100"
-                                  disabled={gameStarted(commenceTime)}
-                                  onClick={() =>
-                                    updatePick(
-                                      game["_id"],
-                                      home_team,
-                                      away_team,
-                                      "favorite",
-                                      favorite_spread,
-                                      favorite
-                                    )
-                                  }
-                                >
-                                  {favorite}
-                                </StevenButton>
-                              </Col>
-                              <Col xs={12} sm={6} md={3}>
-                                <StevenButton
-                                  className="w-100"
-                                  disabled={gameStarted(commenceTime)}
-                                  onClick={() =>
-                                    updatePick(
-                                      game["_id"],
-                                      home_team,
-                                      away_team,
-                                      "dog",
-                                      underdog_spread,
-                                      underdog
-                                    )
-                                  }
-                                >
-                                  {underdog}
-                                </StevenButton>
-                              </Col>
-                            </>
-                          ))}
-                          <Col xs={12} sm={6} md={3}>
-                            <StevenButton
-                              className="w-100"
-                              disabled={gameStarted(commenceTime)}
-                              onClick={() =>
-                                updatePick(
-                                  game["_id"],
-                                  home_team,
-                                  away_team,
-                                  "over",
-                                  over,
-                                  `${home_team} ${away_team} Over ${over}`
-                                )
-                              }
-                            >
-                              <span>Over {over}</span>
-                            </StevenButton>
-                          </Col>
-                          <Col xs={12} sm={6} md={3}>
-                            <StevenButton
-                              className="w-100"
-                              disabled={gameStarted(commenceTime)}
-                              onClick={() =>
-                                updatePick(
-                                  game["_id"],
-                                  home_team,
-                                  away_team,
-                                  "under",
-                                  under,
-                                  `${home_team} ${away_team} Under ${under}`
-                                )
-                              }
-                            >
-                              <span>Under {under}</span>
-                            </StevenButton>
-                          </Col>
-                        </Row>
-                      </Accordion.Body>
-                    </Accordion.Item>
-                  );
-                })}
-            </Accordion>
-            <Row className="mt-5">
-              <Col xs={12} md={{ span: 3, offset: 9 }} className="text-md-end text-center">
-                <StevenButton className="w-100" type="submit">
-                  {submitButtonText}
-                </StevenButton>
-              </Col>
-            </Row>
-            <br />
-          </Form>
-        </Col>
+              return header;
+            })}
+          <Row className="mt-5">
+            <Col xs={12} md={{ span: 3, offset: 9 }} className="text-md-end text-center">
+              <StevenButton className="w-100" type="submit">
+                Submit
+              </StevenButton>
+            </Col>
+          </Row>
+          <br />
+        </Form>
       </Row>
     </div>
   );

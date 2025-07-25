@@ -1,12 +1,4 @@
-.first {
-  background-color: gold !important;
+.medal {
+  display: block;
+  width: 3em;
 }
-
-.second {
-  background-color: silver !important;
-}
-
-.third {
-  background-color: brown !important;
-}
-

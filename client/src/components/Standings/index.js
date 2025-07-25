@@ -14,6 +14,9 @@ const Standings = () => {
     const navigate = useNavigate();
     const SEASON = "2024";
 
+
+    // use medal icons for 1,2,3
+
     useEffect(() => {
         const fetchStandings = async () => {
             try {
@@ -101,8 +104,8 @@ const Standings = () => {
                         <th></th>
                         <th>Name</th>
                         <th>Points</th>
-                        <th>Perfect Weeks</th>
-                        <th>-4 Weeks</th>
+                        <th>4/4 Weeks</th>
+                        <th>0/4 Weeks</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -117,8 +120,10 @@ const Standings = () => {
                             if (rank < 4) {
                                 return (
                                     <tr key={item.username}>
-                                        <td className={getPlace(rank)}>
-                                            {rank < 4 ? <b>{rank}</b> : rank}
+                                        <td>
+                                            {rank === 1 ? <img className="medal" src="GoldMedal.svg" /> : ""}
+                                            {rank === 2 ? <img className="medal" src="SilverMedal.svg" /> : ""}
+                                            {rank === 3 ? <img className="medal" src="BronzeMedal.svg" /> : ""}
                                         </td>
                                         <td>
                                             <Nav.Link

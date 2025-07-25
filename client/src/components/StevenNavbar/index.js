@@ -15,6 +15,7 @@ import './style.css';
 const StevenNavbar = () => {
     const { user } = useAuth0();
     const [show, setShow] = useState(false);
+    const isAdmin = user.email.toLowerCase() === 'giulian.trabucco@gmail.com'
     const handleShow = (e) => {
         setShow(true);
         e.currentTarget.blur();
@@ -33,10 +34,12 @@ const StevenNavbar = () => {
         { path: "/pickhistory", label: "History", icon: <BsClockHistory /> },
         { path: "/statistics", label: "Statistics", icon: <ImStatsDots /> },
         { path: "/reportissue", label: "Report Issue", icon: <BsBug /> },
-        { path: "/calculatescoring", label: "Calculate Scoring", icon: <BsCalculator />, show: true },
-        { path: "/viewReports", label: "Reports", icon: <BsCardChecklist />, show: true },
+        ...(isAdmin ? [
+            { path: "/calculatescoring", label: "Calculate Scoring", icon: <BsCalculator /> },
+            { path: "/viewReports", label: "Reports", icon: <BsCardChecklist /> },
+            { path: "/jobrunner", label: "Job Runner", icon: <GiRunningNinja /> },
+        ] : []),
         { path: "/account", label: "Account", icon: <BsPersonCircle /> },
-        { path: "/jobrunner", label: "Job Runner", icon: <GiRunningNinja /> },
     ];
 
     return (
