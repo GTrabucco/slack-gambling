@@ -1,11 +1,14 @@
 {
   "dependencies": {
     "@auth0/auth0-react": "^2.2.4",
+    "axios": "^1.11.0",
+    "body-parser": "^1.20.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.19.2",
     "mongodb": "^6.18.0",
+    "path-to-regexp": "^0.1.12",
     "react-router-dom": "^6.26.2",
     "twilio": "^5.8.0"
   },
