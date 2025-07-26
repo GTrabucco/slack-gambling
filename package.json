@@ -6,7 +6,7 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
-    "express": "^4.19.2",
+    "express": "^4.21.2",
     "mongodb": "^6.18.0",
     "path-to-regexp": "^0.1.12",
     "react-router-dom": "^6.26.2",
