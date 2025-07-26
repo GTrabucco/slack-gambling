@@ -146,11 +146,8 @@ const Dashboard = () => {
       }
     }
     
-
     const pickIdentifier = `${gameId}-${pickType}`;
     const existingTempPick = Object.keys(tempPicks).find(pickId => pickId.includes(`-${pickType}`));
-
-    console.log(existingTempPick)
     if (existingTempPick) {
       setTempPicks(prevState => {
         const newState = { ...prevState };
