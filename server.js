@@ -15,7 +15,14 @@ const allowedOrigins = [
     'https://slackgambling-babd5a00a8e8.herokuapp.com',
     'http://localhost:3000'                
 ];
-  
+
+var RateLimit = require('express-rate-limit');
+var limiter = RateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+});
+
+app.use(limiter);
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin || allowedOrigins.includes(origin)) {

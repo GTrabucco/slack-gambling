@@ -1,7 +1,14 @@
 const axios = require('axios');
 
+function isValidInteger(value) {
+  return Number.isInteger(value) && value > 0;
+}
+
 async function processPicks(season, week, picks, weekType) {
   // weekType: 1 is preseason, 2 is regular season, 3 is playoffs
+  if (!isValidInteger(season) || !isValidInteger(week) || ![1, 2, 3].includes(weekType)) {
+    throw new Error("Invalid input parameters for ESPN API call.");
+  }
 
   const boxscoresUrl = `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${season}/types/${weekType}/weeks/${week}/events?lang=en&region=us`;
   const gameSummaryUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=`;
