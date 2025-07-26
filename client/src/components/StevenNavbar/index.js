@@ -62,7 +62,7 @@ const StevenNavbar = () => {
         <>
             <Dialog open={showRules} onClose={() => handleCloseRules()} maxWidth="sm" fullWidth>
                 <DialogTitle>
-                    Slack Gambling Info
+                    Slack Gambling Rules
                 </DialogTitle>
                 <DialogContent dividers>
                     <Typography gutterBottom>
@@ -78,7 +78,7 @@ const StevenNavbar = () => {
                         <b>4.</b> Scoring: +1 for correct, -1 for incorrect, 0 for push
                     </Typography>
                     <Typography gutterBottom>
-                        <b>5.</b> Earn 1 share in the Perfect Week Pool by going 4/4 in a week. The pool payout is split among all shares at season's end
+                        <b>5.</b> Earn 1 share in the Perfect Week Pool by going 4/4 in a week. The pool payout is split among all shareholders at season's end
                     </Typography>
                     <Typography gutterBottom>
                         <b>6.</b> Enable text reminders and edit your display name on the Account page
@@ -102,14 +102,21 @@ const StevenNavbar = () => {
                         <img alt="" className="spin" width="45" height="45" src="/stevenlogo.png" style={{ marginLeft: 15 }} />
                         <span style={{ fontWeight: 400, fontSize: 18, marginLeft: 10 }}>Slack Gambling</span>
                     </a>
-                    <IconButton onClick={handleShowRules} size="small" style={{ marginLeft: 10 }}>
-                        <BsInfoCircle size={20} />
-                    </IconButton>
+                    <span
+                        onClick={handleShowRules}
+                        style={{
+                            marginLeft: 10,
+                            fontSize: "0.85rem",
+                            textDecoration: "underline",
+                            cursor: "pointer",
+                            color: "#6c757d"
+                        }}
+                    >
+                        Rules
+                    </span>
                 </Navbar.Brand>
             </Navbar>
-
             {show && <div className="custom-backdrop" onClick={handleClose}></div>}
-
             <div className={`custom-offcanvas ${show ? "show" : ""}`}>
                 <Nav className="flex-column">
                     {menuLinks.map(

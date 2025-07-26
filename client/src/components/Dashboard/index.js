@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from 'axios';
-import { Row, Col, Accordion, Form } from 'react-bootstrap';
+import { Row, Col, Form } from 'react-bootstrap';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -12,12 +12,13 @@ import { useAuth0 } from "@auth0/auth0-react";
 import StevenNotification from "../StevenNotification";
 import { FaTrash } from 'react-icons/fa';
 import StevenButton from "../Common/StevenButton";
+import { Badge } from "@mui/material";
 
 const Dashboard = () => {
   const [games, setGames] = useState([]);
   const [selectedPicks, setSelectedPicks] = useState([])
-  const [activeKey, setActiveKey] = useState(null)
   const [tempPicks, setTempPicks] = useState([])
+  const [weeklyPicks, setWeeklyPicks] = useState([])
   const [errors, setError] = useState("")
   const [message, setMessage] = useState("");
   const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
@@ -35,7 +36,20 @@ const Dashboard = () => {
 
     fetchGames();
     fetchPicks();
+    fetchWeeklyPicks();
   }, [])
+
+
+  const fetchWeeklyPicks = async () => {
+      try {
+          const response = await axios.get(`${apiBaseUrl}/api/get-weekly-picks`);
+          if (response.data != null) {
+              setWeeklyPicks(response.data);
+          }
+      } catch (error) {
+          setError('Error fetching picks');
+      }
+  };
 
   const fetchPicks = async () => {
     try {
@@ -48,7 +62,7 @@ const Dashboard = () => {
       if (response.data != null) {
         const picks = {};
         response.data.forEach(pick => {
-          const pickIdentifier = `${pick.gameId}-${pick.type}`;
+          const pickIdentifier = `${pick.gameId}-${pick["type"]}`;
           picks[pickIdentifier] = pick.text;
         });
 
@@ -126,7 +140,6 @@ const Dashboard = () => {
 
     await fetchPicks();
     setTempPicks([])
-    setActiveKey(null)
     setMessage("Successfully Submitted Picks")
   }
 
@@ -269,46 +282,64 @@ const Dashboard = () => {
                     </b>
                   </Row>
                   <div className="d-flex justify-content-center align-items-center text-center w-100">
-                    <div className={`team-container ${away_picked ? "picked" : ""}`} onClick={() =>
-                      updatePick(
-                        game["_id"],
-                        home_team,
-                        away_team,
-                        away_spread > 0 ? "dog" : "favorite",
-                        away_spread > 0 ? underdog_spread : favorite_spread,
-                        away_spread > 0 ? underdog : favorite,
-                        commenceTime
-                      )
-                    }>
-                      <img
-                        src={away_logo}
-                        alt={away_team}
-                        className="logo"
-                      />
-                      <div><div className="team-name">{away_team}</div><b>{away_spread > 0 ? "+" + away_spread : away_spread}</b></div>
-                    </div>
-                    <div className={`team-container ${home_picked ? "picked" : ""}`} onClick={() =>
-                      updatePick(
-                        game["_id"],
-                        home_team,
-                        away_team,
-                        away_spread > 0 ? "favorite" : "dog",
-                        away_spread > 0 ? favorite_spread : underdog_spread,
-                        away_spread > 0 ? favorite : underdog,
-                        commenceTime
-                      )
-                    }>
-                      <img
-                        src={home_logo}
-                        alt={home_team}
-                        className="logo"
-                      />
-                      <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
-                    </div>
+                    <Badge badgeContent={Object.values(weeklyPicks).filter(pick => (pick["username"] !== user.name && (pick["gameId"] + "-" + pick["type"]) === `${game["_id"]}-${away_spread > 0 ? "dog" : "favorite"}`)).length} color="primary">
+                      <div className={`team-container ${away_picked ? "picked" : ""}`} onClick={() =>
+                          updatePick(
+                            game["_id"],
+                            home_team,
+                            away_team,
+                            away_spread > 0 ? "dog" : "favorite",
+                            away_spread > 0 ? underdog_spread : favorite_spread,
+                            away_spread > 0 ? underdog : favorite,
+                            commenceTime
+                          )
+                        }>
+                        <img
+                          src={away_logo}
+                          alt={away_team}
+                          className="logo"
+                        />
+                        <div><div className="team-name">{away_team}</div><b>{away_spread > 0 ? "+" + away_spread : away_spread}</b></div>
+                      </div>
+                    </Badge>
+                    <Badge badgeContent={Object.values(weeklyPicks).filter(pick => (pick["username"] !== user.name && (pick["gameId"] + "-" + pick["type"]) === `${game["_id"]}-${away_spread > 0 ? "favorite" : "dog"}`)).length} color="primary">
+                      <div className={`team-container ${home_picked ? "picked" : ""}`} onClick={() =>
+                        updatePick(
+                          game["_id"],
+                          home_team,
+                          away_team,
+                          away_spread > 0 ? "favorite" : "dog",
+                          away_spread > 0 ? favorite_spread : underdog_spread,
+                          away_spread > 0 ? favorite : underdog,
+                          commenceTime
+                        )
+                      }>
+                        <img
+                          src={home_logo}
+                          alt={home_team}
+                          className="logo"
+                        />
+                        <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
+                      </div>
+                    </Badge>
                     <div className="icon-text-container">
-                      {over_picked ? (
-                        <span className="total-picked">
-                          <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
+                      <Badge badgeContent={Object.values(weeklyPicks).filter(pick => (pick["username"] !== user.name && (pick["gameId"] + "-" + pick["type"]) === (game["_id"]+"-"+"over"))).length} color="primary">
+                        {over_picked ? (
+                          <span className="total-picked">
+                            <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
+                              updatePick(
+                                game["_id"],
+                                home_team,
+                                away_team,
+                                "over",
+                                over,
+                                `${home_team} ${away_team} Over ${over}`,
+                                commenceTime
+                              )
+                            }></h2>
+                          </span>
+                        ) : (
+                          <h2 className="total bi bi-arrow-up-square-fill" onClick={() =>
                             updatePick(
                               game["_id"],
                               home_team,
@@ -319,26 +350,28 @@ const Dashboard = () => {
                               commenceTime
                             )
                           }></h2>
-                        </span>
-                      ) : (
-                        <h2 className="total bi bi-arrow-up-square-fill" onClick={() =>
-                          updatePick(
-                            game["_id"],
-                            home_team,
-                            away_team,
-                            "over",
-                            over,
-                            `${home_team} ${away_team} Over ${over}`,
-                            commenceTime
-                          )
-                        }></h2>
-                      )}
+                        )}
+                      </Badge>
                       <div className="over-text">
                         <b>{over}</b>
                       </div>
-                      {under_picked ? (
-                        <span className="total-picked">
-                          <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
+                      <Badge badgeContent={Object.values(weeklyPicks).filter(pick => (pick["username"] !== user.name && (pick["gameId"] + "-" + pick["type"]) === (game["_id"]+"-"+"under"))).length} color="primary">
+                        {under_picked ? (
+                          <span className="total-picked">
+                            <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
+                              updatePick(
+                                game["_id"],
+                                home_team,
+                                away_team,
+                                "under",
+                                under,
+                                `${home_team} ${away_team} Under ${under}`,
+                                commenceTime
+                              )
+                            }></h2>
+                          </span>
+                        ) : (
+                          <h2 className="total bi bi-arrow-down-square-fill" onClick={() =>
                             updatePick(
                               game["_id"],
                               home_team,
@@ -349,20 +382,8 @@ const Dashboard = () => {
                               commenceTime
                             )
                           }></h2>
-                        </span>
-                      ) : (
-                        <h2 className="total bi bi-arrow-down-square-fill" onClick={() =>
-                          updatePick(
-                            game["_id"],
-                            home_team,
-                            away_team,
-                            "under",
-                            under,
-                            `${home_team} ${away_team} Under ${under}`,
-                            commenceTime
-                          )
-                        }></h2>
-                      )}
+                        )}
+                      </Badge>
                     </div>
                   </div>
                 </Paper>

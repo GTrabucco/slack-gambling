@@ -21,7 +21,7 @@
 }
 
 .team-container {
-  width: 150px;            
+  width: 100px;            
   height: 150px;           
   padding: 10px;
   margin: 10px;
@@ -40,6 +40,7 @@
 
 .total {
   color: rgb(156, 156, 156);
+  padding: 10px;
 }
 
 .team-name {
@@ -77,4 +78,5 @@
 
 .total-picked {
   color: #1976d2;
+  padding: 10px;
 }
