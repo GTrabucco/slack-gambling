@@ -21,8 +21,7 @@ async function fridayJob(season, week) {
       week,
     }));
 
-    //await gamesCollection.insertMany(gamesWithMeta);
-    console.log("Friday Job Success");
+    await gamesCollection.insertMany(gamesWithMeta);
   } catch (error) {
     console.error("Error inserting games:", error);
   } finally {

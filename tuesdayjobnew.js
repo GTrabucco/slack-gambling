@@ -1,7 +1,7 @@
 require('dotenv').config();
 const { MongoClient } = require('mongodb');
-const { getGames } = require('./theoddsapinew');      // your converted theoddsapi.js
-const { processPicks } = require('./processpicksnew'); // your converted processPicks.js
+const { getGames } = require('./theoddsapinew');     
+const { processPicks } = require('./processpicksnew');
 const fs = require('fs');
 const path = require('path');
 
@@ -23,12 +23,6 @@ async function tuesdayJob(season, week, weekType) {
     await session.withTransaction(async () => {
       // Add season and week fields to all picks
       await picksCollection.updateMany({}, { $set: { season, week } }, { session });
-
-      // Backup picks data to a local file (JSON)
-      const backupDir = path.join(__dirname, '..', 'backup', season.toString());
-      if (!fs.existsSync(backupDir)) {
-        fs.mkdirSync(backupDir, { recursive: true });
-      }
 
       const picksCursor = picksCollection.find({}, { session });
       const picks = await picksCursor.toArray();

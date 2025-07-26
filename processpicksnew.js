@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 async function processPicks(season, week, picks, weekType) {
-  // weekType: 1 is preseason, 2 is regular season
+  // weekType: 1 is preseason, 2 is regular season, 3 is playoffs
 
   const boxscoresUrl = `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${season}/types/${weekType}/weeks/${week}/events?lang=en&region=us`;
   const gameSummaryUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=`;
