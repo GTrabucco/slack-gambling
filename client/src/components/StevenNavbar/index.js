@@ -1,20 +1,36 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Navbar, Nav, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { LogoutButton } from "../Common/logout.button";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
     BsClockHistory, BsBug, BsCalculator, BsCardChecklist,
-    BsPersonCircle, BsHouseDoor
+    BsPersonCircle, BsHouseDoor, BsInfoCircle
 } from "react-icons/bs";
 import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
 import { ImStatsDots } from "react-icons/im";
 import { GiRunningNinja } from "react-icons/gi";
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
 import './style.css';
+import StevenButton from "../Common/StevenButton";
 
 const StevenNavbar = () => {
     const { user } = useAuth0();
     const [show, setShow] = useState(false);
+    const [showRules, setShowRules] = useState(false);
+    const handleShowRules = () => {
+        setShowRules(true);
+    };
+
+    const handleCloseRules = () => {
+        setShowRules(false);
+    };
+
     const isAdmin = user.email.toLowerCase() === 'giulian.trabucco@gmail.com'
     const handleShow = (e) => {
         setShow(true);
@@ -44,6 +60,39 @@ const StevenNavbar = () => {
 
     return (
         <>
+            <Dialog open={showRules} onClose={() => handleCloseRules()} maxWidth="sm" fullWidth>
+                <DialogTitle>
+                    Slack Gambling Info
+                </DialogTitle>
+                <DialogContent dividers>
+                    <Typography gutterBottom>
+                        <b>1.</b> Pick a Favorite, Underdog, Over and Under each week
+                    </Typography>
+                    <Typography gutterBottom>
+                        <b>2.</b> Submit picks using the button at the bottom of the page
+                    </Typography>
+                    <Typography gutterBottom>
+                        <b>3.</b> Picks can be changed until the game starts
+                    </Typography>
+                    <Typography gutterBottom>
+                        <b>4.</b> Scoring: +1 for correct, -1 for incorrect, 0 for push
+                    </Typography>
+                    <Typography gutterBottom>
+                        <b>5.</b> Earn 1 share in the Perfect Week Pool by going 4/4 in a week. The pool payout is split among all shares at season's end
+                    </Typography>
+                    <Typography gutterBottom>
+                        <b>6.</b> Enable text reminders and edit your display name on the Account page
+                    </Typography>
+                    <Typography gutterBottom>
+                        <b>7.</b> Submit questions or issues via the Report Issue page
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <StevenButton onClick={handleCloseRules}>
+                        Close
+                    </StevenButton>
+                </DialogActions>
+            </Dialog>
             <Navbar className="bg-body-tertiary" expand="lg">
                 <Navbar.Brand style={{ cursor: "pointer" }}>
                     <Button onClick={(e) => handleShow(e)} className="accordian" style={{ marginLeft: 15 }}>
@@ -51,8 +100,11 @@ const StevenNavbar = () => {
                     </Button>
                     <a className="navbar-brand text-body-secondary" href="/">
                         <img alt="" className="spin" width="45" height="45" src="/stevenlogo.png" style={{ marginLeft: 15 }} />
-                        <span style={{ fontFamily: "Segoe UI", fontWeight: 400, fontSize: 18, marginLeft: 10 }}>Slack Gambling</span>
+                        <span style={{ fontWeight: 400, fontSize: 18, marginLeft: 10 }}>Slack Gambling</span>
                     </a>
+                    <IconButton onClick={handleShowRules} size="small" style={{ marginLeft: 10 }}>
+                        <BsInfoCircle size={20} />
+                    </IconButton>
                 </Navbar.Brand>
             </Navbar>
 

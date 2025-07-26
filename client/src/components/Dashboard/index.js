@@ -76,7 +76,15 @@ const Dashboard = () => {
   }
 
   const removePick = async (pickIdentifier, text) => {
+    const existingPickGameId = pickIdentifier.split('-')[0];
+    const commenceTime = getCommenceTimeByGameId(existingPickGameId)
+    if (gameStarted(commenceTime)) {
+      setMessage("Can't Remove. Game Already Started")
+      return;
+    }
+
     try {
+
       const gameId = pickIdentifier.split('-')[0]
       const pickType = pickIdentifier.split('-')[1]
       const username = user.name;
@@ -122,10 +130,13 @@ const Dashboard = () => {
     setMessage("Successfully Submitted Picks")
   }
 
-  const updatePick = (gameId, homeTeam, awayTeam, pickType, value, text) => {
-    console.log(gameId, homeTeam, awayTeam, pickType, value, text)
-    const pickIdentifier = `${gameId}-${pickType}`;
-    const existingPick = Object.keys(tempPicks).find(pickId => pickId.includes(`-${pickType}`));
+  const updatePick = (gameId, homeTeam, awayTeam, pickType, value, text, commenceTime) => {
+    if (gameStarted(commenceTime)) {
+      setMessage("Game Already Started")
+      return;
+    }
+
+    const existingPick = Object.keys(selectedPicks).find(pickId => pickId.includes(`-${pickType}`));
     if (existingPick) {
       const existingPickGameId = existingPick.split('-')[0];
       const existingPickCommenceTime = getCommenceTimeByGameId(existingPickGameId)
@@ -133,14 +144,21 @@ const Dashboard = () => {
         setMessage(`You already selected a ${pickType} in a game that has started`)
         return;
       }
+    }
+    
 
+    const pickIdentifier = `${gameId}-${pickType}`;
+    const existingTempPick = Object.keys(tempPicks).find(pickId => pickId.includes(`-${pickType}`));
+
+    console.log(existingTempPick)
+    if (existingTempPick) {
       setTempPicks(prevState => {
         const newState = { ...prevState };
-        if (existingPick === pickIdentifier) {
-          delete newState[existingPick];
+        if (existingTempPick === pickIdentifier) {
+          delete newState[existingTempPick];
         } else {
-          if (existingPick) {
-            delete newState[existingPick];
+          if (existingTempPick) {
+            delete newState[existingTempPick];
           }
           newState[pickIdentifier] = { gameId, homeTeam, awayTeam, pickType, value, text };
         }
@@ -168,10 +186,9 @@ const Dashboard = () => {
           setMessage={setMessage}
         />
       </Row>
-
       <br />
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} elevation={5}>
           <Table>
             <TableBody>
               {['favorite', 'dog', 'over', 'under'].map((type) => {
@@ -191,7 +208,7 @@ const Dashboard = () => {
                           onClick={() => removePick(key, value)}
                           style={{
                             cursor: 'pointer',
-                            color: 'red',
+                            color: 'grey',
                             display: 'inline-flex',
                             justifyContent: 'center',
                             alignItems: 'center',
@@ -248,7 +265,7 @@ const Dashboard = () => {
               let over_picked = tempPicks[`${game["_id"]}-over`] ? true : false;
               let under_picked = tempPicks[`${game["_id"]}-under`] ? true : false;
               let header = (
-                <Paper style={{ marginBottom: 20 }}>
+                <Paper style={{ marginBottom: 20 }} elevation={2}>
                   <Row>
                     <b style={{margin: 10}}>
                       { new Date(commenceTime).toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + new Date(commenceTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) }
@@ -262,7 +279,8 @@ const Dashboard = () => {
                         away_team,
                         away_spread > 0 ? "dog" : "favorite",
                         away_spread > 0 ? underdog_spread : favorite_spread,
-                        away_spread > 0 ? underdog : favorite
+                        away_spread > 0 ? underdog : favorite,
+                        commenceTime
                       )
                     }>
                       <img
@@ -279,7 +297,8 @@ const Dashboard = () => {
                         away_team,
                         away_spread > 0 ? "favorite" : "dog",
                         away_spread > 0 ? favorite_spread : underdog_spread,
-                        away_spread > 0 ? favorite : underdog
+                        away_spread > 0 ? favorite : underdog,
+                        commenceTime
                       )
                     }>
                       <img
@@ -299,19 +318,21 @@ const Dashboard = () => {
                               away_team,
                               "over",
                               over,
-                              `${home_team} ${away_team} Over ${over}`
+                              `${home_team} ${away_team} Over ${over}`,
+                              commenceTime
                             )
                           }></h2>
                         </span>
                       ) : (
-                        <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
+                        <h2 className="total bi bi-arrow-up-square-fill" onClick={() =>
                           updatePick(
                             game["_id"],
                             home_team,
                             away_team,
                             "over",
                             over,
-                            `${home_team} ${away_team} Over ${over}`
+                            `${home_team} ${away_team} Over ${over}`,
+                            commenceTime
                           )
                         }></h2>
                       )}
@@ -327,19 +348,21 @@ const Dashboard = () => {
                               away_team,
                               "under",
                               under,
-                              `${home_team} ${away_team} Under ${under}`
+                              `${home_team} ${away_team} Under ${under}`,
+                              commenceTime
                             )
                           }></h2>
                         </span>
                       ) : (
-                        <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
+                        <h2 className="total bi bi-arrow-down-square-fill" onClick={() =>
                           updatePick(
                             game["_id"],
                             home_team,
                             away_team,
                             "under",
                             under,
-                            `${home_team} ${away_team} Under ${under}`
+                            `${home_team} ${away_team} Under ${under}`,
+                            commenceTime
                           )
                         }></h2>
                       )}
