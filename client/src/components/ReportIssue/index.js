@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
-import { Form, Button, Container, Alert } from 'react-bootstrap';
+import { useState } from 'react';
+import { Form, Container, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useLocation } from 'react-router-dom';
+import StevenButton from "../Common/StevenButton";
 
 const ReportIssue = () => {
-  const [issueDescription, setIssueDescription] = useState('');
+  const location = useLocation();
+  const { description } = location.state || {};
+  const [issueDescription, setIssueDescription] = useState(description);
   const [submitted, setSubmitted] = useState(false);
   const { user } = useAuth0();
   const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
@@ -46,9 +50,9 @@ const ReportIssue = () => {
               required
             />
           </Form.Group>
-          <Button variant="primary" type="submit">
+          <StevenButton type="submit">
             Submit
-          </Button>
+          </StevenButton>
         </Form>
       )}
     </Container>

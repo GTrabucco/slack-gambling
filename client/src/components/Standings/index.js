@@ -12,7 +12,7 @@ const Standings = () => {
     const [users, setUsers] = useState({});
     const [seasons, setSeasons] = useState(["2025"]);
     const [selectedSeason, setSelectedSeason] = useState("2025");
-
+    const [lastPlaceRank, setLastPlaceRank] = useState(null);
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
     const navigate = useNavigate();
 
@@ -48,7 +48,6 @@ const Standings = () => {
 
                     Object.entries(groupedByUser).forEach(([username, userPicks]) => {
                         userTotals[username] = 0;
-
                         const picksByWeek = Object.groupBy(userPicks, ({ week }) => week);
                         Object.values(picksByWeek).forEach(weeklyPicks => {
                             const resultSum = weeklyPicks.reduce((sum, pick) => sum + pick.result, 0);
@@ -62,10 +61,26 @@ const Standings = () => {
                         });
                     });
 
+                    let prevResultSum = null;
+                    let prevRank = 0;
                     const standings = Object.entries(userTotals)
-                        .map(([username, resultSum]) => ({ username, resultSum }))
-                        .sort((a, b) => b.resultSum - a.resultSum);
+                    .map(([username, resultSum]) => ({ username, resultSum }))
+                    .sort((a, b) => b.resultSum - a.resultSum)
+                    .map((item, index, arr) => {
+                        let rank;
+                        if (item.resultSum === prevResultSum) {
+                            rank = prevRank;
+                        } else {
+                            rank = index + 1;
+                            prevResultSum = item.resultSum;
+                            prevRank = rank;
+                        }
 
+                        return { ...item, rank };
+                    });
+
+                    const highestRank = Math.max(...standings.map(obj => obj.rank));
+                    setLastPlaceRank(highestRank)
                     setData(standings);
                     setPerfectWeeks(newPerfectWeeks);
                     setNegFourWeeks(newNegFourWeeks);
@@ -78,7 +93,6 @@ const Standings = () => {
         fetchUsers();
         fetchPickHistory();
     }, [selectedSeason]); 
-
 
     const getPlace = (index) => {
         switch (index) {
@@ -125,19 +139,14 @@ const Standings = () => {
                 <tbody>
                     {data
                         .sort((a, b) => b.resultSum - a.resultSum)
-                        .map((item, index, arr) => {
-                            const rank = index > 0 && arr[index - 1].resultSum === item.resultSum
-                                ? arr[index - 1].rank
-                                : index + 1;
-
-                            item.rank = rank;
-                            if (rank < 4) {
+                        .map((item) => {
+                            if (item.rank < 4) {
                                 return (
                                     <tr key={item.username}>
                                         <td>
-                                            {rank === 1 ? <img className="medal" src="GoldMedal.svg" /> : ""}
-                                            {rank === 2 ? <img className="medal" src="SilverMedal.svg" /> : ""}
-                                            {rank === 3 ? <img className="medal" src="BronzeMedal.svg" /> : ""}
+                                            {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" /> : ""}
+                                            {item.rank === 2 ? <img className="medal" src="SilverMedal.svg" /> : ""}
+                                            {item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" /> : ""}
                                         </td>
                                         <td>
                                             <Nav.Link
@@ -156,17 +165,12 @@ const Standings = () => {
                         })}
                     {data
                         .sort((a, b) => b.resultSum - a.resultSum)
-                        .map((item, index, arr) => {
-                            const rank = index > 0 && arr[index - 1].resultSum === item.resultSum
-                                ? arr[index - 1].rank
-                                : index + 1;
-
-                            item.rank = rank;
-                            if (rank > 3) {
+                        .map((item) => {
+                            if (item.rank > 3) {
                                 return (
                                     <tr className="s-row" key={item.username}>
-                                        <td className={getPlace(rank)}>
-                                            {rank < 4 ? <b>{rank}</b> : rank}
+                                        <td className={getPlace(item.rank)}>
+                                            {item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" /> : item.rank}
                                         </td>
                                         <td className="s1-cell">
                                             <Nav.Link

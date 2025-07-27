@@ -5,8 +5,9 @@ import { useAuth0 } from "@auth0/auth0-react";
 import './style.css';
 import { useLocation } from 'react-router-dom';
 import StevenNotification from "../StevenNotification";
+import { useNavigate } from "react-router-dom";
 
-const PickHistory = (props) => {
+const PickHistory = () => {
     const SEASON = "2025"
     const [error, setError] = useState("");
     const [picks, setPicks] = useState([]);
@@ -17,7 +18,10 @@ const PickHistory = (props) => {
     const userParam = queryParams.get('user');
     const usernameDisplay = userParam ? userParam : user.name;
     const [message, setMessage] = useState("");
-
+    const navigate = useNavigate();
+    const disputePick = (description) => {
+        navigate('/reportissue', { state: { description: `I want to dispute: ${description}` } });
+    };
 
     useEffect(() => {
         const fetchPickHistory = async () => {
@@ -25,7 +29,7 @@ const PickHistory = (props) => {
                 const response = await axios.get(`${apiBaseUrl}/api/get-pick-history`, {
                     params: {
                         username: usernameDisplay,
-                        season:SEASON
+                        season: SEASON
                     }
                 });
 
@@ -52,20 +56,6 @@ const PickHistory = (props) => {
 
     const sortedWeekKeys = Object.keys(groupedByWeek).sort((a, b) => Number(b) - Number(a));
 
-    const sendReport = async (item) => {
-        console.log(item)
-        try {
-            const issueData = {
-                username: user.name,
-                description: item.text
-            };
-            await axios.post(`${apiBaseUrl}/api/report-issue`, issueData);
-            setMessage(`${item.text} has been sent for review`); 
-        } catch (error) {
-            console.error('Error reporting issue:', error);
-        }
-    }
-
     return (
         <Container>
             <Row>
@@ -82,7 +72,9 @@ const PickHistory = (props) => {
                         <tr>
                             <th>Pick</th>
                             <th>Result</th>
-                            <th className="dispute-cell">Dispute</th>
+                            {userParam !== user.name ? null : 
+                                <th className="dispute-cell">Dispute</th> 
+                            }
                         </tr>
                     </thead>
                     <tbody>
@@ -113,9 +105,10 @@ const PickHistory = (props) => {
                                                 <b>0</b>
                                             )}
                                         </td>
-                                        <td onClick={()=>sendReport(item)} className="dispute-cell" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: "red" }}>
+                                        {userParam !== user.name ? null : 
+                                        <td onClick={() => disputePick(item.text)} className="dispute-cell" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#f0ad4e', cursor: "pointer" }}>
                                             <h4><i className="bi bi-flag-fill"></i></h4>
-                                        </td>
+                                        </td>}
                                     </tr>
                                 ))}
                             </React.Fragment>
