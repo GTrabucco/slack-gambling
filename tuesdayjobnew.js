@@ -2,8 +2,6 @@ require('dotenv').config();
 const { MongoClient } = require('mongodb');
 const { getGames } = require('./theoddsapinew');     
 const { processPicks } = require('./processpicksnew');
-const fs = require('fs');
-const path = require('path');
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) throw new Error('MONGODB_URI not found in .env file');
@@ -19,14 +17,49 @@ async function tuesdayJob(season, week, weekType) {
     const picksHistoryCollection = db.collection('Picks_History');
     const gamesCollection = db.collection('Games');
     const gamesHistoryCollection = db.collection('Games_History');
+    const userDetails = db.collection('User_Details');
 
     await session.withTransaction(async () => {
       // Add season and week fields to all picks
       await picksCollection.updateMany({}, { $set: { season, week } }, { session });
 
       const picksCursor = picksCollection.find({}, { session });
-      const picks = await picksCursor.toArray();
+      let picks = await picksCursor.toArray();
       const picksNoId = picks.map(({ _id, ...rest }) => rest);
+
+      // Step 1: Build user-to-picks map
+      const picksByUser = picksNoId.reduce((acc, pick) => {
+        if (!acc[pick.username]) acc[pick.username] = [];
+        acc[pick.username].push(pick);
+        return acc;
+      }, {});
+
+      // Step 2: Fetch all users
+      const users = await userDetails.find({}, { session }).toArray();
+      const usernames = users.map(u => u.username);
+
+      // Step 3: Fill missing picks
+      for (const username of usernames) {
+        const userPicks = picksByUser[username] || [];
+        const typesPicked = userPicks.map(p => p.type);
+        const allTypes = ['favorite', 'dog', 'over', 'under'];
+
+        const missingTypes = allTypes.filter(t => !typesPicked.includes(t));
+
+        for (const type of missingTypes) {
+          const blankPick = {
+            username,
+            type,
+            gameId: null,
+            text: `Did not submit a ${type}`,
+            season,
+            week,
+            result: -1,
+            createdAt: Date()
+          };
+          picksNoId.push(blankPick);
+        }
+      }
 
       // Process picks (add results etc)
       const processedPicks = await processPicks(season, week, picksNoId, weekType);

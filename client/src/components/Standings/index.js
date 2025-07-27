@@ -1,39 +1,32 @@
 import { useState, useEffect } from "react";
-import { Container, Row, Table, Nav } from 'react-bootstrap';
-import axios from 'axios'
-import './style.css'
+import { Container, Row, Table, Nav, Form } from "react-bootstrap";
+import axios from "axios";
+import './style.css';
 import { useNavigate } from "react-router-dom";
 
 const Standings = () => {
     const [error, setError] = useState("");
     const [data, setData] = useState([]);
-    const [perfectWeeks, setPerfectWeeks] = useState([])
-    const [negFourWeeks, setNegFourWeeks] = useState([])
-    const [users, setUsers] = useState([])
+    const [perfectWeeks, setPerfectWeeks] = useState({});
+    const [negFourWeeks, setNegFourWeeks] = useState({});
+    const [users, setUsers] = useState({});
+    const [seasons, setSeasons] = useState(["2025"]);
+    const [selectedSeason, setSelectedSeason] = useState("2025");
+
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
     const navigate = useNavigate();
-    const SEASON = "2024";
-
-
-    // use medal icons for 1,2,3
 
     useEffect(() => {
-        const fetchStandings = async () => {
-            try {
-                const response = await axios.get(`${apiBaseUrl}/api/get-standings`);
-                if (response.data != null) {
-                    setData(response.data);
-                }
-            } catch (error) {
-                setError('Error fetching picks');
-            }
-        };
+        const maxSeason = seasons.reduce((a, b) => (parseInt(a) > parseInt(b) ? a : b), "2025");
+        setSelectedSeason(maxSeason);
+    }, [seasons]);
 
+    useEffect(() => {
         const fetchUsers = async () => {
             try {
                 const response = await axios.get(`${apiBaseUrl}/api/get-users`);
                 if (response.data != null) {
-                    setUsers(Object.groupBy(response.data, ({username}) => username));
+                    setUsers(Object.groupBy(response.data, ({ username }) => username));
                 }
             } catch (error) {
                 setError('Error fetching users');
@@ -43,22 +36,24 @@ const Standings = () => {
         const fetchPickHistory = async () => {
             try {
                 const response = await axios.get(`${apiBaseUrl}/api/get-pick-history`, {
-                    params: {
-                        username: null
-                    }
+                    params: { season: selectedSeason }
                 });
 
                 if (response.data != null) {
                     let picks = response.data;
-                    const groupedBySeason = Object.groupBy(picks, ({ season }) => season);
-                    const seasonPicks = groupedBySeason[SEASON];
-                    const groupedByUser = Object.groupBy(seasonPicks, ({ username }) => username);
+                    const groupedByUser = Object.groupBy(picks, ({ username }) => username);
                     const newPerfectWeeks = {};
                     const newNegFourWeeks = {};
+                    const userTotals = {};
+
                     Object.entries(groupedByUser).forEach(([username, userPicks]) => {
+                        userTotals[username] = 0;
+
                         const picksByWeek = Object.groupBy(userPicks, ({ week }) => week);
                         Object.values(picksByWeek).forEach(weeklyPicks => {
                             const resultSum = weeklyPicks.reduce((sum, pick) => sum + pick.result, 0);
+                            userTotals[username] += resultSum;
+
                             if (resultSum === 4) {
                                 newPerfectWeeks[username] = (newPerfectWeeks[username] || 0) + 1;
                             } else if (resultSum === -4) {
@@ -67,6 +62,11 @@ const Standings = () => {
                         });
                     });
 
+                    const standings = Object.entries(userTotals)
+                        .map(([username, resultSum]) => ({ username, resultSum }))
+                        .sort((a, b) => b.resultSum - a.resultSum);
+
+                    setData(standings);
                     setPerfectWeeks(newPerfectWeeks);
                     setNegFourWeeks(newNegFourWeeks);
                 }
@@ -74,10 +74,11 @@ const Standings = () => {
                 setError('Error fetching picks');
             }
         };
+
         fetchUsers();
-        fetchStandings();
         fetchPickHistory();
-    }, [])
+    }, [selectedSeason]); 
+
 
     const getPlace = (index) => {
         switch (index) {
@@ -96,6 +97,19 @@ const Standings = () => {
         <Container>
             <Row>
                 <h2>Standings</h2>
+            </Row>
+            <Row className="mb-3">
+                <Form.Group controlId="seasonSelect">
+                    <Form.Label>Season</Form.Label>
+                    <Form.Select
+                        value={selectedSeason}
+                        onChange={(e) => setSelectedSeason(e.target.value)}
+                    >
+                        {seasons.map(season => (
+                            <option key={season} value={season}>{season}</option>
+                        ))}
+                    </Form.Select>
+                </Form.Group>
             </Row>
             {error && <div className="alert alert-danger">{error}</div>}
             <Table responsive bordered>

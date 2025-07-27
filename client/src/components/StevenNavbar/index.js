@@ -66,25 +66,28 @@ const StevenNavbar = () => {
                 </DialogTitle>
                 <DialogContent dividers>
                     <Typography gutterBottom>
-                        <b>1.</b> Pick a Favorite, Underdog, Over and Under each week
+                        <b>1.</b> Games update on <b>Tuesdays</b> and <b>Fridays</b>. You'll see games from <b>Tue-Thu</b> during the week, and <b>Fri-Mon</b> over the weekend.
                     </Typography>
                     <Typography gutterBottom>
-                        <b>2.</b> Submit picks using the button at the bottom of the page
+                        <b>2.</b> Pick a Favorite, Underdog, Over and Under each week
                     </Typography>
                     <Typography gutterBottom>
-                        <b>3.</b> Picks can be changed until the game starts
+                        <b>3.</b> Submit picks using the button at the bottom of the page
                     </Typography>
                     <Typography gutterBottom>
-                        <b>4.</b> Scoring: +1 for correct, -1 for incorrect, 0 for push
+                        <b>4.</b> Picks can be changed until the game starts
                     </Typography>
                     <Typography gutterBottom>
-                        <b>5.</b> Earn 1 share in the Perfect Week Pool by going 4/4 in a week. The pool payout is split among all shareholders at season's end
+                        <b>5.</b> Scoring: +1 for correct, -1 for incorrect, 0 for push
                     </Typography>
                     <Typography gutterBottom>
-                        <b>6.</b> Enable text reminders and edit your display name on the Account page
+                        <b>6.</b> Earn 1 share in the Perfect Week Pool by going 4/4 in a week. The pool payout is split among all shareholders at season's end
                     </Typography>
                     <Typography gutterBottom>
-                        <b>7.</b> Submit questions or issues via the Report Issue page
+                        <b>7.</b> Enable text reminders and edit your display name on the Account page
+                    </Typography>
+                    <Typography gutterBottom>
+                        <b>8.</b> Submit questions or issues via the Report Issue page
                     </Typography>
                 </DialogContent>
                 <DialogActions>

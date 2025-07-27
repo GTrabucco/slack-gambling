@@ -51,7 +51,7 @@ const JobRunner = () => {
                         <Form.Group controlId="formSeason">
                             <Form.Label>Season</Form.Label>
                             <Form.Control
-                                type="text"
+                                type="number"
                                 value={season}
                                 onChange={(e) => setSeason(e.target.value)}
                                 required
@@ -62,7 +62,7 @@ const JobRunner = () => {
                         <Form.Group controlId="formWeek">
                             <Form.Label>Week</Form.Label>
                             <Form.Control
-                                type="text"
+                                type="number"
                                 value={week}
                                 onChange={(e) => setWeek(e.target.value)}
                                 required
@@ -70,10 +70,10 @@ const JobRunner = () => {
                         </Form.Group>
                     </Col>
                     <Col md={4}>
-                        <Form.Group controlId="formWeek">
+                        <Form.Group controlId="formWeekType">
                             <Form.Label>Week Type (Preseason = 1, Regular = 2, Playoffs = 3)</Form.Label>
                             <Form.Control
-                                type="text"
+                                type="number"
                                 value={weekType}
                                 onChange={(e) => setWeekType(e.target.value)}
                                 required

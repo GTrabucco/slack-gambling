@@ -4,11 +4,12 @@ const BASE_BOXSCORE_URL = 'https://sports.core.api.espn.com/v2/sports/football/l
 const BASE_SUMMARY_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary';
 
 function isValidInteger(value) {
-  return Number.isInteger(value) && value > 0;
+  const num = Number(value);
+  return Number.isInteger(num) && num > 0;
 }
 
 function validateInputs(season, week, weekType) {
-  if (!isValidInteger(season) || !isValidInteger(week) || ![1, 2, 3].includes(weekType)) {
+  if (!isValidInteger(season) || !isValidInteger(week) || ![1, 2, 3].includes(Number(weekType))) {
     throw new Error("Invalid input parameters for ESPN API call.");
   }
 }
@@ -105,6 +106,7 @@ async function processPicks(season, week, picks, weekType) {
     const gameResults = await fetchGameResults(eventIds);
 
     for (const pick of picks) {
+      if (pick.result) continue; 
       const result = gameResults.find(
         res => res.homeTeam === pick.homeTeam && res.awayTeam === pick.awayTeam
       );

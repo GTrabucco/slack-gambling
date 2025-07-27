@@ -19,7 +19,7 @@ const allowedOrigins = [
 var RateLimit = require('express-rate-limit');
 var limiter = RateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: 100, 
+  max: 1000, 
 });
 
 app.use(limiter);
@@ -65,10 +65,10 @@ app.get('/api/games', async (req, res) => {
 
 
 app.post('/api/tuesday-job', async (req, res) => {
-    const { season, week } = req.body;
+    const { season, week, weekType } = req.body;
 
     try {
-        const result = await tuesdayJob(season, week);
+        const result = await tuesdayJob(season, week, weekType);
         res.json({ message: 'Tuesday job executed successfully', result });
     } catch (error) {
         console.error('Tuesday Job Error:', error);
@@ -249,20 +249,21 @@ app.get('/api/get-weekly-picks', async (req, res) => {
 
 app.get('/api/get-pick-history', async (req, res) => {
     try {
-        const { username } = req.query;
+        const { season, username } = req.query;
         const db = client.db(DATABASE_NAME);
-        let data = null 
-        if (username) {
-            data = await db.collection('Picks_History').find({username: username}).toArray();
-        } else {
-            data = await db.collection('Picks_History').find({}).toArray();  
-        }
-        res.json(data);
+
+        const filter = {};
+        if (season) filter.season = season;
+        if (username) filter.username = username;
+
+        const data = await db.collection('Picks_History').find(filter).toArray();
+        return res.json(data);
     } catch (error) {
-        console.log(error)
+        console.log(error);
         res.status(500).json({ error: 'Error fetching data from MongoDB' });
     }
 });
+
 
 app.get('/api/userdetails', async (req, res) => {
     try {
@@ -317,40 +318,6 @@ app.get('/api/get-all-pick-history', async (req, res) => {
         const db = client.db(DATABASE_NAME); 
         const data = await db.collection('Picks_History').find({}).toArray();
         res.json(data);
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({ error: 'Error fetching data from MongoDB' });
-    }
-});
-
-app.get('/api/get-standings', async (req, res) => {
-    try {
-        const db = client.db(DATABASE_NAME); 
-
-        const pipeline = [
-            {
-              $group: {
-                _id: "$username",
-                resultSum: { $sum: "$result" }
-              }
-            },
-            {
-              $project: {
-                _id: 0,
-                username: "$_id",
-                resultSum: 1
-              }
-            },
-            {
-              $sort: {
-                resultSum: -1
-              }
-            }
-          ];
-
-        const picksHistoryCollection = db.collection('Picks_History');
-        const results = await picksHistoryCollection.aggregate(pipeline).toArray();
-        res.json(results);
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: 'Error fetching data from MongoDB' });

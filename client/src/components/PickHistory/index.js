@@ -1,42 +1,39 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Table, Nav, Button } from 'react-bootstrap';
-import axios from 'axios'
+import { Container, Row, Table } from 'react-bootstrap';
+import axios from 'axios';
 import { useAuth0 } from "@auth0/auth0-react";
-import './style.css'
+import './style.css';
 import { useLocation } from 'react-router-dom';
-import { useNavigate } from "react-router-dom";
+import StevenNotification from "../StevenNotification";
 
 const PickHistory = (props) => {
+    const SEASON = "2025"
     const [error, setError] = useState("");
-    const [picks, setPicks] = useState([])
+    const [picks, setPicks] = useState([]);
     const { user } = useAuth0();
-    const navigate = useNavigate();
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const userParam = queryParams.get('user');
-    const usernameDisplay = userParam ? userParam : user.name
-    const options = {
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    };
-      
+    const usernameDisplay = userParam ? userParam : user.name;
+    const [message, setMessage] = useState("");
+
+
     useEffect(() => {
         const fetchPickHistory = async () => {
             try {
                 const response = await axios.get(`${apiBaseUrl}/api/get-pick-history`, {
                     params: {
-                        username: usernameDisplay
+                        username: usernameDisplay,
+                        season:SEASON
                     }
                 });
 
                 if (response.data != null) {
-                    const sortedPicks = response.data.sort((a, b) => 
+                    const sortedPicks = response.data.sort((a, b) =>
                         new Date(b.createdAt) - new Date(a.createdAt)
                     );
-
-                    setPicks(response.data);
+                    setPicks(sortedPicks);
                 }
             } catch (error) {
                 setError('Error fetching picks');
@@ -44,30 +41,84 @@ const PickHistory = (props) => {
         };
 
         fetchPickHistory();
-    }, [])
+    }, [usernameDisplay, apiBaseUrl]);
+
+    const groupedByWeek = picks.reduce((acc, pick) => {
+        const week = pick.week ?? "Unknown Week";
+        if (!acc[week]) acc[week] = [];
+        acc[week].push(pick);
+        return acc;
+    }, {});
+
+    const sortedWeekKeys = Object.keys(groupedByWeek).sort((a, b) => Number(b) - Number(a));
+
+    const sendReport = async (item) => {
+        console.log(item)
+        try {
+            const issueData = {
+                username: user.name,
+                description: item.text
+            };
+            await axios.post(`${apiBaseUrl}/api/report-issue`, issueData);
+            setMessage(`${item.text} has been sent for review`); 
+        } catch (error) {
+            console.error('Error reporting issue:', error);
+        }
+    }
 
     return (
         <Container>
             <Row>
+                <StevenNotification
+                    message={message}
+                    setMessage={setMessage}
+                />
+            </Row>
+            <br />
+            <Row>
+                {error && <div style={{ color: 'red' }}>{error}</div>}
                 <Table responsive bordered>
                     <thead>
                         <tr>
-                            <th>Submitted</th>
                             <th>Pick</th>
                             <th>Result</th>
+                            <th className="dispute-cell">Dispute</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {picks.map((item) => (
-                            <tr className="ph-row" key={item._id}>
-                                <td className="ph1-cell"><b>{new Date(item.createdAt).toLocaleDateString(undefined, options)}</b></td>
-                                <td className="ph2-cell">{item.result > 0 ? <span style={{"color": "green"}}><b>{item.text}</b></span> : 
-                                                          item.result < 0 ? <span style={{"color": "red"}}><b>{item.text}</b></span> :
-                                                          <b>{item.text}</b>}</td>
-                                <td className="ph3-cell">{item.result > 0 ? <span style={{"color": "green"}}><b>1</b></span> : 
-                                                          item.result < 0 ? <span style={{"color": "red"}}><b>-1</b></span> :
-                                                          <b>0</b>}</td>
-                            </tr>
+                        {sortedWeekKeys.map(week => (
+                            <React.Fragment key={week}>
+                                <tr>
+                                    <td colSpan="4" style={{ backgroundColor: "#eee", fontWeight: "bold" }}>
+                                        Week {week}
+                                    </td>
+                                </tr>
+                                {groupedByWeek[week].map(item => (
+                                    <tr className="ph-row" key={item._id}>
+                                        <td className="ph2-cell">
+                                            {item.result > 0 ? (
+                                                <span style={{ color: "green" }}><b>{item.text}</b></span>
+                                            ) : item.result < 0 ? (
+                                                <span style={{ color: "red" }}><b>{item.text}</b></span>
+                                            ) : (
+                                                <b>{item.text}</b>
+                                            )}
+                                        </td>
+                                        <td className="ph3-cell">
+                                            {item.result > 0 ? (
+                                                <span style={{ color: "green" }}><b>1</b></span>
+                                            ) : item.result < 0 ? (
+                                                <span style={{ color: "red" }}><b>-1</b></span>
+                                            ) : (
+                                                <b>0</b>
+                                            )}
+                                        </td>
+                                        <td onClick={()=>sendReport(item)} className="dispute-cell" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: "red" }}>
+                                            <h4><i className="bi bi-flag-fill"></i></h4>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </React.Fragment>
                         ))}
                     </tbody>
                 </Table>
