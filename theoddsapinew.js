@@ -50,9 +50,8 @@ function formatGames(data) {
 }
 
 async function getGames(startDate, endDate) {
-  const formattedFrom = startDate.toISOString();
-  const formattedTo = endDate.toISOString();
-
+  const formattedFrom = startDate.toISOString().split('.')[0] + 'Z';
+  const formattedTo = endDate.toISOString().split('.')[0] + 'Z';
   try {
     const response = await axios.get(
       `https://api.the-odds-api.com/v4/sports/${SPORT}/odds`,
@@ -73,7 +72,7 @@ async function getGames(startDate, endDate) {
     const formattedGames = formatGames(response.data);
     return formattedGames;
   } catch (error) {
-    console.error('Error in theoddsapi getGames:', error.message);
+    console.error('Error in theoddsapi getGames:', error);
     return [];
   }
 }

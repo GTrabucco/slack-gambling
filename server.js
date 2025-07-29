@@ -68,6 +68,7 @@ app.post('/api/tuesday-job', async (req, res) => {
     const { season, week, weekType } = req.body;
 
     try {
+        console.log('server')
         const result = await tuesdayJob(season, week, weekType);
         res.json({ message: 'Tuesday job executed successfully', result });
     } catch (error) {

@@ -20,8 +20,9 @@ async function tuesdayJob(season, week, weekType) {
     const userDetails = db.collection('User_Details');
 
     await session.withTransaction(async () => {
+      console.log('in')
       // Add season and week fields to all picks
-      await picksCollection.updateMany({}, { $set: { season, week } }, { session });
+      /*await picksCollection.updateMany({}, { $set: { season, week } }, { session });
 
       const picksCursor = picksCollection.find({}, { session });
       let picks = await picksCursor.toArray();
@@ -78,11 +79,11 @@ async function tuesdayJob(season, week, weekType) {
         await gamesHistoryCollection.insertMany(games, { session });
         await gamesCollection.deleteMany({}, { session });
       }
-
+      */
       // Load new games from TheOdds API (39 days from today)
       const now = new Date();
       const from = new Date(now.setHours(0, 0, 0, 0));
-      const to = new Date(from.getTime() + 39 * 24 * 60 * 60 * 1000);
+      const to = new Date(from.getTime() + 4 * 24 * 60 * 60 * 1000);
       let newGames = await getGames(from, to);
 
       // Add season and week to new games
