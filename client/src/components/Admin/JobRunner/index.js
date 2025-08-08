@@ -24,7 +24,7 @@ const JobRunner = () => {
     const fridayJob = async () => {
         if (!window.confirm("Are you sure you want to run the Friday Job?")) return;
         try {
-            const res = await axios.post(`${apiBaseUrl}/api/friday-job`);
+            const res = await axios.post(`${apiBaseUrl}/api/friday-job`, { season, week, weekType });
             setResult(res.data.output);
         } catch (error) {
             setResult("Error: " + error.message);

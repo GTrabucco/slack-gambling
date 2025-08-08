@@ -64,8 +64,8 @@ try:
             #picks_history_collection.insert_many(processed_picks, session=session)
             #picks_collection.delete_many({}, session=session)
             #copy_and_clear_collection(games_collection, games_history_collection, session)
-            load_games(session)
-            #picks_history_collection.delete_many({}, session=session)
+            #load_games(session)
+            picks_history_collection.delete_many({}, session=session)
             print("tuesdayjob", SEASON, WEEK)
 
 except errors.PyMongoError as error:

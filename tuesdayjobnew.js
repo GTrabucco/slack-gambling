@@ -82,13 +82,16 @@ async function tuesdayJob(season, week, weekType) {
       */
       // Load new games from TheOdds API (39 days from today)
       const now = new Date();
-      const from = new Date(now.setHours(0, 0, 0, 0));
-      const to = new Date(from.getTime() + 4 * 24 * 60 * 60 * 1000);
-      let newGames = await getGames(from, to);
+      const currentDay = now.getDay();
+      const tuesday = new Date(now);
+      tuesday.setDate(now.getDate() - currentDay + 2); 
+      tuesday.setHours(0, 0, 0, 0);
+      const thursday = new Date(tuesday.getTime() + 2 * 24 * 60 * 60 * 1000);
+      thursday.setHours(23, 59, 59, 999); 
+      let newGames = await getGames(tuesday, thursday);
 
       // Add season and week to new games
       newGames = newGames.map(game => ({ ...game, season, week }));
-
       if (newGames.length > 0) {
         await gamesCollection.insertMany(newGames, { session });
       }

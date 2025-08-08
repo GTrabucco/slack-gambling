@@ -65,10 +65,8 @@ app.get('/api/games', async (req, res) => {
 
 
 app.post('/api/tuesday-job', async (req, res) => {
-    const { season, week, weekType } = req.body;
-
     try {
-        console.log('server')
+        const { season, week, weekType } = req.body;
         const result = await tuesdayJob(season, week, weekType);
         res.json({ message: 'Tuesday job executed successfully', result });
     } catch (error) {
@@ -79,7 +77,8 @@ app.post('/api/tuesday-job', async (req, res) => {
 
 app.post('/api/friday-job', async (req, res) => {
     try {
-        const result = await fridayJob();
+        const { season, week, weekType } = req.body;
+        const result = await fridayJob(season, week, weekType);
         res.json({ message: 'Friday job executed successfully', result });
     } catch (error) {
         console.error('Friday Job Error:', error);

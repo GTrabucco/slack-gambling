@@ -2,26 +2,30 @@ const { MongoClient } = require("mongodb");
 const { getGames } = require("./theoddsapinew");
 require("dotenv").config();
 
-async function fridayJob(season, week) {
+async function fridayJob(season, week, weekType) {
   const client = new MongoClient(process.env.MONGODB_URI);
   try {
     await client.connect();
     const db = client.db("SlackGambling");
     const gamesCollection = db.collection("Games");
 
-    const from = new Date();
-    from.setHours(0, 0, 0, 0);
-    const to = new Date(from);
-    to.setDate(to.getDate() + 6);
+    const now = new Date();
+    const currentDay = now.getDay();
+    const friday = new Date(now);
+    friday.setDate(now.getDate() - currentDay + 5);
+    friday.setHours(0, 0, 0, 0);
+    const monday = new Date(friday);
+    monday.setDate(friday.getDate() + 3); 
+    monday.setHours(23, 59, 59, 999);
 
-    const games = await getGames(from, to);
-    const gamesWithMeta = games.map(game => ({
+    const games = await getGames(friday, monday);
+    const newGames = games.map(game => ({
       ...game,
       season,
       week,
     }));
 
-    await gamesCollection.insertMany(gamesWithMeta);
+    await gamesCollection.insertMany(newGames);
   } catch (error) {
     console.error("Error inserting games:", error);
   } finally {
