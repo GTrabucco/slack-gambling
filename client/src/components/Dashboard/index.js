@@ -34,7 +34,6 @@ const Dashboard = () => {
 
     fetchGames();
     fetchPicks();
-    fetchWeeklyPicks();
   }, [])
 
   const fetchPicks = async () => {
