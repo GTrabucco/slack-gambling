@@ -21,8 +21,9 @@ async function tuesdayJob(season, week, weekType) {
 
     await session.withTransaction(async () => {
       console.log('in')
+      /*
       // Add season and week fields to all picks
-      /*await picksCollection.updateMany({}, { $set: { season, week } }, { session });
+      await picksCollection.updateMany({}, { $set: { week } }, { session });
 
       const picksCursor = picksCollection.find({}, { session });
       let picks = await picksCursor.toArray();

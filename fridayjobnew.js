@@ -29,6 +29,7 @@ async function fridayJob(season, week, weekType) {
   } catch (error) {
     console.error("Error inserting games:", error);
   } finally {
+    console.log('Friday Job Finished')
     await client.close();
   }
 }
