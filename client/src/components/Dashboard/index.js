@@ -17,12 +17,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
-import { createSvgIcon } from '@mui/material';
-
-const VenmoIcon = createSvgIcon(
-    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.85 14.5c-.34.34-.84.52-1.35.52-.51 0-1.01-.18-1.35-.52-.34-.34-.52-.84-.52-1.35s.18-1.01.52-1.35c.34-.34.84-.52 1.35-.52.51 0 1.01.18 1.35.52.34.34.52.84.52 1.35s-.18 1.01-.52 1.35zm5.13 0c-.34.34-.84.52-1.35.52-.51 0-1.01-.18-1.35-.52-.34-.34-.52-.84-.52-1.35s.18-1.01.52-1.35c.34-.34.84-.52 1.35-.52.51 0 1.01.18 1.35.52.34.34.52.84.52 1.35s-.18 1.01-.52 1.35z" />,
-    'VenmoIcon',
-);
 
 const Dashboard = () => {
   const [games, setGames] = useState([]);
@@ -174,6 +168,7 @@ const Dashboard = () => {
     await fetchPicks();
     setTempPicks([])
     setMessage("Successfully Submitted Picks")
+    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const updatePick = (gameId, homeTeam, awayTeam, pickType, value, text, commenceTime) => {
