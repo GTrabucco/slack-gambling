@@ -288,6 +288,28 @@ app.get('/api/get-users', async (req, res) => {
     }
 });
 
+app.post('/api/has-paid', async (req, res) => {
+    try {
+        const { username } = req.body;
+        const db = client.db(DATABASE_NAME);
+        const userDetails = db.collection('User_Details');
+        const filter = { username: username };
+
+        const update = {
+            $set: {
+                hasPaid: true
+            }
+        };
+
+        const options = { upsert: true };
+        await userDetails.updateOne(filter, update, options);
+        console.log(`Updated hasPaid for username: ${username}`);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating user details:', error);
+    }
+});
+
 app.post('/api/update-userdetails', async (req, res) => {
     try {
         const { username, receiveSundayReminder, displayName, phoneNumber } = req.body;

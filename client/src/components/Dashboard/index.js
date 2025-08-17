@@ -12,12 +12,24 @@ import { useAuth0 } from "@auth0/auth0-react";
 import StevenNotification from "../StevenNotification";
 import { FaTrash } from 'react-icons/fa';
 import StevenButton from "../Common/StevenButton";
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Typography from '@mui/material/Typography';
+import { createSvgIcon } from '@mui/material';
+
+const VenmoIcon = createSvgIcon(
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1.85 14.5c-.34.34-.84.52-1.35.52-.51 0-1.01-.18-1.35-.52-.34-.34-.52-.84-.52-1.35s.18-1.01.52-1.35c.34-.34.84-.52 1.35-.52.51 0 1.01.18 1.35.52.34.34.52.84.52 1.35s-.18 1.01-.52 1.35zm5.13 0c-.34.34-.84.52-1.35.52-.51 0-1.01-.18-1.35-.52-.34-.34-.52-.84-.52-1.35s.18-1.01.52-1.35c.34-.34.84-.52 1.35-.52.51 0 1.01.18 1.35.52.34.34.52.84.52 1.35s-.18 1.01-.52 1.35z" />,
+    'VenmoIcon',
+);
 
 const Dashboard = () => {
   const [games, setGames] = useState([]);
   const [selectedPicks, setSelectedPicks] = useState([])
   const [tempPicks, setTempPicks] = useState([])
   const [errors, setError] = useState("")
+  const [showVenmo, setShowVenmo] = useState(true)
   const [message, setMessage] = useState("");
   const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
   const { user } = useAuth0();
@@ -35,6 +47,43 @@ const Dashboard = () => {
     fetchGames();
     fetchPicks();
   }, [])
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+        try {
+            const response = await axios.get(`${apiBaseUrl}/api/userdetails`, {
+                params: {
+                    username: user.name
+                }
+            });
+
+            const details = response.data[0];
+            if (!details || !("hasPaid" in details)) {
+              setShowVenmo(true);
+            } else if (details.hasPaid === false) {
+              setShowVenmo(true);
+            } else {
+              setShowVenmo(false);
+            }
+
+        } catch (error) {
+            setMessage('Error fetching user details');
+        }
+    };
+
+    fetchUserDetails();
+  }, [user.name, apiBaseUrl]);
+
+  const updateHasPaid = async (e) => {
+    try {
+        const username = user.name;
+        await axios.post(`${apiBaseUrl}/api/has-paid`, {
+            username: username
+        });
+    } catch (error) {
+        setMessage('Error updating user details has paid');
+    }
+  };
 
   const fetchPicks = async () => {
     try {
@@ -83,7 +132,6 @@ const Dashboard = () => {
     }
 
     try {
-
       const gameId = pickIdentifier.split('-')[0]
       const pickType = pickIdentifier.split('-')[1]
       const username = user.name;
@@ -173,6 +221,14 @@ const Dashboard = () => {
     return currentTime > targetTime
   }
 
+  const handleCloseVenmo = async (status) => {
+    if (status) {
+      await updateHasPaid()
+    }
+    
+    setShowVenmo(false);
+  };
+
   return (
     <div className="dashboard-container">
       <Row>
@@ -182,6 +238,40 @@ const Dashboard = () => {
         />
       </Row>
       <br />
+      <Dialog open={showVenmo} onClose={() => handleCloseVenmo()} maxWidth="sm" fullWidth>
+        <DialogTitle>
+            $105 Buy In Must Be Paid Before Start of Week 1 Games
+        </DialogTitle>
+        <DialogContent dividers>
+            <Typography gutterBottom>
+              <a
+                href="https://venmo.com/u/Giulian-Trabucco?txn=pay&amount=105&note=Slack Pool"
+                style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", color: "inherit" }}
+              >
+                <img className="medal" src="venmo.png" alt="Venmo" />
+                <span>Venmo</span>
+              </a>
+            </Typography>
+            <br/>
+            <Typography gutterBottom>
+              <a
+                href="https://cash.app/$GiulianTrabucco/105"
+                style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", color: "inherit" }}
+              >
+                <img className="medal" src="cashapp.webp" alt="Cash App" />
+                <span>Cash App</span>
+              </a>
+            </Typography>
+        </DialogContent>
+        <DialogActions>
+            <StevenButton onClick={()=>handleCloseVenmo(true)}>
+                I have paid the buy in
+            </StevenButton>
+            <StevenButton onClick={()=>handleCloseVenmo(false)}>
+                I plan on paying soon
+            </StevenButton>
+        </DialogActions>
+      </Dialog>
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         <TableContainer component={Paper} elevation={5}>
           <Table>
