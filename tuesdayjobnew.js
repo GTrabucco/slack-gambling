@@ -2,6 +2,8 @@ require('dotenv').config();
 const { MongoClient } = require('mongodb');
 const { getGames } = require('./theoddsapinew');     
 const { processPicks } = require('./processpicksnew');
+const fs = require("fs");
+const path = require("path");
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) throw new Error('MONGODB_URI not found in .env file');
@@ -20,8 +22,18 @@ async function tuesdayJob(season, week, weekType) {
     const userDetails = db.collection('User_Details');
 
     await session.withTransaction(async () => {
-      console.log('in')
-      /*
+      const picksToSave = await picksCollection.find({}).toArray();
+      if (picksToSave.length > 0) {
+        const now = new Date();
+        const fileName = `${String(now.getMonth() + 1).padStart(2, "0")}${String(
+          now.getDate()
+        ).padStart(2, "0")}${now.getFullYear()}.txt`;
+        const filePath = path.join(__dirname, "backups", fileName);
+
+        fs.writeFileSync(filePath, JSON.stringify(picksToSave, null, 2), "utf-8");
+        console.log(`Backup saved to ${filePath}`);
+      }
+      
       // Add season and week fields to all picks
       await picksCollection.updateMany({}, { $set: { week } }, { session });
 
@@ -80,7 +92,7 @@ async function tuesdayJob(season, week, weekType) {
         await gamesHistoryCollection.insertMany(games, { session });
         await gamesCollection.deleteMany({}, { session });
       }
-      */
+      
       // Load new games from TheOdds API (39 days from today)
       const now = new Date();
       const currentDay = now.getDay();
@@ -107,6 +119,21 @@ async function tuesdayJob(season, week, weekType) {
   } finally {
     await client.close();
   }
+}
+
+
+async function whoops (db){
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Convert JS Date to ISO string
+  const isoToday = today.toISOString();
+  const picksCollection = db.collection('Picks');
+  const result = await picksCollection.deleteMany({
+    commence_time: { $gt: isoToday }
+  });
+
+  console.log(result)
 }
 
 module.exports = tuesdayJob;

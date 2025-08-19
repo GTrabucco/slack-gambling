@@ -105,6 +105,8 @@ async function processPicks(season, week, picks, weekType) {
     const eventIds = extractEventIds(boxscoresResponse.data.items);
     const gameResults = await fetchGameResults(eventIds);
 
+    console.log(gameResults)
+    /*
     for (const pick of picks) {
       if (pick.result) continue; 
       const result = gameResults.find(
@@ -116,7 +118,7 @@ async function processPicks(season, week, picks, weekType) {
       }
 
       pick.result = calculatePickResult(pick, result);
-    }
+    }*/
 
     return picks;
   } catch (error) {

@@ -124,6 +124,12 @@ const Statistics = () => {
             </thead>
             <tbody>
               <tr className="st-row">
+                <td className="st1-cell">Overall Record</td>
+                <td className="st2-cell">{picks.filter(item => item.result === 1).length} {' - '}
+                  {picks.filter(item => item.result === -1).length}{' - '}
+                  {picks.filter(item => item.result === 0).length}</td>
+              </tr>
+              <tr className="st-row">
                 <td className="st1-cell">Favorites Record</td>
                 <td className="st2-cell">{picks.filter(item => item.type === "favorite" && item.result === 1).length} {' - '}
                   {picks.filter(item => item.type === "favorite" && item.result === -1).length}{' - '}
@@ -176,6 +182,12 @@ const Statistics = () => {
                   <thead>
                   </thead>
                   <tbody>
+                    <tr className="st-row">
+                      <td className="st1-cell">Overall Record</td>
+                      <td className="st2-cell">{picks.filter(item => item.result === 1).length} {' - '}
+                        {picks.filter(item => item.result === -1).length}{' - '}
+                        {picks.filter(item => item.result === 0).length}</td>
+                    </tr>
                     <tr className="st-row">
                       <td className="st1-cell">Favorites Record</td>
                       <td className="st2-cell">{seasonData.filter(item => item.type === "favorite" && item.result === 1).length}{' - '}
