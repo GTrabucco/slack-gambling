@@ -23,7 +23,7 @@ const Dashboard = () => {
   const [selectedPicks, setSelectedPicks] = useState([])
   const [tempPicks, setTempPicks] = useState([])
   const [errors, setError] = useState("")
-  const [showVenmo, setShowVenmo] = useState(true)
+  const [showVenmo, setShowVenmo] = useState(false)
   const [message, setMessage] = useState("");
   const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
   const { user } = useAuth0();
