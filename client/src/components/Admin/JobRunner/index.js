@@ -6,16 +6,42 @@ import './style.css'
 
 const JobRunner = () => {
     const [result, setResult] = useState("");
-    const [season, setSeason] = useState("");
+    const [season, setSeason] = useState("2025");
     const [week, setWeek] = useState("");
     const [weekType, setWeekType] = useState("");
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
+    const validDay = async (day) => {
+        if (!day) return false;
+
+        const today = new Date();
+        const daysOfWeek = [
+            "sunday",
+            "monday",
+            "tuesday",
+            "wednesday",
+            "thursday",
+            "friday",
+            "saturday"
+        ];
+        const currentDay = daysOfWeek[today.getDay()]; 
+
+        if (currentDay !== day.toLowerCase()) {
+            const proceed = window.confirm(
+            `Today is ${currentDay}. Are you sure you want to proceed on ${day}?`);
+            return proceed;
+        }
+
+        return true; 
+    };
+
     const tuesdayJob = async () => {
         if (!window.confirm("Are you sure you want to run the Tuesday Job?")) return;
         try {
-            const res = await axios.post(`${apiBaseUrl}/api/tuesday-job`, { season, week, weekType });
-            setResult(res.data.output);
+            if (validDay("tuesday")) {
+                const res = await axios.post(`${apiBaseUrl}/api/tuesday-job`, { season, week, weekType });
+                setResult(res.data.output); 
+            } 
         } catch (error) {
             setResult("Error: " + error.message);
         }
@@ -24,8 +50,10 @@ const JobRunner = () => {
     const fridayJob = async () => {
         if (!window.confirm("Are you sure you want to run the Friday Job?")) return;
         try {
-            const res = await axios.post(`${apiBaseUrl}/api/friday-job`, { season, week, weekType });
-            setResult(res.data.output);
+            if (validDay("friday")) {
+                const res = await axios.post(`${apiBaseUrl}/api/friday-job`, { season, week, weekType });
+                setResult(res.data.output); 
+            } 
         } catch (error) {
             setResult("Error: " + error.message);
         }
