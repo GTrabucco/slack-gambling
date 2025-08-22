@@ -88,13 +88,8 @@ const Dashboard = () => {
       });
 
       if (response.data != null) {
-        const picks = {};
-        response.data.forEach(pick => {
-          const pickIdentifier = `${pick.gameId}-${pick["type"]}`;
-          picks[pickIdentifier] = pick.text;
-        });
-
-        setSelectedPicks(picks);
+        setSelectedPicks(response.data);
+        setTempPicks(response.data);
       }
     } catch (error) {
       setError('Error fetching picks');
@@ -107,10 +102,10 @@ const Dashboard = () => {
   }
 
   const submitPick = async (data) => {
-    const { gameId, homeTeam, awayTeam, pickType, value, text } = data;
+    const { gameId, homeTeam, awayTeam, type, value, text } = data;
     try {
       const username = user.name;
-      const data = { username, homeTeam, awayTeam, pickType, gameId, value, text }
+      const data = { username, homeTeam, awayTeam, type, gameId, value, text }
       await axios.post(`${apiBaseUrl}/api/submit-picks`, data);
     } catch (error) {
       setError('Error submitting pick');
@@ -131,14 +126,25 @@ const Dashboard = () => {
       const username = user.name;
       const data = { username, gameId, pickType, text }
       await axios.post(`${apiBaseUrl}/api/remove-pick`, data);
-
       setSelectedPicks(prevState => {
-        const newState = { ...prevState };
-        setMessage(`Removed ${newState[pickIdentifier]}`)
-        delete newState[pickIdentifier];
+        const newState = prevState.filter(
+          pick => !(pick.gameId === gameId && pick.type === pickType)
+        );
+
+        if (newState.length !== prevState.length) {
+          const removedPick = prevState.find(
+            pick => pick.gameId === gameId && pick.type === pickType
+          );
+          setMessage(`Removed ${removedPick.text}`);
+          setTempPicks(tempPrev =>
+            tempPrev.filter(pick => !(pick.gameId === gameId && pick.type === pickType))
+          );
+        } else {
+          setMessage("Nothing to remove");
+        }
+
         return newState;
       });
-
     } catch (error) {
       setError('Error submitting pick');
     }
@@ -146,14 +152,6 @@ const Dashboard = () => {
 
   const submitPicks = async (e) => {
     e.preventDefault();
-    // removals
-    const removals = Object.entries(selectedPicks).filter(
-      ([key, value]) => {
-        return tempPicks.hasOwnProperty(key.split('-')[1]) || tempPicks[key] === value
-      }
-    );
-
-    // additions
     const additions = Object.entries(tempPicks).filter(
       ([key, value]) => !selectedPicks.hasOwnProperty(key) || selectedPicks[key] !== value
     );
@@ -161,54 +159,46 @@ const Dashboard = () => {
       await submitPick(additions[pick][1])
     }
 
-    for (let pick in removals) {
-      await removePick(removals[pick][0], removals[pick][1])
-    }
-
     await fetchPicks();
-    setTempPicks([])
     setMessage("Successfully Submitted Picks")
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const updatePick = (gameId, homeTeam, awayTeam, pickType, value, text, commenceTime) => {
+  const updatePick = (gameId, homeTeam, awayTeam, type, value, text, commenceTime) => {
     if (gameStarted(commenceTime)) {
-      setMessage("Game Already Started")
+      setMessage("Game Already Started");
       return;
     }
 
-    const existingPick = Object.keys(selectedPicks).find(pickId => pickId.includes(`-${pickType}`));
+    const existingPick = tempPicks.find(pick => pick.type === type);
     if (existingPick) {
-      const existingPickGameId = existingPick.split('-')[0];
-      const existingPickCommenceTime = getCommenceTimeByGameId(existingPickGameId)
+      const existingPickCommenceTime = getCommenceTimeByGameId(existingPick.gameId);
       if (gameStarted(existingPickCommenceTime)) {
-        setMessage(`You already selected a ${pickType} in a game that has started`)
+        setMessage(`You already selected a ${type} in a game that has started`);
         return;
       }
     }
-    
-    const pickIdentifier = `${gameId}-${pickType}`;
-    const existingTempPick = Object.keys(tempPicks).find(pickId => pickId.includes(`-${pickType}`));
-    if (existingTempPick) {
-      setTempPicks(prevState => {
-        const newState = { ...prevState };
-        if (existingTempPick === pickIdentifier) {
-          delete newState[existingTempPick];
-        } else {
-          if (existingTempPick) {
-            delete newState[existingTempPick];
-          }
-          newState[pickIdentifier] = { gameId, homeTeam, awayTeam, pickType, value, text };
-        }
+
+    setTempPicks(prevState => {
+      const existingIndex = prevState.findIndex(
+        pick => pick.type === type
+      );
+
+      if (existingIndex !== -1 && prevState[existingIndex].gameId === gameId) {
+        const newState = [...prevState];
+        newState.splice(existingIndex, 1);
         return newState;
-      });
-    } else {
-      setTempPicks(prevState => ({
-        ...prevState,
-        [pickIdentifier]: { gameId, homeTeam, awayTeam, pickType, value, text },
-      }));
-    }
-  }
+      }
+
+      if (existingIndex !== -1) {
+        const newState = [...prevState];
+        newState[existingIndex] = { gameId, homeTeam, awayTeam, type, value, text };
+        return newState;
+      }
+
+      return [...prevState, { gameId, homeTeam, awayTeam, type, value, text }];
+    });
+  };
 
   const gameStarted = (commenceTime) => {
     const currentTime = new Date();
@@ -272,15 +262,22 @@ const Dashboard = () => {
           <Table>
             <TableBody>
               {['favorite', 'dog', 'over', 'under'].map((type) => {
-                const key = Object.keys(selectedPicks).find(k => k.endsWith(`-${type}`));
-                const value = selectedPicks[key];
+                const pick = Array.isArray(selectedPicks) 
+                  ? selectedPicks.find(obj => obj.type === type) 
+                  : null;
+                var key = null;
+                var value = "-";
+                if (pick) {
+                  value = pick.text;
+                  key = pick.gameId + "-" + type
+                }
                 return (
                   <TableRow key={type}>
                     <TableCell>
                       <b>{type.charAt(0).toUpperCase() + type.slice(1)}</b>
                     </TableCell>
                     <TableCell>
-                      {value || "-"}
+                      {value}
                     </TableCell>
                     <TableCell style={{ textAlign: 'center' }}>
                       {value && (
@@ -336,14 +333,20 @@ const Dashboard = () => {
               let underdog = +home_spread > +away_spread ? home_team + " +" + home_spread : away_team + " +" + away_spread
               let favorite_spread = +home_spread > +away_spread ? +away_spread : +home_spread
               let underdog_spread = +home_spread > +away_spread ? +home_spread : +away_spread
-              let away_picked =
-                (tempPicks[`${game["_id"]}-dog`] && tempPicks[`${game["_id"]}-dog`].text.includes(away_team_name)) ||
-                (tempPicks[`${game["_id"]}-favorite`] && tempPicks[`${game["_id"]}-favorite`].text.includes(away_team_name));
-              let home_picked =
-                (tempPicks[`${game["_id"]}-dog`] && tempPicks[`${game["_id"]}-dog`].text.includes(home_team_name)) ||
-                (tempPicks[`${game["_id"]}-favorite`] && tempPicks[`${game["_id"]}-favorite`].text.includes(home_team_name));
-              let over_picked = tempPicks[`${game["_id"]}-over`] ? true : false;
-              let under_picked = tempPicks[`${game["_id"]}-under`] ? true : false;
+              const away_picked = Array.isArray(tempPicks) 
+                  ? tempPicks.find(obj => obj.type === "dog" && obj.text.includes(away_team_name)) ||  
+                    tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(away_team_name))
+                  : null;
+              const home_picked = Array.isArray(tempPicks) 
+                  ? tempPicks.find(obj => obj.type === "dog" && obj.text.includes(home_team_name)) ||  
+                    tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(home_team_name))
+                  : null;
+              const over_picked = Array.isArray(tempPicks) 
+                  ? tempPicks.find(obj => obj.type === "over" && obj.gameId === game["_id"])
+                  : null;
+              const under_picked = Array.isArray(tempPicks) 
+                  ? tempPicks.find(obj => obj.type === "under" && obj.gameId === game["_id"])
+                  : null;
               let header = (
                 <Paper style={{ marginBottom: 20 }} elevation={2}>
                   <Row>
