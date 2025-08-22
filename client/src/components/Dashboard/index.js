@@ -42,6 +42,21 @@ const Dashboard = () => {
     fetchPicks();
   }, [])
 
+  const createUserDetails = async (e) => {
+      try {
+          const username = user.name;
+          await axios.post(`${apiBaseUrl}/api/update-userdetails`, {
+              username: username,
+              displayName: "",
+              receiveSundayReminder: false,
+              phoneNumber: ""
+          });
+          setMessage('Updated User Details');
+      } catch (error) {
+          setMessage('Error updating user details');
+      }
+  };
+
   useEffect(() => {
     const fetchUserDetails = async () => {
         try {
@@ -52,6 +67,11 @@ const Dashboard = () => {
             });
 
             const details = response.data[0];
+
+            if (!details) {
+              createUserDetails();
+            }
+
             if (!details || !("hasPaid" in details)) {
               setShowVenmo(true);
             } else if (details.hasPaid === false) {
