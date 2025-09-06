@@ -63,6 +63,25 @@ app.get('/api/games', async (req, res) => {
     }
 });
 
+app.get('/api/backup-picks', async (req, res) => {
+  try {
+    const picksToSave = await picksCollection.find({}).toArray();
+    if (picksToSave.length === 0) return res.status(404).send("No picks to backup.");
+
+    const now = new Date();
+    const fileName = `${String(now.getMonth() + 1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${now.getFullYear()}.txt`;
+    const fileContent = JSON.stringify(picksToSave, null, 2);
+
+    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+    res.setHeader("Content-Type", "text/plain");
+
+    res.send(fileContent);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Failed to create backup");
+  }
+});
+
 
 app.post('/api/tuesday-job', async (req, res) => {
     try {

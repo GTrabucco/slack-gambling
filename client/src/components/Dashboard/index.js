@@ -184,6 +184,21 @@ const Dashboard = () => {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
+  const isOpposite = (type) => {
+    switch(type) {
+      case "dog":
+        return "favorite"
+      case "favorite":
+        return "dog"
+      case "over":
+        return "under"
+      case "under":
+        return "over"
+      default:
+        return false
+    }
+  }
+
   const updatePick = (gameId, homeTeam, awayTeam, type, value, text, commenceTime) => {
     if (gameStarted(commenceTime)) {
       setMessage("Game Already Started");
@@ -197,6 +212,29 @@ const Dashboard = () => {
         setMessage(`You already selected a ${type} in a game that has started`);
         return;
       }
+    }
+
+    const oppositePick = tempPicks.find(pick => pick.type === isOpposite(type) && pick.gameId === gameId)
+    if (oppositePick) {
+      setTempPicks(prevState => {
+        const oppositeIndex = prevState.findIndex(
+          pick => pick.type === isOpposite(type) && pick.gameId === gameId
+        );
+
+        if (oppositeIndex !== -1 && prevState[oppositeIndex].gameId === gameId) {
+          const newState = [...prevState];
+          newState.splice(oppositeIndex, 1);
+          return newState;
+        }
+
+        if (oppositeIndex !== -1) {
+          const newState = [...prevState];
+          newState[oppositeIndex] = { gameId, homeTeam, awayTeam, type, value, text };
+          return newState;
+        }
+
+        return [...prevState, { gameId, homeTeam, awayTeam, type, value, text }];
+      });
     }
 
     setTempPicks(prevState => {

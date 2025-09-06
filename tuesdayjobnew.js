@@ -13,7 +13,6 @@ async function tuesdayJob(season, week, weekType) {
   try {
     await client.connect();
     const session = client.startSession();
-
     const db = client.db('SlackGambling');
     const picksCollection = db.collection('Picks');
     const picksHistoryCollection = db.collection('Picks_History');
@@ -22,7 +21,7 @@ async function tuesdayJob(season, week, weekType) {
     const userDetails = db.collection('User_Details');
 
     await session.withTransaction(async () => {
-      const picksToSave = await picksCollection.find({}).toArray();
+      /*const picksToSave = await picksCollection.find({}).toArray();
       if (picksToSave.length > 0) {
         const now = new Date();
         const fileName = `${String(now.getMonth() + 1).padStart(2, "0")}${String(
@@ -82,9 +81,12 @@ async function tuesdayJob(season, week, weekType) {
       if (processedPicks.length > 0) {
         await picksHistoryCollection.insertMany(processedPicks, { session });
       }
+        */
 
       // Clear Picks collection
       await picksCollection.deleteMany({}, { session });
+      await picksHistoryCollection.deleteMany({}, {session});
+      await gamesHistoryCollection.deleteMany({}, {session});
 
       // Backup Games to Games_History
       const games = await gamesCollection.find({}, { session }).toArray();
@@ -93,7 +95,7 @@ async function tuesdayJob(season, week, weekType) {
         await gamesCollection.deleteMany({}, { session });
       }
       
-      // Load new games from TheOdds API (39 days from today)
+      // Load new games from TheOdds API
       const now = new Date();
       const currentDay = now.getDay();
       const tuesday = new Date(now);
@@ -121,19 +123,33 @@ async function tuesdayJob(season, week, weekType) {
   }
 }
 
-
 async function whoops (db){
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const picksCollection = db.collection('Picks_History');
+  const duplicates = await picksCollection
+    .aggregate([
+      {
+        $group: {
+          _id: { week: "$week", username: "$username", text: "$text" },
+          ids: { $addToSet: "$_id" },
+          count: { $sum: 1 }
+        }
+      },
+      { $match: { count: { $gt: 1 } } } // only groups with duplicates
+    ])
+    .toArray();
 
-  // Convert JS Date to ISO string
-  const isoToday = today.toISOString();
-  const picksCollection = db.collection('Picks');
-  const result = await picksCollection.deleteMany({
-    commence_time: { $gt: isoToday }
-  });
+  console.log(`Found ${duplicates.length} groups of duplicates.`);
 
-  console.log(result)
+  for (const doc of duplicates) {
+    // Keep the first id, delete the rest
+    const [keepId, ...deleteIds] = doc.ids;
+    if (deleteIds.length > 0) {
+      await picksCollection.deleteMany({ _id: { $in: deleteIds } });
+      console.log(
+        `Removed ${deleteIds.length} duplicate(s) for week=${doc._id.week}, username=${doc._id.username}, text=${doc._id.text}`
+      );
+    }
+  }
 }
 
 module.exports = tuesdayJob;

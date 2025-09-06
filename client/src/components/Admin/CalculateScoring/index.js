@@ -8,6 +8,7 @@ const CalculateScoring = () => {
     const [picks, setPicks] = useState([]);
     const [filteredPicks, setFilteredPicks] = useState([]);
     const [betFilter, setBetFilter] = useState("");
+    const [weekFilter, setWeekFilter] = useState("");
     const [userFilter, setUserFilter] = useState("");
     const [dateFilter, setDateFilter] = useState("")
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
@@ -83,6 +84,17 @@ const CalculateScoring = () => {
         }
     }, [userFilter, picks]);
 
+     useEffect(() => {
+        if (weekFilter) {
+            const filtered = picks.filter(pick =>
+                pick.week.toLowerCase().includes(weekFilter.toLowerCase())
+            );
+            setFilteredPicks(filtered);
+        } else {
+            setFilteredPicks(picks);
+        }
+    }, [weekFilter, picks]);
+
     useEffect(() => {
         if (dateFilter) {
             const filtered = picks.filter(pick => 
@@ -111,6 +123,15 @@ const CalculateScoring = () => {
                                     type="text"
                                     value={dateFilter}
                                     onChange={(e) => setDateFilter(e.target.value)}
+                                />
+                            </th>
+                            <th>
+                                Week
+                                <br />
+                                <input
+                                    type="text"
+                                    value={weekFilter}
+                                    onChange={(e) => setWeekFilter(e.target.value)}
                                 />
                             </th>
                             <th>
@@ -143,10 +164,12 @@ const CalculateScoring = () => {
                                 let text = pick["text"];
                                 let user = pick["username"];
                                 let result = pick["result"];
+                                let week = pick["week"];
                                 let createdAt = pick["createdAt"];
                                 return (
                                     <tr key={pick["_id"]}>
                                         <td>{new Date(createdAt).toLocaleDateString(undefined, options)}</td>
+                                        <td>{week}</td>
                                         <td>{user.split("@")[0]}</td>
                                         <td>{text}</td>
                                         <td>

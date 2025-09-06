@@ -1,8 +1,8 @@
 const axios = require('axios');
 require('dotenv').config();
 
-const SPORT = 'americanfootball_nfl_preseason'; // or 'americanfootball_nfl'
-//const SPORT = 'americanfootball_nfl'
+//const SPORT = 'americanfootball_nfl_preseason'; // or 'americanfootball_nfl'
+const SPORT = 'americanfootball_nfl'
 const REGIONS = 'us';
 const MARKETS = 'totals,spreads';
 const ODDS_FORMAT = 'american';
