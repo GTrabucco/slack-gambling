@@ -52,7 +52,7 @@ const connectDB = async () => {
 
 connectDB();
 
-cron.schedule("10 9 * * 0", async () => 
+cron.schedule("0 9 * * 0", async () => 
     {
         try {
             const result = await sundayReminder();
