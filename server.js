@@ -41,7 +41,6 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 const uri = process.env.MONGODB_URI;
 const DATABASE_NAME = process.env.DATABASE_NAME;
 const client = new MongoClient(uri);
-const weather_api_key = process.env.WEATHER_API_KEY;
 const connectDB = async () => {
     try {
         await client.connect();
@@ -69,7 +68,7 @@ cron.schedule("0 9 * * 0", async () =>
 app.get("/api/weather", async (req, res) => {
     const { city, date } = req.query;
     const apiKey = process.env.WEATHER_API_KEY;
-    const url = `http://api.weatherapi.com/v1/forecast.json?key=${weather_api_key}&q=${city}&dt=${date}`;
+    const url = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${city}&dt=${date}`;
     try {
         const response = await fetch(url);
         const data = await response.json();

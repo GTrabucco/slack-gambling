@@ -27,7 +27,7 @@ const Dashboard = () => {
   const [showVenmo, setShowVenmo] = useState(false)
   const [message, setMessage] = useState("");
   const [selectedGameId, setSelectedGameId] = useState()
-  const [showStevenInfo, setShowStevenInfo] = useState()
+  const [showStevenInfo, setShowStevenInfo] = useState(false)
   const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
   const { user } = useAuth0();
 
