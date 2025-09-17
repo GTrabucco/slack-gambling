@@ -1,0 +1,187 @@
+[
+  {
+    "_id": {
+      "$oid": "677c5dac7ce2d8b2f3b84faa"
+    },
+    "username": "matt.goldberg7@gmail.com",
+    "receiveSundayReminder": true,
+    "phoneNumber": "7815401113",
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "67813601c7115635027fa3e0"
+    },
+    "username": "aoconnor63@gmail.com",
+    "receiveSundayReminder": true,
+    "hasPaid": true,
+    "displayName": null,
+    "phoneNumber": "6176107419"
+  },
+  {
+    "_id": {
+      "$oid": "67816dddc7115635027fa657"
+    },
+    "username": "chris.joseph.ptak@gmail.com",
+    "receiveSundayReminder": false,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "687ecd1669bad9f74afcecef"
+    },
+    "username": "giulian.trabucco@gmail.com",
+    "displayName": "Giulian",
+    "receiveSundayReminder": true,
+    "phoneNumber": "339-225-5525",
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "687ed1cb69bad9f74afcedc9"
+    },
+    "username": "jmgowetski@gmail.com",
+    "displayName": null,
+    "receiveSundayReminder": false,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "6888e5d269bad9f74afec607"
+    },
+    "username": "rpwentworth@gmail.com",
+    "displayName": null,
+    "phoneNumber": "5085742468",
+    "receiveSundayReminder": true,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "688e0decaae062be908caf21"
+    },
+    "username": "dantecoppola1776@gmail.com",
+    "displayName": "Dante Coppola",
+    "phoneNumber": "6175847666",
+    "receiveSundayReminder": true,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "689a97d8f3092d2807b12ee7"
+    },
+    "username": "gman4895@gmail.com",
+    "displayName": "Greg.Papakyrikos",
+    "phoneNumber": "7742705273",
+    "receiveSundayReminder": true,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "689f475af3092d2807b20a27"
+    },
+    "username": "ski24.ben@gmail.com",
+    "displayName": null,
+    "phoneNumber": "7816866621",
+    "receiveSundayReminder": true,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "68a48690203eda2c6c55b61c"
+    },
+    "username": "jwgowetski@comcast.net",
+    "displayName": null,
+    "phoneNumber": "3392252346",
+    "receiveSundayReminder": true,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "68a48802203eda2c6c55b658"
+    },
+    "username": "henrylongley5@gmail.com",
+    "displayName": "Hanklin",
+    "phoneNumber": "7816864137",
+    "receiveSundayReminder": true,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "68a802e3203eda2c6c570834"
+    },
+    "username": "tkobes24@gmail.com",
+    "displayName": null,
+    "phoneNumber": "7816868079",
+    "receiveSundayReminder": true,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "68a89a66203eda2c6c573b8d"
+    },
+    "username": "longley.jack@gmail.com",
+    "hasPaid": true,
+    "displayName": null,
+    "phoneNumber": "7818548853",
+    "receiveSundayReminder": true
+  },
+  {
+    "_id": {
+      "$oid": "68b63279eff46cd48dd6b8ad"
+    },
+    "username": "byoritomo13@gmail.com",
+    "displayName": "",
+    "phoneNumber": "",
+    "receiveSundayReminder": false,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "68b63fd7eff46cd48dd6bacf"
+    },
+    "username": "c.cox9922@gmail.com",
+    "displayName": "",
+    "phoneNumber": "",
+    "receiveSundayReminder": false,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "68b6f67aeff46cd48dd6d849"
+    },
+    "username": "trabucco64@gmail.com",
+    "displayName": "Dario Trabucco",
+    "phoneNumber": "",
+    "receiveSundayReminder": false,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "68b9dab9eff46cd48dd7e3aa"
+    },
+    "username": "btnewman7@gmail.com",
+    "displayName": "Ben Newman",
+    "phoneNumber": "7817279626",
+    "receiveSundayReminder": true,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "68baf959eff46cd48dd81cbf"
+    },
+    "username": "wjdewey75@gmail.com",
+    "displayName": "",
+    "phoneNumber": "",
+    "receiveSundayReminder": false,
+    "hasPaid": true
+  },
+  {
+    "_id": {
+      "$oid": "68bd932deff46cd48dd89235"
+    },
+    "username": "antoniotrabucco8@gmail.com",
+    "displayName": "",
+    "phoneNumber": "",
+    "receiveSundayReminder": false
+  }
+]

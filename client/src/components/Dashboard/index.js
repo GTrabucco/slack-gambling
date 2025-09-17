@@ -17,6 +17,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
+import StevenGameInfo from "../StevenGameInfo";
 
 const Dashboard = () => {
   const [games, setGames] = useState([]);
@@ -25,6 +26,8 @@ const Dashboard = () => {
   const [errors, setError] = useState("")
   const [showVenmo, setShowVenmo] = useState(false)
   const [message, setMessage] = useState("");
+  const [selectedGameId, setSelectedGameId] = useState()
+  const [showStevenInfo, setShowStevenInfo] = useState()
   const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
   const { user } = useAuth0();
 
@@ -315,6 +318,11 @@ const Dashboard = () => {
             </StevenButton>
         </DialogActions>
       </Dialog>
+      <StevenGameInfo 
+        showStevenInfo={showStevenInfo} 
+        selectedGameId={selectedGameId} 
+        setShowStevenInfo={setShowStevenInfo}
+      />
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
         <TableContainer component={Paper} elevation={5}>
           <Table>
@@ -408,9 +416,28 @@ const Dashboard = () => {
               let header = (
                 <Paper style={{ marginBottom: 20 }} elevation={2}>
                   <Row>
-                    <b style={{margin: 10}}>
-                      { new Date(commenceTime).toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + new Date(commenceTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) }
-                    </b>
+                    <Col style={{marginTop: 10, marginBottom: 10}}>
+                      <b style={{ marginLeft: 10 }}>
+                        { new Date(commenceTime).toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + new Date(commenceTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) }
+                      </b>
+                    </Col>
+                    <Col style={{marginTop: 10, marginBottom: 10}}>
+                      <span
+                        onClick={()=>{ 
+                          setShowStevenInfo(true)
+                          setSelectedGameId(game["gameId"])
+                        }}
+                        style={{
+                          marginLeft: 10,
+                          fontSize: "0.85rem",
+                          textDecoration: "underline",
+                          cursor: "pointer",
+                          color: "#6c757d"
+                        }}
+                      >
+                        Weather Info
+                      </span>
+                    </Col>
                   </Row>
                   <div className="d-flex justify-content-center align-items-center text-center w-100">
                     <div className={`team-container ${away_picked ? "picked" : ""}`} onClick={() =>

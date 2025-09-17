@@ -21,19 +21,25 @@ async function tuesdayJob(season, week, weekType) {
     const userDetails = db.collection('User_Details');
 
     await session.withTransaction(async () => {
-      /*const picksToSave = await picksCollection.find({}).toArray();
+      // backup picks
+      const picksToSave = await picksCollection.find({}).toArray();
       if (picksToSave.length > 0) {
-        const now = new Date();
-        const fileName = `${String(now.getMonth() + 1).padStart(2, "0")}${String(
-          now.getDate()
-        ).padStart(2, "0")}${now.getFullYear()}.txt`;
-        const filePath = path.join(__dirname, "backups", fileName);
+        try {
+          const now = new Date();
+          const fileName = `${String(now.getMonth() + 1).padStart(2, "0")}${String(
+            now.getDate()
+          ).padStart(2, "0")}${now.getFullYear()}.txt`;
+          const filePath = path.join(__dirname, "backups", fileName);
 
-        fs.writeFileSync(filePath, JSON.stringify(picksToSave, null, 2), "utf-8");
-        console.log(`Backup saved to ${filePath}`);
+          fs.writeFileSync(filePath, JSON.stringify(picksToSave, null, 2), "utf-8");
+          console.log(`Backup saved to ${filePath}`);
+        } catch (fileErr) {
+          console.error("Failed to create backup file:", fileErr);
+          throw fileErr; 
+        }
       }
       
-      // Add season and week fields to all picks
+      // Add week fields to all picks
       await picksCollection.updateMany({}, { $set: { week } }, { session });
 
       const picksCursor = picksCollection.find({}, { session });
@@ -81,13 +87,7 @@ async function tuesdayJob(season, week, weekType) {
       if (processedPicks.length > 0) {
         await picksHistoryCollection.insertMany(processedPicks, { session });
       }
-        */
-
-      // Clear Picks collection
-      await picksCollection.deleteMany({}, { session });
-      await picksHistoryCollection.deleteMany({}, {session});
-      await gamesHistoryCollection.deleteMany({}, {session});
-
+        
       // Backup Games to Games_History
       const games = await gamesCollection.find({}, { session }).toArray();
       if (games.length > 0) {
