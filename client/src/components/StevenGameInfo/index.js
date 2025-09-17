@@ -11,9 +11,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
   const [errors, setErrors] = useState("");
   const [weatherData, setWeatherData] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const apiBaseUrl = process.env.NODE_ENV === "production" ? "" : "http://localhost:5000";
-
   const handleShowStevenInfo = () => {
     setShowStevenInfo(false);
   };
@@ -40,7 +38,6 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
   const getCityFromTeam = (homeTeam) => {
     if (!homeTeam) return "";
     let home_team_location = homeTeam.split(" ").slice(0, 2).join(" ");
-
     switch (home_team_location) {
       case "New England":
         return "Foxborough";
@@ -65,7 +62,6 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
       const dateObj = new Date(gameDate);
       const date = dateObj.toISOString().split("T")[0];
       const localHour = dateObj.getHours();
-
       const response = await axios.get(`${apiBaseUrl}/api/weather`, {
         params: { city, date },
         timeout: 5000,
@@ -73,7 +69,6 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
 
       const forecastDay = response.data?.forecast?.forecastday?.[0];
       if (!forecastDay || !Array.isArray(forecastDay.hour)) return [];
-
       const startIndex = forecastDay.hour.findIndex((h) => new Date(h.time).getHours() === localHour);
       if (startIndex === -1) return [];
       return forecastDay.hour.slice(startIndex, startIndex + 4);
@@ -118,7 +113,6 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
               const hour12 = ((+hh + 11) % 12) + 1;
               const ampm = +hh >= 12 ? "PM" : "AM";
               const formattedTime = `${hour12}:${mm} ${ampm}`;
-
               return (
                 <Col xs={12} key={hour.time}>
                   <Card className="shadow-sm">
