@@ -413,12 +413,15 @@ const Dashboard = () => {
               const under_picked = Array.isArray(tempPicks) 
                   ? tempPicks.find(obj => obj.type === "under" && obj.gameId === game["_id"])
                   : null;
+              const dateObj = new Date(commenceTime);
               let header = (
                 <Paper style={{ marginBottom: 20 }} elevation={2}>
                   <Row>
                     <Col style={{marginTop: 10, marginBottom: 10}}>
                       <b style={{ marginLeft: 10 }}>
-                        { new Date(commenceTime).toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + new Date(commenceTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) }
+                        {
+                          `${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`
+                        }
                       </b>
                     </Col>
                     <Col style={{marginTop: 10, marginBottom: 10}}>
