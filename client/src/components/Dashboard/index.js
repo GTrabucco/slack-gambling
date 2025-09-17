@@ -424,7 +424,7 @@ const Dashboard = () => {
                         }
                       </b>
                     </Col>
-                    <Col style={{marginTop: 10, marginBottom: 10, marginLeft: 90}}>
+                    <Col style={{marginTop: 10, marginBottom: 10, marginLeft: 85}}>
                       <span
                         onClick={()=>{ 
                           setShowStevenInfo(true)
