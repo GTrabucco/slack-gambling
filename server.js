@@ -1,15 +1,23 @@
-const express = require('express');
-const cors = require('cors');
-const { MongoClient, ObjectId } = require('mongodb');
-require('dotenv').config();
-const path = require('path');
+import express from 'express';
+import cors from 'cors';
+import { MongoClient, ObjectId } from 'mongodb';
+import dotenv from 'dotenv';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
+import cron from 'node-cron';
+import fridayJob from './fridayjobnew.js';
+import tuesdayJob from './tuesdayjobnew.js';
+import sundayReminder from './sundayremindernew.js';
+import { weatherAgent } from './weatherAgent.js';
+import RateLimit from 'express-rate-limit';
+
+dotenv.config();
+
 const app = express();
-const port = process.env.PORT || 5000;
-const SEASON = "2025"
-const cron = require("node-cron");
-const fridayJob = require('./fridayjobnew');
-const tuesdayJob = require('./tuesdayjobnew');
-const sundayReminder = require('./sundayremindernew');
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const allowedOrigins = [
     'https://slackgambling.com',
     'https://www.slackgambling.com',
@@ -17,8 +25,7 @@ const allowedOrigins = [
     'http://localhost:3000'
 ];
 
-var RateLimit = require('express-rate-limit');
-var limiter = RateLimit({
+const limiter = RateLimit({
     windowMs: 15 * 60 * 1000,
     max: 1000,
 });
@@ -41,12 +48,13 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 const uri = process.env.MONGODB_URI;
 const DATABASE_NAME = process.env.DATABASE_NAME;
 const client = new MongoClient(uri);
+
 const connectDB = async () => {
     try {
         await client.connect();
-    }
-    catch (error) {
-        console.log(error)
+        console.log('MongoDB connected');
+    } catch (error) {
+        console.error(error);
     }
 }
 
@@ -64,6 +72,17 @@ cron.schedule("0 9 * * 0", async () =>
         timezone: "America/New_York"
     }
 );
+
+app.get("/api/get-weather-description", async (req, res) => {
+    try {
+        const { details } = req.query;
+        const result = await weatherAgent(details);
+        res.json(result );
+    } catch (error) {
+        console.error('Weather Agent Error:', error);
+        res.status(500).json({ error: 'Weather Agent failed', details: error.message });
+    }
+});
 
 app.get("/api/weather", async (req, res) => {
     const { city, date } = req.query;
@@ -430,6 +449,8 @@ app.post('/api/logout', (req, res) => {
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
+
+const port = process.env.PORT || 5000;
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

@@ -1,6 +1,7 @@
-const { MongoClient } = require("mongodb");
-const { getGames } = require("./theoddsapinew");
-require("dotenv").config();
+import { MongoClient } from "mongodb";
+import { getGames } from "./theoddsapinew.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 async function fridayJob(season, week, weekType) {
   const client = new MongoClient(process.env.MONGODB_URI);
@@ -25,15 +26,15 @@ async function fridayJob(season, week, weekType) {
       week,
     }));
 
-    console.log(newGames)
+    console.log(newGames);
 
     await gamesCollection.insertMany(newGames);
   } catch (error) {
     console.error("Error inserting games:", error);
   } finally {
-    console.log('Friday Job Finished')
+    console.log('Friday Job Finished');
     await client.close();
   }
 }
 
-module.exports = fridayJob;
+export default fridayJob;

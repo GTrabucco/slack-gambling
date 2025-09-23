@@ -26,6 +26,8 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
       const game = response.data?.[0];
       if (!game) throw new Error("Game not found");
 
+      console.log(game)
+
       await populate(game.home_team, game.commence_time);
     } catch (error) {
       console.error("Error fetching game:", error);
@@ -56,6 +58,18 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
     }
   };
 
+  const getWeatherDescription = async (details) => {
+    try {
+      const response = await axios.get(`${apiBaseUrl}/api/get-weather-description`, {
+        params: { details },
+        timeout: 5000,
+      });
+      console.log('response', response)
+    } catch (error) {
+      console.log('error')
+    }
+  }
+
   const getWeather = async (city, gameDate) => {
     try {
       if (!city || !gameDate) return [];
@@ -83,6 +97,8 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
       setLoading(true);
       const city = getCityFromTeam(homeTeam);
       const next4Hours = await getWeather(city, gameDate);
+      console.log(city, gameDate, next4Hours)
+      //const weatherDescription = await getWeatherDescription(next4Hours);
       setWeatherData(next4Hours);
     } catch (error) {
       console.error("Error populating weather:", error);

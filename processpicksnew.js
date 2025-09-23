@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from "axios";
 
 const BASE_BOXSCORE_URL = 'https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons';
 const BASE_SUMMARY_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary';
@@ -91,7 +91,7 @@ function calculatePickResult(pick, result) {
   }
 }
 
-async function processPicks(season, week, picks, weekType) {
+export async function processPicks(season, week, picks, weekType) {
   try {
     validateInputs(season, week, weekType);
 
@@ -106,7 +106,7 @@ async function processPicks(season, week, picks, weekType) {
     const gameResults = await fetchGameResults(eventIds);
     
     for (const pick of picks) {
-      if (pick.result) continue; 
+      if (pick.result !== undefined) continue; 
       const result = gameResults.find(
         res => res.homeTeam === pick.homeTeam && res.awayTeam === pick.awayTeam
       );
@@ -124,5 +124,3 @@ async function processPicks(season, week, picks, weekType) {
     throw error;
   }
 }
-
-module.exports = { processPicks };

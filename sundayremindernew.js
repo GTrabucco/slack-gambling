@@ -1,6 +1,7 @@
-const { MongoClient } = require("mongodb");
-const twilio = require("twilio");
-require("dotenv").config();
+import { MongoClient } from "mongodb";
+import twilio from "twilio";
+import dotenv from "dotenv";
+dotenv.config();
 
 async function sundayReminder() {
   const client = new MongoClient(process.env.MONGODB_URI);
@@ -16,7 +17,10 @@ async function sundayReminder() {
     const textHistory = db.collection("Text_History");
 
     const reminderUsers = await users
-      .find({ receiveSundayReminder: true }, { projection: { phoneNumber: 1 } })
+      .find(
+        { receiveSundayReminder: true },
+        { projection: { phoneNumber: 1 } }
+      )
       .toArray();
 
     for (const user of reminderUsers) {
@@ -49,4 +53,4 @@ async function sundayReminder() {
   }
 }
 
-module.exports = sundayReminder;
+export default sundayReminder;

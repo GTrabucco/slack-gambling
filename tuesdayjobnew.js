@@ -1,14 +1,15 @@
-require('dotenv').config();
-const { MongoClient } = require('mongodb');
-const { getGames } = require('./theoddsapinew');     
-const { processPicks } = require('./processpicksnew');
-const fs = require("fs");
-const path = require("path");
+import dotenv from "dotenv";
+dotenv.config();
+import { MongoClient } from "mongodb";
+import { getGames } from "./theoddsapinew.js";     
+import { processPicks } from "./processpicksnew.js";
+import fs from "fs";
+import path from "path";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) throw new Error('MONGODB_URI not found in .env file');
 
-async function tuesdayJob(season, week, weekType) {
+export default async function tuesdayJob(season, week, weekType) {
   const client = new MongoClient(MONGODB_URI, { useUnifiedTopology: true });
   try {
     await client.connect();
@@ -29,7 +30,7 @@ async function tuesdayJob(season, week, weekType) {
           const fileName = `${String(now.getMonth() + 1).padStart(2, "0")}${String(
             now.getDate()
           ).padStart(2, "0")}${now.getFullYear()}.txt`;
-          const filePath = path.join(__dirname, "backups", fileName);
+          const filePath = path.join("backups", fileName);
 
           fs.writeFileSync(filePath, JSON.stringify(picksToSave, null, 2), "utf-8");
           console.log(`Backup saved to ${filePath}`);
@@ -123,7 +124,7 @@ async function tuesdayJob(season, week, weekType) {
   }
 }
 
-async function whoops (db){
+export async function removeDuplicates(db){
   const picksCollection = db.collection('Picks_History');
   const duplicates = await picksCollection
     .aggregate([
@@ -151,5 +152,3 @@ async function whoops (db){
     }
   }
 }
-
-module.exports = tuesdayJob;

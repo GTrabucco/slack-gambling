@@ -1,8 +1,8 @@
-const axios = require('axios');
-require('dotenv').config();
+import axios from 'axios';
+import dotenv from 'dotenv';
+dotenv.config();
 
-//const SPORT = 'americanfootball_nfl_preseason'; // or 'americanfootball_nfl'
-const SPORT = 'americanfootball_nfl'
+const SPORT = 'americanfootball_nfl'; // or 'americanfootball_nfl_preseason'
 const REGIONS = 'us';
 const MARKETS = 'totals,spreads';
 const ODDS_FORMAT = 'american';
@@ -49,7 +49,7 @@ function formatGames(data) {
   return toReturn;
 }
 
-async function getGames(startDate, endDate) {
+export async function getGames(startDate, endDate) {
   const formattedFrom = startDate.toISOString().split('.')[0] + 'Z';
   const formattedTo = endDate.toISOString().split('.')[0] + 'Z';
   try {
@@ -76,5 +76,3 @@ async function getGames(startDate, endDate) {
     return [];
   }
 }
-
-module.exports = { getGames };
