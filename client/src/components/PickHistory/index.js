@@ -55,7 +55,6 @@ const PickHistory = () => {
     }, {});
 
     const sortedWeekKeys = Object.keys(groupedByWeek).sort((a, b) => Number(b) - Number(a));
-
     return (
         <Container>
             <Row>
@@ -67,22 +66,26 @@ const PickHistory = () => {
             <br />
             <Row>
                 {error && <div style={{ color: 'red' }}>{error}</div>}
+                <div style={{ paddingBottom: 20 }}>
+                    <h3>Season Total: {picks.reduce((acc, item) => acc + item.result, 0)}</h3>
+                </div>
                 <Table responsive bordered>
                     <thead>
                         <tr>
                             <th>Pick</th>
                             <th>Result</th>
-                            {userParam !== user.name ? null : 
-                                <th className="dispute-cell">Dispute</th> 
-                            }
+                            <th className="dispute-cell">Dispute</th> 
                         </tr>
                     </thead>
                     <tbody>
                         {sortedWeekKeys.map(week => (
                             <React.Fragment key={week}>
+
                                 <tr>
                                     <td colSpan="4" style={{ backgroundColor: "#eee", fontWeight: "bold" }}>
-                                        Week {week}
+                                        Week {week} ({(() => {const sum = groupedByWeek[week].reduce((acc, item) => acc + item.result, 0);
+                                                                return sum > 0 ? <span style={{ color: "green" }}>+{sum}</span> : <span style={{ color: "red" }}>{sum}</span>;
+                                                             })()})
                                     </td>
                                 </tr>
                                 {groupedByWeek[week].map(item => (
@@ -105,10 +108,9 @@ const PickHistory = () => {
                                                 <b>0</b>
                                             )}
                                         </td>
-                                        {userParam !== user.name ? null : 
                                         <td onClick={() => disputePick(item.text)} className="dispute-cell" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#f0ad4e', cursor: "pointer" }}>
                                             <h4><i className="bi bi-flag-fill"></i></h4>
-                                        </td>}
+                                        </td>
                                     </tr>
                                 ))}
                             </React.Fragment>
