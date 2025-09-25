@@ -6,6 +6,7 @@ import './style.css';
 import { useLocation } from 'react-router-dom';
 import StevenNotification from "../StevenNotification";
 import { useNavigate } from "react-router-dom";
+import StevenButton from "../Common/StevenButton";
 
 const PickHistory = () => {
     const SEASON = "2025"
@@ -74,7 +75,7 @@ const PickHistory = () => {
                         <tr>
                             <th>Pick</th>
                             <th>Result</th>
-                            <th className="dispute-cell">Dispute</th> 
+                            <th></th> 
                         </tr>
                     </thead>
                     <tbody>
@@ -108,8 +109,10 @@ const PickHistory = () => {
                                                 <b>0</b>
                                             )}
                                         </td>
-                                        <td onClick={() => disputePick(item.text)} className="dispute-cell" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#f0ad4e', cursor: "pointer" }}>
-                                            <h4><i className="bi bi-flag-fill"></i></h4>
+                                        <td>
+                                            <StevenButton onClick={() => disputePick(item.text)}>
+                                                Dispute
+                                            </StevenButton>
                                         </td>
                                     </tr>
                                 ))}
