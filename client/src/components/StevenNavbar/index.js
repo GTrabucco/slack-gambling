@@ -51,7 +51,7 @@ const StevenNavbar = () => {
         { path: "/reportissue", label: "Report Issue", icon: <BsBug /> },
         ...(isAdmin ? [
             { path: "/calculatescoring", label: "Calculate Scoring", icon: <BsCalculator /> },
-            { path: "/viewReports", label: "Reports", icon: <BsCardChecklist /> },
+            { path: "/viewReports", label: "Issues", icon: <BsCardChecklist /> },
             { path: "/jobrunner", label: "Job Runner", icon: <GiRunningNinja /> },
         ] : []),
         { path: "/account", label: "Account", icon: <BsPersonCircle /> },

@@ -48,7 +48,7 @@ const ViewReports = () => {
     return (
         <Container>
             <Row>
-                <h2>Reports</h2>
+                <h2>Issues</h2>
             </Row>
             <Row>
                 <Col>
