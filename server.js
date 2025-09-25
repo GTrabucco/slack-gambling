@@ -17,6 +17,7 @@ const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const SEASON = "2025"
 
 const allowedOrigins = [
     'https://slackgambling.com',
