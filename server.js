@@ -85,19 +85,6 @@ app.get("/api/get-weather-description", async (req, res) => {
     }
 });
 
-app.get("/api/weather", async (req, res) => {
-    const { city, date } = req.query;
-    const apiKey = process.env.WEATHER_API_KEY;
-    const url = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${city}&dt=${date}`;
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        res.json(data);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
 app.get('/api/games', async (req, res) => {
     try {
         const db = client.db(DATABASE_NAME);

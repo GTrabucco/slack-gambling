@@ -202,7 +202,7 @@ const StevenGameList = ({ tempPicks,
                                                 }
                                             </b>
                                         </Col>
-                                        {/* <Col style={{ marginTop: 10, marginBottom: 10 }}>
+                                        <Col style={{ marginTop: 10, marginBottom: 10 }}>
                                             <span
                                                 onClick={() => {
                                                     setShowStevenInfo(true)
@@ -218,7 +218,7 @@ const StevenGameList = ({ tempPicks,
                                             >
                                                 Weather Info
                                             </span>
-                                        </Col> */}
+                                        </Col>
                                     </Row>
                                     <div className="d-flex justify-content-center align-items-center text-center w-100">
                                         <div className={`team-container ${away_picked ? "picked" : ""}`} onClick={() =>

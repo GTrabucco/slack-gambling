@@ -11,6 +11,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
   const [errors, setErrors] = useState("");
   const [weatherData, setWeatherData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cityName, setCityName] = useState("");
   const apiBaseUrl = process.env.NODE_ENV === "production" ? "" : "http://localhost:5000";
   const handleShowStevenInfo = () => {
     setShowStevenInfo(false);
@@ -37,6 +38,10 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
   const getCityFromTeam = (homeTeam) => {
     if (!homeTeam) return "";
     let home_team_location = homeTeam.split(" ")[0];
+    if (homeTeam.split(" ").length > 2) {
+      home_team_location = homeTeam.split(" ")[0] + " " + homeTeam.split(" ")[1];
+    } 
+
     switch (home_team_location) {
       case "New England":
         return "Foxborough";
@@ -50,15 +55,21 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
         return "Nashville";
       case "New York":
         return "East Rutherford";
-      default:
-        return home_team_location.split(" ")[0];
+      case "Buffalo":
+        return "Orchard Park"
+      case "Dallas":
+        return "Arlington"
+      case "San Francisco":
+        return "Santa Clara"
     }
+
+    return home_team_location;
   };
 
   const getTimeZone = (city) => {
     const cityTimeZones = {
       "Foxborough": "America/New_York",
-      "Buffalo": "America/New_York",   
+      "Orchard Park": "America/New_York",   
       "Miami": "America/New_York",
       "East Rutherford": "America/New_York",
       "Philadelphia": "America/New_York",
@@ -71,7 +82,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
       "Charlotte": "America/New_York",
       "New Orleans": "America/Chicago",
       "Tampa Bay": "America/New_York",
-      "Dallas": "America/Chicago",
+      "Arlington": "America/Chicago",
       "Houston": "America/Chicago",
       "Indianapolis": "America/Indiana/Indianapolis",
       "Jacksonville": "America/New_York",
@@ -80,12 +91,54 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
       "Kansas City": "America/Chicago",
       "Las Vegas": "America/Los_Angeles",
       "Los Angeles": "America/Los_Angeles",
-      "San Francisco": "America/Los_Angeles",
+      "Santa Clara": "America/Los_Angeles",
       "Seattle": "America/Los_Angeles",
-      "Glendale": "America/Phoenix"
+      "Glendale": "America/Phoenix",
+      "Pittsburgh": "America/New_York"
     };
 
     return cityTimeZones[city] || "Unknown city";
+  }
+
+  const cityCoordinates = {
+    "Glendale":      { latitude: 33.5277, longitude: -112.2626 },
+    "Atlanta":       { latitude: 33.7490, longitude: -84.3880 },
+    "Baltimore":     { latitude: 39.2904, longitude: -76.6122 },
+    "Orchard Park":  { latitude: 42.7738, longitude: -78.7869 },
+    "Carolina":      { latitude: 35.2251, longitude: -80.8526 },
+    "Chicago":       { latitude: 41.8781, longitude: -87.6298 },
+    "Cincinnati":    { latitude: 39.1031, longitude: -84.5120 },
+    "Cleveland":     { latitude: 41.4993, longitude: -81.6944 },
+    "Arlington":     { latitude: 32.7473, longitude: -97.0945 },
+    "Denver":        { latitude: 39.7392, longitude: -104.9903 },
+    "Detroit":       { latitude: 42.3314, longitude: -83.0458 },
+    "Green Bay":     { latitude: 44.5133, longitude: -88.0133 },
+    "Houston":       { latitude: 29.7604, longitude: -95.3698 },
+    "Indianapolis":  { latitude: 39.7684, longitude: -86.1581 },
+    "Jacksonville":  { latitude: 30.3322, longitude: -81.6557 },
+    "Kansas City":   { latitude: 39.0997, longitude: -94.5786 },
+    "Las Vegas":     { latitude: 36.1699, longitude: -115.1398 },
+    "Los Angeles":   { latitude: 34.0522, longitude: -118.2437 }, 
+    "Miami":         { latitude: 25.7617, longitude: -80.1918 },
+    "Minnesota":     { latitude: 44.9778, longitude: -93.2650 }, 
+    "Foxborough":    { latitude: 42.0909, longitude: -71.2643 },
+    "New Orleans":   { latitude: 29.9511, longitude: -90.0715 },
+    "East Rutherford": { latitude: 40.8128, longitude: -74.0742 }, 
+    "Philadelphia":  { latitude: 39.9526, longitude: -75.1652 },
+    "Pittsburgh":    { latitude: 40.4406, longitude: -79.9959 },
+    "Santa Clara":   { latitude: 37.4030, longitude: -121.9700 },
+    "Seattle":       { latitude: 47.6062, longitude: -122.3321 },
+    "Tampa Bay":     { latitude: 27.9506, longitude: -82.4572 },
+    "Tennessee":     { latitude: 36.1627, longitude: -86.7816 },
+    "Washington":    { latitude: 38.9072, longitude: -77.0369 },
+  };
+
+  function getCityLatitude(city) {
+    return cityCoordinates[city]?.latitude ?? null;
+  }
+
+  function getCityLongitude(city) {
+    return cityCoordinates[city]?.longitude ?? null;
   }
 
   const getWeatherDescription = async (details) => {
@@ -103,21 +156,41 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
   const getWeather = async (city, gameDate) => {
     try {
       if (!city || !gameDate) return [];
+      const cityLongitude = getCityLongitude(city);
+      const cityLatitude = getCityLatitude(city);
       const timeZone = getTimeZone(city) || "UTC";
       const localDate = new Date(new Date(gameDate).toLocaleString("en-US", { timeZone }));
       const formattedDate = localDate.toISOString().split("T")[0];
       const localHour = localDate.getHours();
-      const response = await axios.get(`${apiBaseUrl}/api/weather`, {
-        params: { city, date: formattedDate },
-        timeout: 5000,
+      const weatherRes = await axios.get("https://api.open-meteo.com/v1/forecast", {
+        params: {
+            latitude: cityLatitude,
+            longitude: cityLongitude,
+            hourly: "temperature_2m,precipitation_probability,windspeed_10m",
+            timezone: timeZone,
+            start_date: formattedDate,
+            end_date: formattedDate,
+            temperature_unit: "fahrenheit"
+        },
       });
 
-      const forecastDay = response.data?.forecast?.forecastday?.[0];
-      console.log(forecastDay)
-      if (!forecastDay || !Array.isArray(forecastDay.hour)) return [];
-      const startIndex = forecastDay.hour.findIndex((h) => new Date(h.time).getHours() === localHour);
-      if (startIndex === -1) return [];
-      return forecastDay.hour.slice(startIndex, startIndex + 4);
+      if (!weatherRes) return [];
+      const { time, temperature_2m, precipitation_probability, windspeed_10m } = weatherRes.data.hourly;
+      if (localHour < 0 || localHour > 23) {
+        throw new Error(`Invalid hour: ${localHour}`);
+      }
+
+      const block = [];
+      for (let i = localHour; i < Math.min(localHour + 4, 24); i++) {
+        block.push({
+          time: time[i],
+          temperature: temperature_2m[i],
+          precipitation: precipitation_probability[i],
+          wind: windspeed_10m[i]
+        });
+      }
+
+      return block;
     } catch (error) {
       console.error("Error fetching weather:", error);
       return [];
@@ -128,9 +201,9 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
     try {
       setLoading(true);
       const city = getCityFromTeam(homeTeam);
+      setCityName(city)
       const next4Hours = await getWeather(city, gameDate);
       //const weatherDescription = await getWeatherDescription(next4Hours);
-      console.log(next4Hours)
       setWeatherData(next4Hours);
     } catch (error) {
       console.error("Error populating weather:", error);
@@ -157,9 +230,10 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
         ) : weatherData.length ? (
           <>
             <Row className="m-2">Note: time displayed in local time </Row>
+            <Row className="m-2">City: {cityName}</Row>
             <Row className="g-2">
               {weatherData.map((hour) => {
-                const [hh, mm] = hour.time.split(" ")[1].split(":");
+                const [hh, mm] = hour.time.split("T")[1].split(":");
                 const hour12 = ((+hh + 11) % 12) + 1;
                 const ampm = +hh >= 12 ? "PM" : "AM";
                 const formattedTime = `${hour12}:${mm} ${ampm}`;
@@ -167,27 +241,23 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
                   <Col xs={12} key={hour.time}>
                     <Card className="shadow-sm">
                       <Card.Body>
-                        <Card.Title className="mb-2">{formattedTime}</Card.Title>
                         <Card.Text className="mb-1">
-                          <b>Condition:</b> {hour.condition.text}
+                          <b>Time:</b> {formattedTime}
                         </Card.Text>
                         <Card.Text className="mb-1">
-                          <b>Temp:</b> {hour.temp_f}°F
+                          <b>Temp:</b> {hour.temperature}°F
                         </Card.Text>
                         <Card.Text className="mb-1">
-                          <b>Wind:</b> {hour.wind_mph} mph
+                          <b>Wind:</b> {hour.wind} mph
                         </Card.Text>
                         <Card.Text className="mb-1">
-                          <b>Rain:</b> {hour.chance_of_rain}%
-                        </Card.Text>
-                        <Card.Text className="mb-1">
-                          <b>Snow:</b> {hour.chance_of_snow}%
+                          <b>Precipitation:</b> {hour.precipitation} %
                         </Card.Text>
                       </Card.Body>
                     </Card>
                   </Col>
-                );
-              })}
+                )}
+              )}
             </Row>
           </>
         ) : (
