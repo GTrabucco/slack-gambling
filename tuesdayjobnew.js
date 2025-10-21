@@ -107,7 +107,7 @@ export default async function tuesdayJob(season, week, weekType) {
       let newGames = await getGames(tuesday, thursday);
 
       // Add season and week to new games
-      week = int(week) + 1
+      week = parseInt(week) + 1
       newGames = newGames.map(game => ({ ...game, season, week }));
       if (newGames.length > 0) {
         await gamesCollection.insertMany(newGames, { session });

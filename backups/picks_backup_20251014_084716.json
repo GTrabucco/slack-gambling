@@ -1,0 +1,1218 @@
+[
+  {
+    "_id": {
+      "$oid": "68e7cea28793e9c7896ae069"
+    },
+    "type": "favorite",
+    "username": "byoritomo13@gmail.com",
+    "awayTeam": "Philadelphia Eagles",
+    "createdAt": {
+      "$date": "2025-10-09T15:02:58.842Z"
+    },
+    "gameId": "68e50112d1ebc6cfd80d175a",
+    "homeTeam": "New York Giants",
+    "season": "2025",
+    "text": "Philadelphia Eagles -7.5",
+    "value": -7.5
+  },
+  {
+    "_id": {
+      "$oid": "68e81a3e4aafb9da4c8c637d"
+    },
+    "type": "under",
+    "username": "matt.goldberg7@gmail.com",
+    "awayTeam": "Philadelphia Eagles",
+    "createdAt": {
+      "$date": "2025-10-09T20:25:34.775Z"
+    },
+    "gameId": "68e50112d1ebc6cfd80d175a",
+    "homeTeam": "New York Giants",
+    "season": "2025",
+    "text": "New York Giants Philadelphia Eagles Under 41.5",
+    "value": "41.5"
+  },
+  {
+    "_id": {
+      "$oid": "68e96c394aafb9da4c8cdbca"
+    },
+    "type": "over",
+    "username": "dantecoppola1776@gmail.com",
+    "awayTeam": "San Francisco 49ers",
+    "createdAt": {
+      "$date": "2025-10-10T20:27:37.037Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f6",
+    "homeTeam": "Tampa Bay Buccaneers",
+    "season": "2025",
+    "text": "Tampa Bay Buccaneers San Francisco 49ers Over 47.5",
+    "value": "47.5"
+  },
+  {
+    "_id": {
+      "$oid": "68e96c394aafb9da4c8cdbcb"
+    },
+    "username": "dantecoppola1776@gmail.com",
+    "type": "dog",
+    "awayTeam": "Dallas Cowboys",
+    "createdAt": {
+      "$date": "2025-10-10T20:27:37.090Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f1",
+    "homeTeam": "Carolina Panthers",
+    "season": "2025",
+    "text": "Carolina Panthers +3",
+    "value": 3
+  },
+  {
+    "_id": {
+      "$oid": "68e96c394aafb9da4c8cdbcc"
+    },
+    "username": "dantecoppola1776@gmail.com",
+    "type": "under",
+    "awayTeam": "Chicago Bears",
+    "createdAt": {
+      "$date": "2025-10-10T20:27:37.124Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f9",
+    "homeTeam": "Washington Commanders",
+    "season": "2025",
+    "text": "Washington Commanders Chicago Bears Under 49.5",
+    "value": "49.5"
+  },
+  {
+    "_id": {
+      "$oid": "68e96c394aafb9da4c8cdbcd"
+    },
+    "type": "favorite",
+    "username": "dantecoppola1776@gmail.com",
+    "awayTeam": "Cleveland Browns",
+    "createdAt": {
+      "$date": "2025-10-10T20:27:37.162Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f2",
+    "homeTeam": "Pittsburgh Steelers",
+    "season": "2025",
+    "text": "Pittsburgh Steelers -5.5",
+    "value": -5.5
+  },
+  {
+    "_id": {
+      "$oid": "68eb486e4aafb9da4c8d347c"
+    },
+    "username": "longley.jack@gmail.com",
+    "type": "under",
+    "awayTeam": "Cleveland Browns",
+    "createdAt": {
+      "$date": "2025-10-12T06:19:26.041Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f2",
+    "homeTeam": "Pittsburgh Steelers",
+    "season": "2025",
+    "text": "Pittsburgh Steelers Cleveland Browns Under 37.5",
+    "value": "37.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eb486e4aafb9da4c8d347d"
+    },
+    "username": "longley.jack@gmail.com",
+    "type": "over",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T06:19:26.103Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Kansas City Chiefs Detroit Lions Over 52.5",
+    "value": "52.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eb486e4aafb9da4c8d347e"
+    },
+    "type": "favorite",
+    "username": "longley.jack@gmail.com",
+    "awayTeam": "San Francisco 49ers",
+    "createdAt": {
+      "$date": "2025-10-12T06:19:26.143Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f6",
+    "homeTeam": "Tampa Bay Buccaneers",
+    "season": "2025",
+    "text": "Tampa Bay Buccaneers -3",
+    "value": -3
+  },
+  {
+    "_id": {
+      "$oid": "68eb486e4aafb9da4c8d347f"
+    },
+    "type": "dog",
+    "username": "longley.jack@gmail.com",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T06:19:26.192Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Detroit Lions +2.5",
+    "value": 2.5
+  },
+  {
+    "_id": {
+      "$oid": "68eb5cec4aafb9da4c8d37f0"
+    },
+    "username": "tkobes24@gmail.com",
+    "type": "favorite",
+    "awayTeam": "Seattle Seahawks",
+    "createdAt": {
+      "$date": "2025-10-12T07:46:52.568Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ed",
+    "homeTeam": "Jacksonville Jaguars",
+    "season": "2025",
+    "text": "Seattle Seahawks -1.5",
+    "value": -1.5
+  },
+  {
+    "_id": {
+      "$oid": "68eb5cec4aafb9da4c8d37f1"
+    },
+    "type": "dog",
+    "username": "tkobes24@gmail.com",
+    "awayTeam": "Denver Broncos",
+    "createdAt": {
+      "$date": "2025-10-12T07:46:52.627Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ec",
+    "homeTeam": "New York Jets",
+    "season": "2025",
+    "text": "New York Jets +7.5",
+    "value": 7.5
+  },
+  {
+    "_id": {
+      "$oid": "68eb5cec4aafb9da4c8d37f2"
+    },
+    "type": "over",
+    "username": "tkobes24@gmail.com",
+    "awayTeam": "Cincinnati Bengals",
+    "createdAt": {
+      "$date": "2025-10-12T07:46:52.667Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f5",
+    "homeTeam": "Green Bay Packers",
+    "season": "2025",
+    "text": "Green Bay Packers Cincinnati Bengals Over 44.5",
+    "value": "44.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eb5cec4aafb9da4c8d37f3"
+    },
+    "type": "under",
+    "username": "tkobes24@gmail.com",
+    "awayTeam": "Los Angeles Chargers",
+    "createdAt": {
+      "$date": "2025-10-12T07:46:52.711Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f3",
+    "homeTeam": "Miami Dolphins",
+    "season": "2025",
+    "text": "Miami Dolphins Los Angeles Chargers Under 44.5",
+    "value": "44.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eb965c4aafb9da4c8d424a"
+    },
+    "username": "ski24.ben@gmail.com",
+    "type": "over",
+    "awayTeam": "Denver Broncos",
+    "createdAt": {
+      "$date": "2025-10-12T11:51:56.022Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ec",
+    "homeTeam": "New York Jets",
+    "season": "2025",
+    "text": "New York Jets Denver Broncos Over 43.5",
+    "value": "43.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eb965c4aafb9da4c8d424b"
+    },
+    "username": "ski24.ben@gmail.com",
+    "type": "under",
+    "awayTeam": "Los Angeles Chargers",
+    "createdAt": {
+      "$date": "2025-10-12T11:51:56.097Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f3",
+    "homeTeam": "Miami Dolphins",
+    "season": "2025",
+    "text": "Miami Dolphins Los Angeles Chargers Under 44.5",
+    "value": "44.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eb965c4aafb9da4c8d424c"
+    },
+    "type": "dog",
+    "username": "ski24.ben@gmail.com",
+    "awayTeam": "Cleveland Browns",
+    "createdAt": {
+      "$date": "2025-10-12T11:51:56.162Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f2",
+    "homeTeam": "Pittsburgh Steelers",
+    "season": "2025",
+    "text": "Cleveland Browns +5.5",
+    "value": 5.5
+  },
+  {
+    "_id": {
+      "$oid": "68eb965c4aafb9da4c8d424d"
+    },
+    "username": "ski24.ben@gmail.com",
+    "type": "favorite",
+    "awayTeam": "Seattle Seahawks",
+    "createdAt": {
+      "$date": "2025-10-12T11:51:56.226Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ed",
+    "homeTeam": "Jacksonville Jaguars",
+    "season": "2025",
+    "text": "Seattle Seahawks -1.5",
+    "value": -1.5
+  },
+  {
+    "_id": {
+      "$oid": "68eba4164aafb9da4c8d4477"
+    },
+    "type": "favorite",
+    "username": "aoconnor63@gmail.com",
+    "awayTeam": "Arizona Cardinals",
+    "createdAt": {
+      "$date": "2025-10-12T12:50:30.284Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ef",
+    "homeTeam": "Indianapolis Colts",
+    "season": "2025",
+    "text": "Indianapolis Colts -7.5",
+    "value": -7.5
+  },
+  {
+    "_id": {
+      "$oid": "68eba4164aafb9da4c8d4478"
+    },
+    "username": "aoconnor63@gmail.com",
+    "type": "over",
+    "awayTeam": "Los Angeles Chargers",
+    "createdAt": {
+      "$date": "2025-10-12T12:50:30.353Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f3",
+    "homeTeam": "Miami Dolphins",
+    "season": "2025",
+    "text": "Miami Dolphins Los Angeles Chargers Over 44.5",
+    "value": "44.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eba4164aafb9da4c8d4479"
+    },
+    "username": "aoconnor63@gmail.com",
+    "type": "dog",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T12:50:30.413Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Detroit Lions +2.5",
+    "value": 2.5
+  },
+  {
+    "_id": {
+      "$oid": "68eba4164aafb9da4c8d447a"
+    },
+    "username": "aoconnor63@gmail.com",
+    "type": "under",
+    "awayTeam": "San Francisco 49ers",
+    "createdAt": {
+      "$date": "2025-10-12T12:50:30.473Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f6",
+    "homeTeam": "Tampa Bay Buccaneers",
+    "season": "2025",
+    "text": "Tampa Bay Buccaneers San Francisco 49ers Under 47.5",
+    "value": "47.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eba6884aafb9da4c8d44e0"
+    },
+    "username": "jwgowetski@comcast.net",
+    "type": "over",
+    "awayTeam": "Seattle Seahawks",
+    "createdAt": {
+      "$date": "2025-10-12T13:00:56.793Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ed",
+    "homeTeam": "Jacksonville Jaguars",
+    "season": "2025",
+    "text": "Jacksonville Jaguars Seattle Seahawks Over 47.5",
+    "value": "47.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eba6884aafb9da4c8d44e1"
+    },
+    "username": "jwgowetski@comcast.net",
+    "type": "favorite",
+    "awayTeam": "New England Patriots",
+    "createdAt": {
+      "$date": "2025-10-12T13:00:56.840Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ee",
+    "homeTeam": "New Orleans Saints",
+    "season": "2025",
+    "text": "New England Patriots -3.5",
+    "value": -3.5
+  },
+  {
+    "_id": {
+      "$oid": "68eba6884aafb9da4c8d44e2"
+    },
+    "username": "jwgowetski@comcast.net",
+    "type": "dog",
+    "awayTeam": "Cincinnati Bengals",
+    "createdAt": {
+      "$date": "2025-10-12T13:00:56.888Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f5",
+    "homeTeam": "Green Bay Packers",
+    "season": "2025",
+    "text": "Cincinnati Bengals +14",
+    "value": 14
+  },
+  {
+    "_id": {
+      "$oid": "68eba6884aafb9da4c8d44e3"
+    },
+    "username": "jwgowetski@comcast.net",
+    "type": "under",
+    "awayTeam": "Denver Broncos",
+    "createdAt": {
+      "$date": "2025-10-12T13:00:56.940Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ec",
+    "homeTeam": "New York Jets",
+    "season": "2025",
+    "text": "New York Jets Denver Broncos Under 43.5",
+    "value": "43.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eba7364aafb9da4c8d45c5"
+    },
+    "username": "giulian.trabucco@gmail.com",
+    "type": "favorite",
+    "awayTeam": "Buffalo Bills",
+    "createdAt": {
+      "$date": "2025-10-12T13:03:50.145Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f8",
+    "homeTeam": "Atlanta Falcons",
+    "season": "2025",
+    "text": "Buffalo Bills -4.5",
+    "value": -4.5
+  },
+  {
+    "_id": {
+      "$oid": "68eba7364aafb9da4c8d45c6"
+    },
+    "type": "dog",
+    "username": "giulian.trabucco@gmail.com",
+    "awayTeam": "Los Angeles Chargers",
+    "createdAt": {
+      "$date": "2025-10-12T13:03:50.225Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f3",
+    "homeTeam": "Miami Dolphins",
+    "season": "2025",
+    "text": "Miami Dolphins +4.5",
+    "value": 4.5
+  },
+  {
+    "_id": {
+      "$oid": "68eba7364aafb9da4c8d45c7"
+    },
+    "type": "under",
+    "username": "giulian.trabucco@gmail.com",
+    "awayTeam": "San Francisco 49ers",
+    "createdAt": {
+      "$date": "2025-10-12T13:03:50.285Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f6",
+    "homeTeam": "Tampa Bay Buccaneers",
+    "season": "2025",
+    "text": "Tampa Bay Buccaneers San Francisco 49ers Under 47.5",
+    "value": "47.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eba7364aafb9da4c8d45c8"
+    },
+    "type": "over",
+    "username": "giulian.trabucco@gmail.com",
+    "awayTeam": "Chicago Bears",
+    "createdAt": {
+      "$date": "2025-10-12T13:03:50.345Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f9",
+    "homeTeam": "Washington Commanders",
+    "season": "2025",
+    "text": "Washington Commanders Chicago Bears Over 49.5",
+    "value": "49.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eba8704aafb9da4c8d45fa"
+    },
+    "username": "henrylongley5@gmail.com",
+    "type": "dog",
+    "awayTeam": "Los Angeles Chargers",
+    "createdAt": {
+      "$date": "2025-10-12T13:09:04.446Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f3",
+    "homeTeam": "Miami Dolphins",
+    "season": "2025",
+    "text": "Miami Dolphins +4.5",
+    "value": 4.5
+  },
+  {
+    "_id": {
+      "$oid": "68eba8704aafb9da4c8d45fb"
+    },
+    "username": "henrylongley5@gmail.com",
+    "type": "favorite",
+    "awayTeam": "Seattle Seahawks",
+    "createdAt": {
+      "$date": "2025-10-12T13:09:04.526Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ed",
+    "homeTeam": "Jacksonville Jaguars",
+    "season": "2025",
+    "text": "Seattle Seahawks -1.5",
+    "value": -1.5
+  },
+  {
+    "_id": {
+      "$oid": "68eba8704aafb9da4c8d45fc"
+    },
+    "type": "over",
+    "username": "henrylongley5@gmail.com",
+    "awayTeam": "Arizona Cardinals",
+    "createdAt": {
+      "$date": "2025-10-12T13:09:04.606Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ef",
+    "homeTeam": "Indianapolis Colts",
+    "season": "2025",
+    "text": "Indianapolis Colts Arizona Cardinals Over 46.5",
+    "value": "46.5"
+  },
+  {
+    "_id": {
+      "$oid": "68eba8704aafb9da4c8d45fd"
+    },
+    "type": "under",
+    "username": "henrylongley5@gmail.com",
+    "awayTeam": "Cleveland Browns",
+    "createdAt": {
+      "$date": "2025-10-12T13:09:04.676Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f2",
+    "homeTeam": "Pittsburgh Steelers",
+    "season": "2025",
+    "text": "Pittsburgh Steelers Cleveland Browns Under 37.5",
+    "value": "37.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebac6f4aafb9da4c8d4699"
+    },
+    "type": "favorite",
+    "username": "rpwentworth@gmail.com",
+    "awayTeam": "Los Angeles Chargers",
+    "createdAt": {
+      "$date": "2025-10-12T13:26:07.746Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f3",
+    "homeTeam": "Miami Dolphins",
+    "season": "2025",
+    "text": "Los Angeles Chargers -4.5",
+    "value": -4.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebac6f4aafb9da4c8d469a"
+    },
+    "type": "dog",
+    "username": "rpwentworth@gmail.com",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T13:26:07.830Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Detroit Lions +2.5",
+    "value": 2.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebac6f4aafb9da4c8d469b"
+    },
+    "type": "over",
+    "username": "rpwentworth@gmail.com",
+    "awayTeam": "San Francisco 49ers",
+    "createdAt": {
+      "$date": "2025-10-12T13:26:07.903Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f6",
+    "homeTeam": "Tampa Bay Buccaneers",
+    "season": "2025",
+    "text": "Tampa Bay Buccaneers San Francisco 49ers Over 47.5",
+    "value": "47.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebac6f4aafb9da4c8d469c"
+    },
+    "type": "under",
+    "username": "rpwentworth@gmail.com",
+    "awayTeam": "Los Angeles Chargers",
+    "createdAt": {
+      "$date": "2025-10-12T13:26:07.972Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f3",
+    "homeTeam": "Miami Dolphins",
+    "season": "2025",
+    "text": "Miami Dolphins Los Angeles Chargers Under 44.5",
+    "value": "44.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebc2a44aafb9da4c8d4a4a"
+    },
+    "username": "byoritomo13@gmail.com",
+    "type": "over",
+    "awayTeam": "Los Angeles Rams",
+    "createdAt": {
+      "$date": "2025-10-12T15:00:52.932Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f0",
+    "homeTeam": "Baltimore Ravens",
+    "season": "2025",
+    "text": "Baltimore Ravens Los Angeles Rams Over 44.5",
+    "value": "44.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebc2a44aafb9da4c8d4a4b"
+    },
+    "username": "byoritomo13@gmail.com",
+    "type": "dog",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T15:00:52.995Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Detroit Lions +2.5",
+    "value": 2.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebc2a54aafb9da4c8d4a4c"
+    },
+    "type": "under",
+    "username": "byoritomo13@gmail.com",
+    "awayTeam": "Buffalo Bills",
+    "createdAt": {
+      "$date": "2025-10-12T15:00:53.030Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f8",
+    "homeTeam": "Atlanta Falcons",
+    "season": "2025",
+    "text": "Atlanta Falcons Buffalo Bills Under 49.5",
+    "value": "49.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebca6b4aafb9da4c8d4b8a"
+    },
+    "username": "wjdewey75@gmail.com",
+    "type": "favorite",
+    "awayTeam": "Arizona Cardinals",
+    "createdAt": {
+      "$date": "2025-10-12T15:34:03.799Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ef",
+    "homeTeam": "Indianapolis Colts",
+    "season": "2025",
+    "text": "Indianapolis Colts -7.5",
+    "value": -7.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebca6b4aafb9da4c8d4b8b"
+    },
+    "type": "dog",
+    "username": "wjdewey75@gmail.com",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T15:34:03.854Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Detroit Lions +2.5",
+    "value": 2.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebca6b4aafb9da4c8d4b8c"
+    },
+    "username": "wjdewey75@gmail.com",
+    "type": "over",
+    "awayTeam": "Los Angeles Rams",
+    "createdAt": {
+      "$date": "2025-10-12T15:34:03.893Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f0",
+    "homeTeam": "Baltimore Ravens",
+    "season": "2025",
+    "text": "Baltimore Ravens Los Angeles Rams Over 44.5",
+    "value": "44.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebca6b4aafb9da4c8d4b8d"
+    },
+    "type": "under",
+    "username": "wjdewey75@gmail.com",
+    "awayTeam": "New England Patriots",
+    "createdAt": {
+      "$date": "2025-10-12T15:34:03.933Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ee",
+    "homeTeam": "New Orleans Saints",
+    "season": "2025",
+    "text": "New Orleans Saints New England Patriots Under 45.5",
+    "value": "45.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebd22f4aafb9da4c8d4cd8"
+    },
+    "username": "trabucco64@gmail.com",
+    "type": "favorite",
+    "awayTeam": "Los Angeles Chargers",
+    "createdAt": {
+      "$date": "2025-10-12T16:07:11.925Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f3",
+    "homeTeam": "Miami Dolphins",
+    "season": "2025",
+    "text": "Los Angeles Chargers -4.5",
+    "value": -4.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebd2304aafb9da4c8d4cd9"
+    },
+    "username": "trabucco64@gmail.com",
+    "type": "dog",
+    "awayTeam": "Arizona Cardinals",
+    "createdAt": {
+      "$date": "2025-10-12T16:07:12.010Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ef",
+    "homeTeam": "Indianapolis Colts",
+    "season": "2025",
+    "text": "Arizona Cardinals +7.5",
+    "value": 7.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebd2304aafb9da4c8d4cda"
+    },
+    "username": "trabucco64@gmail.com",
+    "type": "over",
+    "awayTeam": "Chicago Bears",
+    "createdAt": {
+      "$date": "2025-10-12T16:07:12.080Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f9",
+    "homeTeam": "Washington Commanders",
+    "season": "2025",
+    "text": "Washington Commanders Chicago Bears Over 49.5",
+    "value": "49.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebd2304aafb9da4c8d4cdb"
+    },
+    "type": "under",
+    "username": "trabucco64@gmail.com",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T16:07:12.149Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Kansas City Chiefs Detroit Lions Under 52.5",
+    "value": "52.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebd5a84aafb9da4c8d4d65"
+    },
+    "type": "over",
+    "username": "antoniotrabucco8@gmail.com",
+    "awayTeam": "Arizona Cardinals",
+    "createdAt": {
+      "$date": "2025-10-12T16:22:00.229Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ef",
+    "homeTeam": "Indianapolis Colts",
+    "season": "2025",
+    "text": "Indianapolis Colts Arizona Cardinals Over 46.5",
+    "value": "46.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebd5a84aafb9da4c8d4d66"
+    },
+    "username": "antoniotrabucco8@gmail.com",
+    "type": "favorite",
+    "awayTeam": "Cleveland Browns",
+    "createdAt": {
+      "$date": "2025-10-12T16:22:00.323Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f2",
+    "homeTeam": "Pittsburgh Steelers",
+    "season": "2025",
+    "text": "Pittsburgh Steelers -5.5",
+    "value": -5.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebd5a84aafb9da4c8d4d67"
+    },
+    "username": "antoniotrabucco8@gmail.com",
+    "type": "dog",
+    "awayTeam": "Buffalo Bills",
+    "createdAt": {
+      "$date": "2025-10-12T16:22:00.368Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f8",
+    "homeTeam": "Atlanta Falcons",
+    "season": "2025",
+    "text": "Atlanta Falcons +4.5",
+    "value": 4.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebd5a84aafb9da4c8d4d68"
+    },
+    "username": "antoniotrabucco8@gmail.com",
+    "type": "under",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T16:22:00.423Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Kansas City Chiefs Detroit Lions Under 52.5",
+    "value": "52.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebdc0f4aafb9da4c8d4e78"
+    },
+    "username": "chris.joseph.ptak@gmail.com",
+    "type": "over",
+    "awayTeam": "New England Patriots",
+    "createdAt": {
+      "$date": "2025-10-12T16:49:19.524Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ee",
+    "homeTeam": "New Orleans Saints",
+    "season": "2025",
+    "text": "New Orleans Saints New England Patriots Over 45.5",
+    "value": "45.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebdc0f4aafb9da4c8d4e79"
+    },
+    "type": "favorite",
+    "username": "chris.joseph.ptak@gmail.com",
+    "awayTeam": "Arizona Cardinals",
+    "createdAt": {
+      "$date": "2025-10-12T16:49:19.603Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ef",
+    "homeTeam": "Indianapolis Colts",
+    "season": "2025",
+    "text": "Indianapolis Colts -7.5",
+    "value": -7.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebdc0f4aafb9da4c8d4e7a"
+    },
+    "type": "under",
+    "username": "chris.joseph.ptak@gmail.com",
+    "awayTeam": "San Francisco 49ers",
+    "createdAt": {
+      "$date": "2025-10-12T16:49:19.688Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f6",
+    "homeTeam": "Tampa Bay Buccaneers",
+    "season": "2025",
+    "text": "Tampa Bay Buccaneers San Francisco 49ers Under 47.5",
+    "value": "47.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebdc0f4aafb9da4c8d4e7b"
+    },
+    "username": "chris.joseph.ptak@gmail.com",
+    "type": "dog",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T16:49:19.761Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Detroit Lions +2.5",
+    "value": 2.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebdc3a4aafb9da4c8d4ed9"
+    },
+    "type": "favorite",
+    "username": "c.cox9922@gmail.com",
+    "awayTeam": "Seattle Seahawks",
+    "createdAt": {
+      "$date": "2025-10-12T16:50:02.683Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ed",
+    "homeTeam": "Jacksonville Jaguars",
+    "season": "2025",
+    "text": "Seattle Seahawks -1.5",
+    "value": -1.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebdc3a4aafb9da4c8d4eda"
+    },
+    "type": "over",
+    "username": "c.cox9922@gmail.com",
+    "awayTeam": "Arizona Cardinals",
+    "createdAt": {
+      "$date": "2025-10-12T16:50:02.727Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ef",
+    "homeTeam": "Indianapolis Colts",
+    "season": "2025",
+    "text": "Indianapolis Colts Arizona Cardinals Over 46.5",
+    "value": "46.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebdc3a4aafb9da4c8d4edb"
+    },
+    "type": "dog",
+    "username": "c.cox9922@gmail.com",
+    "awayTeam": "Cleveland Browns",
+    "createdAt": {
+      "$date": "2025-10-12T16:50:02.776Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f2",
+    "homeTeam": "Pittsburgh Steelers",
+    "season": "2025",
+    "text": "Cleveland Browns +5.5",
+    "value": 5.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebdc3a4aafb9da4c8d4edc"
+    },
+    "username": "c.cox9922@gmail.com",
+    "type": "under",
+    "awayTeam": "Chicago Bears",
+    "createdAt": {
+      "$date": "2025-10-12T16:50:02.822Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f9",
+    "homeTeam": "Washington Commanders",
+    "season": "2025",
+    "text": "Washington Commanders Chicago Bears Under 49.5",
+    "value": "49.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebdd534aafb9da4c8d4f07"
+    },
+    "type": "favorite",
+    "username": "matt.goldberg7@gmail.com",
+    "awayTeam": "Arizona Cardinals",
+    "createdAt": {
+      "$date": "2025-10-12T16:54:43.600Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098ef",
+    "homeTeam": "Indianapolis Colts",
+    "season": "2025",
+    "text": "Indianapolis Colts -7.5",
+    "value": -7.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebde254aafb9da4c8d4f2d"
+    },
+    "username": "matt.goldberg7@gmail.com",
+    "type": "dog",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T16:58:13.101Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Detroit Lions +2.5",
+    "value": 2.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebdf134aafb9da4c8d4f82"
+    },
+    "type": "over",
+    "username": "matt.goldberg7@gmail.com",
+    "awayTeam": "Buffalo Bills",
+    "createdAt": {
+      "$date": "2025-10-12T17:02:11.904Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f8",
+    "homeTeam": "Atlanta Falcons",
+    "season": "2025",
+    "text": "Atlanta Falcons Buffalo Bills Over 49.5",
+    "value": "49.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebe1034aafb9da4c8d4fcd"
+    },
+    "type": "favorite",
+    "username": "jmgowetski@gmail.com",
+    "awayTeam": "San Francisco 49ers",
+    "createdAt": {
+      "$date": "2025-10-12T17:10:27.216Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f6",
+    "homeTeam": "Tampa Bay Buccaneers",
+    "season": "2025",
+    "text": "Tampa Bay Buccaneers -3",
+    "value": -3
+  },
+  {
+    "_id": {
+      "$oid": "68ebe1034aafb9da4c8d4fce"
+    },
+    "username": "jmgowetski@gmail.com",
+    "type": "dog",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T17:10:27.264Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Detroit Lions +2.5",
+    "value": 2.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebe1034aafb9da4c8d4fcf"
+    },
+    "username": "jmgowetski@gmail.com",
+    "type": "over",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T17:10:27.310Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Kansas City Chiefs Detroit Lions Over 52.5",
+    "value": "52.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebe1034aafb9da4c8d4fd0"
+    },
+    "type": "under",
+    "username": "jmgowetski@gmail.com",
+    "awayTeam": "Buffalo Bills",
+    "createdAt": {
+      "$date": "2025-10-12T17:10:27.347Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f8",
+    "homeTeam": "Atlanta Falcons",
+    "season": "2025",
+    "text": "Atlanta Falcons Buffalo Bills Under 49.5",
+    "value": "49.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebec174aafb9da4c8d51b7"
+    },
+    "type": "over",
+    "username": "gman4895@gmail.com",
+    "awayTeam": "Tennessee Titans",
+    "createdAt": {
+      "$date": "2025-10-12T17:57:43.801Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f4",
+    "homeTeam": "Las Vegas Raiders",
+    "season": "2025",
+    "text": "Las Vegas Raiders Tennessee Titans Over 41.5",
+    "value": "41.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ebec174aafb9da4c8d51b8"
+    },
+    "type": "favorite",
+    "username": "gman4895@gmail.com",
+    "awayTeam": "Cincinnati Bengals",
+    "createdAt": {
+      "$date": "2025-10-12T17:57:43.899Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f5",
+    "homeTeam": "Green Bay Packers",
+    "season": "2025",
+    "text": "Green Bay Packers -14",
+    "value": -14
+  },
+  {
+    "_id": {
+      "$oid": "68ebec174aafb9da4c8d51b9"
+    },
+    "type": "dog",
+    "username": "gman4895@gmail.com",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T17:57:43.960Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Detroit Lions +2.5",
+    "value": 2.5
+  },
+  {
+    "_id": {
+      "$oid": "68ebec184aafb9da4c8d51ba"
+    },
+    "username": "gman4895@gmail.com",
+    "type": "under",
+    "awayTeam": "Chicago Bears",
+    "createdAt": {
+      "$date": "2025-10-12T17:57:44.027Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f9",
+    "homeTeam": "Washington Commanders",
+    "season": "2025",
+    "text": "Washington Commanders Chicago Bears Under 49.5",
+    "value": "49.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ec16ef4aafb9da4c8d5b57"
+    },
+    "username": "btnewman7@gmail.com",
+    "type": "dog",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T21:00:31.834Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Detroit Lions +2.5",
+    "value": 2.5
+  },
+  {
+    "_id": {
+      "$oid": "68ec16ef4aafb9da4c8d5b58"
+    },
+    "type": "over",
+    "username": "btnewman7@gmail.com",
+    "awayTeam": "Detroit Lions",
+    "createdAt": {
+      "$date": "2025-10-12T21:00:31.885Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f7",
+    "homeTeam": "Kansas City Chiefs",
+    "season": "2025",
+    "text": "Kansas City Chiefs Detroit Lions Over 52.5",
+    "value": "52.5"
+  },
+  {
+    "_id": {
+      "$oid": "68ec16ef4aafb9da4c8d5b59"
+    },
+    "type": "favorite",
+    "username": "btnewman7@gmail.com",
+    "awayTeam": "Chicago Bears",
+    "createdAt": {
+      "$date": "2025-10-12T21:00:31.935Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f9",
+    "homeTeam": "Washington Commanders",
+    "season": "2025",
+    "text": "Washington Commanders -4.5",
+    "value": -4.5
+  },
+  {
+    "_id": {
+      "$oid": "68ec16ef4aafb9da4c8d5b5a"
+    },
+    "type": "under",
+    "username": "btnewman7@gmail.com",
+    "awayTeam": "Chicago Bears",
+    "createdAt": {
+      "$date": "2025-10-12T21:00:31.967Z"
+    },
+    "gameId": "68e84e3ce04875a58ce098f9",
+    "homeTeam": "Washington Commanders",
+    "season": "2025",
+    "text": "Washington Commanders Chicago Bears Under 49.5",
+    "value": "49.5"
+  }
+]
