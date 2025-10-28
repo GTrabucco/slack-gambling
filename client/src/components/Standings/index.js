@@ -150,8 +150,9 @@ const Standings = () => {
                                         </td>
                                         <td>
                                             <Nav.Link
+                                                className="clickable"
                                                 onClick={() => navigate(`/pickhistory?user=${item.username}`)}
-                                                style={{ cursor: "pointer" }}
+                                                style={{ cursor: "pointer", color: "blue" }}
                                             >
                                                 {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
                                             </Nav.Link>
@@ -174,8 +175,9 @@ const Standings = () => {
                                         </td>
                                         <td className="s1-cell">
                                             <Nav.Link
+                                                className="clickable"
                                                 onClick={() => navigate(`/pickhistory?user=${item.username}`)}
-                                                style={{ cursor: "pointer" }}
+                                                style={{ cursor: "pointer", color: "blue" }}
                                             >
                                                 {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
                                             </Nav.Link>
