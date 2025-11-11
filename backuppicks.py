@@ -35,15 +35,15 @@ def backup_picks():
         backup_file = os.path.join(backup_dir, f"picks_backup_{timestamp}.json")
         backup_file_2 = os.path.join(backup_dir, f"picks_history_backup_{timestamp}.json")
         # Save documents as JSON (using json_util to handle ObjectId, datetime, etc.)
-        # with open(backup_file, "w", encoding="utf-8") as f:
-        #     json.dump(docs, f, default=json_util.default, indent=2)
+        with open(backup_file, "w", encoding="utf-8") as f:
+            json.dump(docs, f, default=json_util.default, indent=2)
 
-        # print(f"Backup complete! Saved {len(docs)} documents to {backup_file}")
+        print(f"Backup complete! Saved {len(docs)} documents to {backup_file}")
 
-        with open(backup_file_2, "w", encoding="utf-8") as f:
-            json.dump(ph_docs, f, default=json_util.default, indent=2)
+        # with open(backup_file_2, "w", encoding="utf-8") as f:
+        #     json.dump(ph_docs, f, default=json_util.default, indent=2)
 
-        print(f"Backup complete! Saved {len(ph_docs)} documents to {backup_file_2}")
+        # print(f"Backup complete! Saved {len(ph_docs)} documents to {backup_file_2}")
 
     except Exception as e:
         print(f"Error during backup: {e}")
