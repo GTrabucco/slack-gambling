@@ -28,8 +28,7 @@ async function fridayJob(season, week, weekType) {
 
     console.log(newGames);
 
-    const lastGame = newGames[newGames.length - 1];
-    await gamesCollection.insertOne(lastGame);
+    await gamesCollection.insertMany(newGames);
   } catch (error) {
     console.error("Error inserting games:", error);
   } finally {
