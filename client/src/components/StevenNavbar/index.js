@@ -47,7 +47,7 @@ const StevenNavbar = () => {
         { path: "/dashboard", label: "Home", icon: <BsHouseDoor /> },
         { path: "/standings", label: "Standings", icon: <IoPodiumOutline /> },
         { path: "/pickhistory", label: "History", icon: <BsClockHistory /> },
-        { path: "/statistics", label: "Statistics", icon: <ImStatsDots /> },
+        { path: "/frivolities", label: "Frivolities", icon: <ImStatsDots /> },
         { path: "/reportissue", label: "Report Issue", icon: <BsBug /> },
         ...(isAdmin ? [
             { path: "/calculatescoring", label: "Calculate Scoring", icon: <BsCalculator /> },
