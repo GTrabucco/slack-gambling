@@ -70,11 +70,13 @@ const TeamsBet = () => {
               const parts = text.trim().split(" ");
               const teamName = parts.slice(0, parts.length - 1).join(" ");
               teamCounts[teamName] = (teamCounts[teamName] || 0) + 1;
-              teamRecords[teamName] = teamRecords[teamName] || { wins: 0, losses: 0 };
+              teamRecords[teamName] = teamRecords[teamName] || { wins: 0, losses: 0, pushes: 0 };
               if (result === 1) {
                 teamRecords[teamName].wins += 1;
               } else if (result === -1) {
                 teamRecords[teamName].losses += 1;
+              } else if (result === 0) {
+                teamRecords[teamName].pushes += 1;
               }
             } else if (type === "over" || type === "under") {
               const parts = text.trim().split(" ");
@@ -85,34 +87,42 @@ const TeamsBet = () => {
                 const team2 = parts.slice(2).join(" ");
                 teamCounts[team1] = (teamCounts[team1] || 0) + 1;
                 teamCounts[team2] = (teamCounts[team2] || 0) + 1;
-                teamRecords[team1] = teamRecords[team1] || { wins: 0, losses: 0 };
+                teamRecords[team1] = teamRecords[team1] || { wins: 0, losses: 0, pushes: 0 };
                 if (result === 1) {
                   teamRecords[team1].wins += 1;
                 } else if (result === -1) {
                   teamRecords[team1].losses += 1;
+                } else if (result === 0) {
+                  teamRecords[team1].pushes += 1;
                 }
-                teamRecords[team2] = teamRecords[team2] || { wins: 0, losses: 0 };
+                teamRecords[team2] = teamRecords[team2] || { wins: 0, losses: 0, pushes: 0 };
                 if (result === 1) {
                   teamRecords[team2].wins += 1;
                 } else if (result === -1) {
                   teamRecords[team2].losses += 1;
+                } else if (result === 0) {
+                  teamRecords[team2].pushes += 1;
                 }
               } else if (parts.length === 6) {
                 const team1 = parts.slice(0, 3).join(" ");
                 const team2 = parts.slice(3).join(" ");
                 teamCounts[team1] = (teamCounts[team1] || 0) + 1;
                 teamCounts[team2] = (teamCounts[team2] || 0) + 1;
-                teamRecords[team1] = teamRecords[team1] || { wins: 0, losses: 0 };
+                teamRecords[team1] = teamRecords[team1] || { wins: 0, losses: 0, pushes: 0 };
                 if (result === 1) {
                   teamRecords[team1].wins += 1;
                 } else if (result === -1) {
                   teamRecords[team1].losses += 1;
+                } else if (result === 0) {
+                  teamRecords[team1].pushes += 1;
                 }
-                teamRecords[team2] = teamRecords[team2] || { wins: 0, losses: 0 };
+                teamRecords[team2] = teamRecords[team2] || { wins: 0, losses: 0, pushes: 0 };
                 if (result === 1) {
                   teamRecords[team2].wins += 1;
                 } else if (result === -1) {
                   teamRecords[team2].losses += 1;
+                } else if (result === 0) {
+                  teamRecords[team2].pushes += 1;
                 }
               } else {
                 const team1_try = parts.slice(0, 2).join(" ");
@@ -121,34 +131,42 @@ const TeamsBet = () => {
                   const team2 = parts.slice(2).join(" ");
                   teamCounts[team1] = (teamCounts[team1] || 0) + 1;
                   teamCounts[team2] = (teamCounts[team2] || 0) + 1;
-                  teamRecords[team1] = teamRecords[team1] || { wins: 0, losses: 0 };
+                  teamRecords[team1] = teamRecords[team1] || { wins: 0, losses: 0, pushes: 0 };
                   if (result === 1) {
                     teamRecords[team1].wins += 1;
                   } else if (result === -1) {
                     teamRecords[team1].losses += 1;
+                  } else if (result === 0) {
+                    teamRecords[team1].pushes += 1;
                   }
-                  teamRecords[team2] = teamRecords[team2] || { wins: 0, losses: 0 };
+                  teamRecords[team2] = teamRecords[team2] || { wins: 0, losses: 0, pushes: 0 };
                   if (result === 1) {
                     teamRecords[team2].wins += 1;
                   } else if (result === -1) {
                     teamRecords[team2].losses += 1;
+                  } else if (result === 0) {
+                    teamRecords[team2].pushes += 1;
                   }
                 } else {
                   const team1 = parts.slice(0, 3).join(" ");
                   const team2 = parts.slice(3).join(" ");
                   teamCounts[team1] = (teamCounts[team1] || 0) + 1;
                   teamCounts[team2] = (teamCounts[team2] || 0) + 1;
-                  teamRecords[team1] = teamRecords[team1] || { wins: 0, losses: 0 };
+                  teamRecords[team1] = teamRecords[team1] || { wins: 0, losses: 0, pushes: 0 };
                   if (result === 1) {
                     teamRecords[team1].wins += 1;
                   } else if (result === -1) {
                     teamRecords[team1].losses += 1;
+                  } else if (result === 0) {
+                    teamRecords[team1].pushes += 1;
                   }
-                  teamRecords[team2] = teamRecords[team2] || { wins: 0, losses: 0 };
+                  teamRecords[team2] = teamRecords[team2] || { wins: 0, losses: 0, pushes: 0 };
                   if (result === 1) {
                     teamRecords[team2].wins += 1;
                   } else if (result === -1) {
                     teamRecords[team2].losses += 1;
+                  } else if (result === 0) {
+                    teamRecords[team2].pushes += 1;
                   }
                 }
               }
@@ -195,7 +213,7 @@ const TeamsBet = () => {
               <TableCell>{team}</TableCell>
               <TableCell align="right">{count}</TableCell>
               <TableCell align="right">
-                {teamRecords[team] ? `${teamRecords[team].wins}-${teamRecords[team].losses}` : "0-0"}
+                {teamRecords[team] ? `${teamRecords[team].wins}-${teamRecords[team].losses}-${teamRecords[team].pushes}` : "0-0-0"}
               </TableCell>
               <TableCell align="right">
                 {teamRecords[team] ? ((teamRecords[team].wins / (teamRecords[team].wins + teamRecords[team].losses)) * 100).toFixed(1) + "%" : "0.0%"}
