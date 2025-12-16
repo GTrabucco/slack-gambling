@@ -151,8 +151,6 @@ const Standings = () => {
                         <th>Points</th>
                         <th>4/4 Weeks</th>
                         <th>0/4 Weeks</th>
-                        <th>Positive Weeks</th>
-                        <th>Negative Weeks</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -179,8 +177,6 @@ const Standings = () => {
                                         <td> {item.resultSum}</td>
                                         <td>{perfectWeeks[item.username]}</td>
                                         <td>{negFourWeeks[item.username]}</td>
-                                        <td>{positiveWeeks[item.username]/2}</td>
-                                        <td>{negativeWeeks[item.username]/2}</td>
                                     </tr>
                                 );
                             }
@@ -206,8 +202,6 @@ const Standings = () => {
                                         <td className="s2-cell"> {item.resultSum}</td>
                                         <td className="s2-cell">{perfectWeeks[item.username]}</td>
                                         <td className="s2-cell">{negFourWeeks[item.username]}</td>
-                                        <td className="s2-cell">{positiveWeeks[item.username]/2}</td>
-                                        <td className="s2-cell">{negativeWeeks[item.username]/2}</td>
                                     </tr>
                                 );
                             }

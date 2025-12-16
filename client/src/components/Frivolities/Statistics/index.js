@@ -101,6 +101,18 @@ const Statistics = () => {
     return sums.filter(s => s === -4).length;
   };
 
+  const getPlusWeeks = (season) => {
+    const data = season ? picks.filter(p => p.season === season) : picks;
+    const sums = getWeekSums(data, selectedPlayer === "All");
+    return sums.filter(s => s > 0).length;
+  };
+
+  const getMinusWeeks = (season) => {
+    const data = season ? picks.filter(p => p.season === season) : picks;
+    const sums = getWeekSums(data, selectedPlayer === "All");
+    return sums.filter(s => s < 0).length;
+  };
+
   const getOverallRecord = (data) => {
     const wins = data.filter(i => i.result === 1).length;
     const losses = data.filter(i => i.result === -1).length;
@@ -148,6 +160,8 @@ const Statistics = () => {
             <TableRow><TableCell>Unders</TableCell><TableCell>{getRecord(picks, "under")}</TableCell></TableRow>
             <TableRow><TableCell>4/4 Weeks</TableCell><TableCell>{getPerfectWeeks()}</TableCell></TableRow>
             <TableRow><TableCell>0/4 Weeks</TableCell><TableCell>{getNegativeWeeks()}</TableCell></TableRow>
+            <TableRow><TableCell>Positive Weeks</TableCell><TableCell>{getPlusWeeks()}</TableCell></TableRow>
+            <TableRow><TableCell>Negative Weeks</TableCell><TableCell>{getMinusWeeks()}</TableCell></TableRow>
           </TableBody>
         </Table>
       </TableContainer>
@@ -167,6 +181,8 @@ const Statistics = () => {
                 <TableRow><TableCell>Unders</TableCell><TableCell>{getRecord(seasonData, "under")}</TableCell></TableRow>
                 <TableRow><TableCell>4/4 Weeks</TableCell><TableCell>{getPerfectWeeks(season)}</TableCell></TableRow>
                 <TableRow><TableCell>0/4 Weeks</TableCell><TableCell>{getNegativeWeeks(season)}</TableCell></TableRow>
+                <TableRow><TableCell>Positive Weeks</TableCell><TableCell>{getPlusWeeks(season)}</TableCell></TableRow>
+                <TableRow><TableCell>Negative Weeks</TableCell><TableCell>{getMinusWeeks(season)}</TableCell></TableRow>
               </TableBody>
             </Table>
           </TableContainer>
