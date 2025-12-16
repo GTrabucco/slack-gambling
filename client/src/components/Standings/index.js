@@ -3,22 +3,18 @@ import { Container, Row, Table, Nav, Form } from "react-bootstrap";
 import axios from "axios";
 import './style.css';
 import { useNavigate } from "react-router-dom";
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import { StevenTabPanel } from "../Common/StevenTabPanel";
-import { Line, LineChart } from 'recharts';
 
 const Standings = () => {
     const [error, setError] = useState("");
     const [data, setData] = useState([]);
     const [perfectWeeks, setPerfectWeeks] = useState({});
     const [negFourWeeks, setNegFourWeeks] = useState({});
+    const [positiveWeeks, setPositiveWeeks] = useState({});
+    const [negativeWeeks, setNegativeWeeks] = useState({});
     const [users, setUsers] = useState({});
     const [seasons, setSeasons] = useState(["2025"]);
     const [selectedSeason, setSelectedSeason] = useState("2025");
     const [lastPlaceRank, setLastPlaceRank] = useState(null);
-    const [teamGraph, setTeamGraph] = useState({})
-    const [tabValue, setTabValue] = useState(0);
     const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
     const navigate = useNavigate();
 
@@ -67,6 +63,12 @@ const Standings = () => {
                             } else if (resultSum === -4) {
                                 newNegFourWeeks[username] = (newNegFourWeeks[username] || 0) + 1;
                             }
+
+                            if (resultSum > 0) {
+                                positiveWeeks[username] = (positiveWeeks[username] || 0) + 1;
+                            } else if (resultSum < 0) {
+                                negativeWeeks[username] = (negativeWeeks[username] || 0) + 1;
+                            }
                         });
                     });
 
@@ -93,23 +95,8 @@ const Standings = () => {
                     setData(standings);
                     setPerfectWeeks(newPerfectWeeks);
                     setNegFourWeeks(newNegFourWeeks);
-
-                    const users = Object.keys(userTimelapse);
-                    const numWeeks = Math.max(...users.map(u => userTimelapse[u].length));
-
-                    const chartData = [];
-                    for (let i = 0; i < numWeeks; i++) {
-                        const weekData = { };
-                        users.forEach(user => {
-                            const cumulative = userTimelapse[user].slice(0, i + 1).reduce((sum, score) => sum + score, 0);
-                            weekData[user] = cumulative;
-                        });
-                        chartData.push(weekData);
-                    }
-
-                    setTeamGraph(chartData);
-
-                    console.log(chartData)
+                    setPositiveWeeks(positiveWeeks);
+                    setNegativeWeeks(negativeWeeks);
                 }
             } catch (error) {
                 setError('Error fetching picks');
@@ -140,10 +127,6 @@ const Standings = () => {
         };
     }
 
-    const handleTabChange = (event, newValue) => {
-        setTabValue(newValue);
-    };
-
     return (
         <Container>
             <Row className="mb-3">
@@ -159,94 +142,78 @@ const Standings = () => {
                     </Form.Select>
                 </Form.Group>
             </Row>
-            <Row>
-                <Tabs value={tabValue} onChange={handleTabChange}>
-                    <Tab label="Standings" {...a11yProps(0)} />
-                    <Tab label="Historical Timeline" {...a11yProps(1)} />
-                </Tabs>
-            </Row>
             {error && <div className="alert alert-danger">{error}</div>}
-            <StevenTabPanel value={tabValue} index={0}>
-                <Table responsive bordered>
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Name</th>
-                            <th>Points</th>
-                            <th>4/4 Weeks</th>
-                            <th>0/4 Weeks</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data
-                            .sort((a, b) => b.resultSum - a.resultSum)
-                            .map((item) => {
-                                if (item.rank < 4) {
-                                    return (
-                                        <tr key={item.username}>
-                                            <td>
-                                                {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" /> : ""}
-                                                {item.rank === 2 ? <img className="medal" src="SilverMedal.svg" /> : ""}
-                                                {item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" /> : ""}
-                                            </td>
-                                            <td>
-                                                <Nav.Link
-                                                    className="clickable"
-                                                    onClick={() => navigate(`/pickhistory?user=${item.username}`)}
-                                                    style={{ cursor: "pointer", color: "blue" }}
-                                                >
-                                                    {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
-                                                </Nav.Link>
-                                            </td>
-                                            <td> {item.resultSum}</td>
-                                            <td>{perfectWeeks[item.username]}</td>
-                                            <td>{negFourWeeks[item.username]}</td>
-                                        </tr>
-                                    );
-                                }
-                            })}
-                        {data
-                            .sort((a, b) => b.resultSum - a.resultSum)
-                            .map((item) => {
-                                if (item.rank > 3) {
-                                    return (
-                                        <tr className="s-row" key={item.username}>
-                                            <td className={getPlace(item.rank)}>
-                                                {item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" /> : item.rank}
-                                            </td>
-                                            <td className="s1-cell">
-                                                <Nav.Link
-                                                    className="clickable"
-                                                    onClick={() => navigate(`/pickhistory?user=${item.username}`)}
-                                                    style={{ cursor: "pointer", color: "blue" }}
-                                                >
-                                                    {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
-                                                </Nav.Link>
-                                            </td>
-                                            <td className="s2-cell"> {item.resultSum}</td>
-                                            <td className="s2-cell">{perfectWeeks[item.username]}</td>
-                                            <td className="s2-cell">{negFourWeeks[item.username]}</td>
-                                        </tr>
-                                    );
-                                }
-                            })}
-                    </tbody>
-                </Table>
-            </StevenTabPanel>
-            <StevenTabPanel value={tabValue} index={1}>
-                {teamGraph && teamGraph.length > 0 ? (
-                    <LineChart width={800} height={400} data={teamGraph}>
-                        {Object.keys(users).map((username, index) => (
-                        <Line
-                            key={username}
-                            type="monotone"
-                            dataKey={username}
-                            stroke={`hsl(${(index * 137.5) % 360}, 70%, 50%)`}
-                        />
-                        ))}
-                    </LineChart>
-                ) : null}
-            </StevenTabPanel>
+            <Table responsive bordered>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Points</th>
+                        <th>4/4 Weeks</th>
+                        <th>0/4 Weeks</th>
+                        <th>Positive Weeks</th>
+                        <th>Negative Weeks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data
+                        .sort((a, b) => b.resultSum - a.resultSum)
+                        .map((item) => {
+                            if (item.rank < 4) {
+                                return (
+                                    <tr key={item.username}>
+                                        <td>
+                                            {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" /> : ""}
+                                            {item.rank === 2 ? <img className="medal" src="SilverMedal.svg" /> : ""}
+                                            {item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" /> : ""}
+                                        </td>
+                                        <td>
+                                            <Nav.Link
+                                                className="clickable"
+                                                onClick={() => navigate(`/pickhistory?user=${item.username}`)}
+                                                style={{ cursor: "pointer", color: "blue" }}
+                                            >
+                                                {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
+                                            </Nav.Link>
+                                        </td>
+                                        <td> {item.resultSum}</td>
+                                        <td>{perfectWeeks[item.username]}</td>
+                                        <td>{negFourWeeks[item.username]}</td>
+                                        <td>{positiveWeeks[item.username]/2}</td>
+                                        <td>{negativeWeeks[item.username]/2}</td>
+                                    </tr>
+                                );
+                            }
+                        })}
+                    {data
+                        .sort((a, b) => b.resultSum - a.resultSum)
+                        .map((item) => {
+                            if (item.rank > 3) {
+                                return (
+                                    <tr className="s-row" key={item.username}>
+                                        <td className={getPlace(item.rank)}>
+                                            {item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" /> : item.rank}
+                                        </td>
+                                        <td className="s1-cell">
+                                            <Nav.Link
+                                                className="clickable"
+                                                onClick={() => navigate(`/pickhistory?user=${item.username}`)}
+                                                style={{ cursor: "pointer", color: "blue" }}
+                                            >
+                                                {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
+                                            </Nav.Link>
+                                        </td>
+                                        <td className="s2-cell"> {item.resultSum}</td>
+                                        <td className="s2-cell">{perfectWeeks[item.username]}</td>
+                                        <td className="s2-cell">{negFourWeeks[item.username]}</td>
+                                        <td className="s2-cell">{positiveWeeks[item.username]/2}</td>
+                                        <td className="s2-cell">{negativeWeeks[item.username]/2}</td>
+                                    </tr>
+                                );
+                            }
+                        })}
+                </tbody>
+            </Table>
         </Container>
     );
 }

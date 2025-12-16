@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import React from "react";
 import { Card, CardContent, Typography, Grid, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
