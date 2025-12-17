@@ -89,6 +89,10 @@ const TeamsBet = () => {
 
     data.forEach(({ type, text, result }) => {
       const parts = text.trim().split(" ");
+      if (parts[0] === "Did") {
+        addTeam(text, -1)
+        return;
+      }
 
       if (type === "favorite" || type === "underdog") {
         addTeam(parts.slice(0, -1).join(" "), result);
