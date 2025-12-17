@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, Typography, Grid, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
-const Frivolities = () => {
+const AdvancedStats = () => {
     const navigate = useNavigate();
     const cards = [
         { id: 1, title: 'Statistics', description: 'View your full betting statistics.', link: "/statistics" },
@@ -49,4 +49,4 @@ const Frivolities = () => {
     );
 };
 
-export default Frivolities;
+export default AdvancedStats;

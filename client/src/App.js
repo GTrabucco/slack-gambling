@@ -14,9 +14,9 @@ import PageLoader from "./components/PageLoader";
 import { AuthenticationGuard } from "./components/authentication-guard";
 import WeekPicks from "./components/WeekPicks";
 import JobRunner from "./components/Admin/JobRunner";
-import Frivolities from "./components/Frivolities";
-import Statistics from "./components/Frivolities/Statistics";
-import TeamsBet from "./components/Frivolities/TeamsBet";
+import AdvancedStats from "./components/AdvancedStats";
+import Statistics from "./components/AdvancedStats/Statistics";
+import TeamsBet from "./components/AdvancedStats/TeamsBet";
 if (process.env.NODE_ENV === 'production') disableReactDevTools();
 
 function App() {
@@ -44,7 +44,7 @@ function App() {
         <Route path="/pickhistory" element={<AuthenticationGuard component={PickHistory} /> } />
         <Route path="/standings" element={<AuthenticationGuard component={Standings} /> } />
         <Route path="/reportissue" element={<AuthenticationGuard component={ReportIssue} /> } />
-        <Route path="/frivolities" element={<AuthenticationGuard component={Frivolities} /> } />
+        <Route path="/advancedStats" element={<AuthenticationGuard component={AdvancedStats} /> } />
         <Route path="/statistics" element={<AuthenticationGuard component={Statistics} /> } />
         <Route path="/teamsbet" element={<AuthenticationGuard component={TeamsBet} /> } />
 

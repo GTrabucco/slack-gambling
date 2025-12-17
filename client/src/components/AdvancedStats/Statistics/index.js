@@ -127,67 +127,74 @@ const Statistics = () => {
 
   return (
     <>
-      <Typography variant="h5" sx={{ p: 2, fontWeight: "bold", textAlign: "center" }}>
-        Statistics
-      </Typography>
+      <TableContainer component={Paper} sx={{ maxWidth: 600, margin: "auto", mt: 3 }}>
 
-      <FormControl fullWidth sx={{ px: 2, pb: 2 }}>
-        <Select
-          value={selectedPlayer}
-          onChange={(e) => {
-            setSelectedPlayer(e.target.value);
-            fetchPickHistory(e.target.value);
-          }}
-        >
-          {users.map(u => (
-            <MenuItem key={u.username} value={u.username}>
-              {u.displayName || u.username.split("@")[0]}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+        <Typography variant="h5" sx={{ p: 2, fontWeight: "bold", textAlign: "center" }}>
+          Statistics
+        </Typography>
 
-      <TableContainer component={Paper} sx={{ maxWidth: 600, margin: "auto", mb: 3 }}>
-        <Table size="small">
-          <TableBody>
-            <TableRow>
-              <TableCell>Overall Record</TableCell>
-              <TableCell>{getOverallRecord(picks)}</TableCell>
-            </TableRow>
-            <TableRow><TableCell>Favorites</TableCell><TableCell>{getRecord(picks, "favorite")}</TableCell></TableRow>
-            <TableRow><TableCell>Underdogs</TableCell><TableCell>{getRecord(picks, "dog")}</TableCell></TableRow>
-            <TableRow><TableCell>Overs</TableCell><TableCell>{getRecord(picks, "over")}</TableCell></TableRow>
-            <TableRow><TableCell>Unders</TableCell><TableCell>{getRecord(picks, "under")}</TableCell></TableRow>
-            <TableRow><TableCell>4/4 Weeks</TableCell><TableCell>{getPerfectWeeks()}</TableCell></TableRow>
-            <TableRow><TableCell>0/4 Weeks</TableCell><TableCell>{getNegativeWeeks()}</TableCell></TableRow>
-            <TableRow><TableCell>Positive Weeks</TableCell><TableCell>{getPlusWeeks()}</TableCell></TableRow>
-            <TableRow><TableCell>Negative Weeks</TableCell><TableCell>{getMinusWeeks()}</TableCell></TableRow>
-          </TableBody>
-        </Table>
+        <FormControl fullWidth sx={{ px: 2, pb: 2 }}>
+          <Select
+            value={selectedPlayer}
+            onChange={(e) => {
+              setSelectedPlayer(e.target.value);
+              fetchPickHistory(e.target.value);
+            }}
+          >
+            {users.map(u => (
+              <MenuItem key={u.username} value={u.username}>
+                {u.displayName || u.username.split("@")[0]}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <TableContainer component={Paper} sx={{ maxWidth: 600, margin: "auto", mb: 3 }}>
+          <Table size="small">
+            <TableBody>
+              <TableRow>
+                <TableCell>Overall Record</TableCell>
+                <TableCell>{getOverallRecord(picks)}</TableCell>
+              </TableRow>
+              <TableRow><TableCell>Favorites</TableCell><TableCell>{getRecord(picks, "favorite")}</TableCell></TableRow>
+              <TableRow><TableCell>Underdogs</TableCell><TableCell>{getRecord(picks, "dog")}</TableCell></TableRow>
+              <TableRow><TableCell>Overs</TableCell><TableCell>{getRecord(picks, "over")}</TableCell></TableRow>
+              <TableRow><TableCell>Unders</TableCell><TableCell>{getRecord(picks, "under")}</TableCell></TableRow>
+              <TableRow><TableCell>4/4 Weeks</TableCell><TableCell>{getPerfectWeeks()}</TableCell></TableRow>
+              <TableRow><TableCell>0/4 Weeks</TableCell><TableCell>{getNegativeWeeks()}</TableCell></TableRow>
+              <TableRow><TableCell>Positive Weeks</TableCell><TableCell>{getPlusWeeks()}</TableCell></TableRow>
+              <TableRow><TableCell>Negative Weeks</TableCell><TableCell>{getMinusWeeks()}</TableCell></TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        {pickGroups.map(seasonData => {
+          const season = seasonData[0].season;
+          return (
+            <TableContainer component={Paper} sx={{ maxWidth: 600, margin: "auto", mb: 3 }} key={season}>
+              <Typography variant="h6" sx={{ p: 1, fontWeight: "bold", textAlign: "center" }}>
+                {season} Stats
+              </Typography>
+              <Table size="small">
+                <TableBody>
+                  <TableRow>
+                    <TableCell>{season} Record</TableCell>
+                    <TableCell>{getOverallRecord(seasonData)}</TableCell>
+                  </TableRow>
+                  <TableRow><TableCell>Favorites</TableCell><TableCell>{getRecord(seasonData, "favorite")}</TableCell></TableRow>
+                  <TableRow><TableCell>Underdogs</TableCell><TableCell>{getRecord(seasonData, "dog")}</TableCell></TableRow>
+                  <TableRow><TableCell>Overs</TableCell><TableCell>{getRecord(seasonData, "over")}</TableCell></TableRow>
+                  <TableRow><TableCell>Unders</TableCell><TableCell>{getRecord(seasonData, "under")}</TableCell></TableRow>
+                  <TableRow><TableCell>4/4 Weeks</TableCell><TableCell>{getPerfectWeeks(season)}</TableCell></TableRow>
+                  <TableRow><TableCell>0/4 Weeks</TableCell><TableCell>{getNegativeWeeks(season)}</TableCell></TableRow>
+                  <TableRow><TableCell>Positive Weeks</TableCell><TableCell>{getPlusWeeks(season)}</TableCell></TableRow>
+                  <TableRow><TableCell>Negative Weeks</TableCell><TableCell>{getMinusWeeks(season)}</TableCell></TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
+          );
+        })}
       </TableContainer>
-
-      {pickGroups.map(seasonData => {
-        const season = seasonData[0].season;
-        return (
-          <TableContainer component={Paper} sx={{ maxWidth: 600, margin: "auto", mb: 3 }} key={season}>
-            <Typography variant="h6" sx={{ p: 1, fontWeight: "bold", textAlign: "center" }}>
-              {season} Stats
-            </Typography>
-            <Table size="small">
-              <TableBody>
-                <TableRow><TableCell>Favorites</TableCell><TableCell>{getRecord(seasonData, "favorite")}</TableCell></TableRow>
-                <TableRow><TableCell>Underdogs</TableCell><TableCell>{getRecord(seasonData, "dog")}</TableCell></TableRow>
-                <TableRow><TableCell>Overs</TableCell><TableCell>{getRecord(seasonData, "over")}</TableCell></TableRow>
-                <TableRow><TableCell>Unders</TableCell><TableCell>{getRecord(seasonData, "under")}</TableCell></TableRow>
-                <TableRow><TableCell>4/4 Weeks</TableCell><TableCell>{getPerfectWeeks(season)}</TableCell></TableRow>
-                <TableRow><TableCell>0/4 Weeks</TableCell><TableCell>{getNegativeWeeks(season)}</TableCell></TableRow>
-                <TableRow><TableCell>Positive Weeks</TableCell><TableCell>{getPlusWeeks(season)}</TableCell></TableRow>
-                <TableRow><TableCell>Negative Weeks</TableCell><TableCell>{getMinusWeeks(season)}</TableCell></TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
-        );
-      })}
     </>
   );
 };
