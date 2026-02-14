@@ -1,26 +1,27 @@
 import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
+import { Form } from "react-bootstrap";
 import userService from "../../../services/userService";
 import {
-  TableContainer,
-  Table,
-  TableRow,
-  TableCell,
-  TableBody,
-  Paper,
   Typography,
-  FormControl,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import pickService from "../../../services/pickService";
+import StevenSelect from "../../Common/StevenSelect";
+import {
+  StevenTableContainer,
+  StevenTable,
+  StevenTableBody,
+  StevenTableRow,
+  StevenTableCell,
+} from "../../Common/StevenTable";
 
 const Statistics = () => {
   const { user, isLoading } = useAuth0();
   const [users, setUsers] = useState([]);
   const [picks, setPicks] = useState([]);
-  const [pickGroups, setPickGroups] = useState([]);
+  const [seasonOptions, setSeasonOptions] = useState(["All"]);
   const [selectedPlayer, setSelectedPlayer] = useState("All");
+  const [selectedSeason, setSelectedSeason] = useState("All");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -34,13 +35,17 @@ const Statistics = () => {
   const fetchPickHistory = async (username) => {
     try {
       const response = await pickService.getPickHistory(username)
-      setPicks(response.data);
+      const pickData = response.data || [];
+      setPicks(pickData);
 
-      const grouped = Object.values(
-        Object.groupBy(response.data, i => i.season)
-      ).reverse();
+      const seasons = Array.from(
+        new Set(pickData.map((i) => String(i.season)).filter(Boolean))
+      ).sort((a, b) => Number(b) - Number(a));
 
-      setPickGroups(grouped);
+      setSeasonOptions(["All", ...seasons]);
+      setSelectedSeason((currentSeason) =>
+        currentSeason === "All" || seasons.includes(currentSeason) ? currentSeason : "All"
+      );
     } catch {
       setError("Error fetching picks");
     }
@@ -83,26 +88,22 @@ const Statistics = () => {
     ).map(week => week.reduce((sum, i) => sum + i.result, 0));
   };
 
-  const getPerfectWeeks = (season) => {
-    const data = season ? picks.filter(p => p.season === season) : picks;
+  const getPerfectWeeks = (data) => {
     const sums = getWeekSums(data, selectedPlayer === "All");
     return sums.filter(s => s === 4).length;
   };
 
-  const getNegativeWeeks = (season) => {
-    const data = season ? picks.filter(p => p.season === season) : picks;
+  const getNegativeWeeks = (data) => {
     const sums = getWeekSums(data, selectedPlayer === "All");
     return sums.filter(s => s === -4).length;
   };
 
-  const getPlusWeeks = (season) => {
-    const data = season ? picks.filter(p => p.season === season) : picks;
+  const getPlusWeeks = (data) => {
     const sums = getWeekSums(data, selectedPlayer === "All");
     return sums.filter(s => s > 0).length;
   };
 
-  const getMinusWeeks = (season) => {
-    const data = season ? picks.filter(p => p.season === season) : picks;
+  const getMinusWeeks = (data) => {
     const sums = getWeekSums(data, selectedPlayer === "All");
     return sums.filter(s => s < 0).length;
   };
@@ -119,76 +120,64 @@ const Statistics = () => {
     return `${wins} - ${losses} - ${pushes} (${pct}%)`;
   };
 
+  const filteredPicks = selectedSeason === "All"
+    ? picks
+    : picks.filter((pick) => String(pick.season) === String(selectedSeason));
+
   return (
     <>
-      <TableContainer component={Paper} sx={{ maxWidth: 600, margin: "auto", mt: 3 }}>
+      <StevenTableContainer sx={{ maxWidth: 600, margin: "auto", mt: 3 }}>
 
         <Typography variant="h5" sx={{ p: 2, fontWeight: "bold", textAlign: "center" }}>
           Statistics
         </Typography>
 
-        <FormControl fullWidth sx={{ px: 2, pb: 2 }}>
-          <Select
+        <Form.Group controlId="playerSelect" style={{ padding: "0 16px 16px 16px" }}>
+          <Form.Label>Player</Form.Label>
+          <StevenSelect
             value={selectedPlayer}
             onChange={(e) => {
               setSelectedPlayer(e.target.value);
               fetchPickHistory(e.target.value);
             }}
-          >
-            {users.map(u => (
-              <MenuItem key={u.username} value={u.username}>
-                {u.displayName || u.username.split("@")[0]}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+            options={users.map((u) => ({
+              value: u.username,
+              label: u.displayName || u.username.split("@")[0],
+            }))}
+          />
+        </Form.Group>
 
-        <TableContainer component={Paper} sx={{ maxWidth: 600, margin: "auto", mb: 3 }}>
-          <Table size="small">
-            <TableBody>
-              <TableRow>
-                <TableCell>Overall Record</TableCell>
-                <TableCell>{getOverallRecord(picks)}</TableCell>
-              </TableRow>
-              <TableRow><TableCell>Favorites</TableCell><TableCell>{getRecord(picks, "favorite")}</TableCell></TableRow>
-              <TableRow><TableCell>Underdogs</TableCell><TableCell>{getRecord(picks, "dog")}</TableCell></TableRow>
-              <TableRow><TableCell>Overs</TableCell><TableCell>{getRecord(picks, "over")}</TableCell></TableRow>
-              <TableRow><TableCell>Unders</TableCell><TableCell>{getRecord(picks, "under")}</TableCell></TableRow>
-              <TableRow><TableCell>4/4 Weeks</TableCell><TableCell>{getPerfectWeeks()}</TableCell></TableRow>
-              <TableRow><TableCell>0/4 Weeks</TableCell><TableCell>{getNegativeWeeks()}</TableCell></TableRow>
-              <TableRow><TableCell>Positive Weeks</TableCell><TableCell>{getPlusWeeks()}</TableCell></TableRow>
-              <TableRow><TableCell>Negative Weeks</TableCell><TableCell>{getMinusWeeks()}</TableCell></TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
+        <Form.Group controlId="seasonSelect" style={{ padding: "0 16px 16px 16px" }}>
+          <Form.Label>Season</Form.Label>
+          <StevenSelect
+            value={selectedSeason}
+            onChange={(e) => setSelectedSeason(e.target.value)}
+            options={seasonOptions.map((season) => ({
+              value: season,
+              label: season,
+            }))}
+          />
+        </Form.Group>
 
-        {pickGroups.map(seasonData => {
-          const season = seasonData[0].season;
-          return (
-            <TableContainer component={Paper} sx={{ maxWidth: 600, margin: "auto", mb: 3 }} key={season}>
-              <Typography variant="h6" sx={{ p: 1, fontWeight: "bold", textAlign: "center" }}>
-                {season} Stats
-              </Typography>
-              <Table size="small">
-                <TableBody>
-                  <TableRow>
-                    <TableCell>{season} Record</TableCell>
-                    <TableCell>{getOverallRecord(seasonData)}</TableCell>
-                  </TableRow>
-                  <TableRow><TableCell>Favorites</TableCell><TableCell>{getRecord(seasonData, "favorite")}</TableCell></TableRow>
-                  <TableRow><TableCell>Underdogs</TableCell><TableCell>{getRecord(seasonData, "dog")}</TableCell></TableRow>
-                  <TableRow><TableCell>Overs</TableCell><TableCell>{getRecord(seasonData, "over")}</TableCell></TableRow>
-                  <TableRow><TableCell>Unders</TableCell><TableCell>{getRecord(seasonData, "under")}</TableCell></TableRow>
-                  <TableRow><TableCell>4/4 Weeks</TableCell><TableCell>{getPerfectWeeks(season)}</TableCell></TableRow>
-                  <TableRow><TableCell>0/4 Weeks</TableCell><TableCell>{getNegativeWeeks(season)}</TableCell></TableRow>
-                  <TableRow><TableCell>Positive Weeks</TableCell><TableCell>{getPlusWeeks(season)}</TableCell></TableRow>
-                  <TableRow><TableCell>Negative Weeks</TableCell><TableCell>{getMinusWeeks(season)}</TableCell></TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
-          );
-        })}
-      </TableContainer>
+        <StevenTableContainer sx={{ maxWidth: 600, margin: "auto", mb: 3 }}>
+          <StevenTable>
+            <StevenTableBody>
+              <StevenTableRow>
+                <StevenTableCell>Overall</StevenTableCell>
+                <StevenTableCell>{getOverallRecord(filteredPicks)}</StevenTableCell>
+              </StevenTableRow>
+              <StevenTableRow><StevenTableCell>Favorites</StevenTableCell><StevenTableCell>{getRecord(filteredPicks, "favorite")}</StevenTableCell></StevenTableRow>
+              <StevenTableRow><StevenTableCell>Underdogs</StevenTableCell><StevenTableCell>{getRecord(filteredPicks, "dog")}</StevenTableCell></StevenTableRow>
+              <StevenTableRow><StevenTableCell>Overs</StevenTableCell><StevenTableCell>{getRecord(filteredPicks, "over")}</StevenTableCell></StevenTableRow>
+              <StevenTableRow><StevenTableCell>Unders</StevenTableCell><StevenTableCell>{getRecord(filteredPicks, "under")}</StevenTableCell></StevenTableRow>
+              <StevenTableRow><StevenTableCell>4/4 Weeks</StevenTableCell><StevenTableCell>{getPerfectWeeks(filteredPicks)}</StevenTableCell></StevenTableRow>
+              <StevenTableRow><StevenTableCell>0/4 Weeks</StevenTableCell><StevenTableCell>{getNegativeWeeks(filteredPicks)}</StevenTableCell></StevenTableRow>
+              <StevenTableRow><StevenTableCell>Positive Weeks</StevenTableCell><StevenTableCell>{getPlusWeeks(filteredPicks)}</StevenTableCell></StevenTableRow>
+              <StevenTableRow><StevenTableCell>Negative Weeks</StevenTableCell><StevenTableCell>{getMinusWeeks(filteredPicks)}</StevenTableCell></StevenTableRow>
+            </StevenTableBody>
+          </StevenTable>
+        </StevenTableContainer>
+      </StevenTableContainer>
     </>
   );
 };

@@ -1,11 +1,12 @@
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableRow from '@mui/material/TableRow';
 import { FaTrash } from 'react-icons/fa';
-import Paper from '@mui/material/Paper';
 import pickService from "../../services/pickService";
+import {
+    StevenTableContainer,
+    StevenTable,
+    StevenTableBody,
+    StevenTableRow,
+    StevenTableCell
+} from "../Common/StevenTable";
 
 const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByGameId, user, gameStarted, setSelectedPicks, setTempPicks }) => {
     const removePick = async (pickIdentifier, text) => {
@@ -44,9 +45,9 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
 
     return (
         <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <TableContainer component={Paper} elevation={5}>
-                <Table>
-                    <TableBody>
+            <StevenTableContainer>
+                <StevenTable>
+                    <StevenTableBody>
                         {['favorite', 'dog', 'over', 'under'].map((type) => {
                             const pick = Array.isArray(selectedPicks)
                                 ? selectedPicks.find(obj => obj.type === type)
@@ -58,14 +59,14 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                                 key = pick.gameId + "-" + type
                             }
                             return (
-                                <TableRow key={type}>
-                                    <TableCell>
+                                <StevenTableRow key={type}>
+                                    <StevenTableCell>
                                         <b>{type.charAt(0).toUpperCase() + type.slice(1)}</b>
-                                    </TableCell>
-                                    <TableCell>
+                                    </StevenTableCell>
+                                    <StevenTableCell>
                                         {value}
-                                    </TableCell>
-                                    <TableCell style={{ textAlign: 'center' }}>
+                                    </StevenTableCell>
+                                    <StevenTableCell style={{ textAlign: 'center' }}>
                                         {value && (
                                             <span
                                                 onClick={() => removePick(key, value)}
@@ -87,13 +88,13 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                                                 <FaTrash />
                                             </span>
                                         )}
-                                    </TableCell>
-                                </TableRow>
+                                    </StevenTableCell>
+                                </StevenTableRow>
                             );
                         })}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                    </StevenTableBody>
+                </StevenTable>
+            </StevenTableContainer>
         </div>
     );
 };

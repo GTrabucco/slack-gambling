@@ -5,6 +5,10 @@ const gameService = {
     return apiClient.get("/api/games");
   },
 
+  getGamesHistory: async () => {
+    return apiClient.get("/api/games-history");
+  },
+
   getGame: async (gameId) => {
     return apiClient.get("/api/get-game", { params: { gameId }, timeout: 5000 });
   },

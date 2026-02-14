@@ -1,9 +1,18 @@
 import { useState, useEffect } from "react";
-import { Container, Row, Table, Nav, Form } from "react-bootstrap";
+import { Container, Row, Nav, Form } from "react-bootstrap";
 import './style.css';
 import { useNavigate } from "react-router-dom";
 import userService from "../../services/userService";
 import pickService from "../../services/pickService";
+import StevenSelect from "../Common/StevenSelect";
+import {
+    StevenTableContainer,
+    StevenTable,
+    StevenTableHead,
+    StevenTableBody,
+    StevenTableRow,
+    StevenTableCell
+} from "../Common/StevenTable";
 
 const Standings = () => {
     const [error, setError] = useState("");
@@ -123,40 +132,38 @@ const Standings = () => {
             <Row className="mb-3">
                 <Form.Group controlId="seasonSelect">
                     <Form.Label>Season</Form.Label>
-                    <Form.Select
+                    <StevenSelect
                         value={selectedSeason}
                         onChange={(e) => setSelectedSeason(e.target.value)}
-                    >
-                        {seasons.map(season => (
-                            <option key={season} value={season}>{season}</option>
-                        ))}
-                    </Form.Select>
+                        options={seasons.map((season) => ({ value: season, label: season }))}
+                    />
                 </Form.Group>
             </Row>
             {error && <div className="alert alert-danger">{error}</div>}
-            <Table responsive bordered>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Name</th>
-                        <th>Points</th>
-                        <th>4/4 Weeks</th>
-                        <th>0/4 Weeks</th>
-                    </tr>
-                </thead>
-                <tbody>
+            <StevenTableContainer>
+                <StevenTable>
+                    <StevenTableHead>
+                        <StevenTableRow>
+                            <StevenTableCell></StevenTableCell>
+                            <StevenTableCell>Name</StevenTableCell>
+                            <StevenTableCell>Points</StevenTableCell>
+                            <StevenTableCell>4/4 Weeks</StevenTableCell>
+                            <StevenTableCell>0/4 Weeks</StevenTableCell>
+                        </StevenTableRow>
+                    </StevenTableHead>
+                    <StevenTableBody>
                     {data
                         .sort((a, b) => b.resultSum - a.resultSum)
                         .map((item) => {
                             if (item.rank < 4) {
                                 return (
-                                    <tr key={item.username}>
-                                        <td>
-                                            {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" /> : ""}
-                                            {item.rank === 2 ? <img className="medal" src="SilverMedal.svg" /> : ""}
-                                            {item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" /> : ""}
-                                        </td>
-                                        <td>
+                                    <StevenTableRow key={item.username}>
+                                        <StevenTableCell>
+                                            {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" alt="Gold medal" /> : ""}
+                                            {item.rank === 2 ? <img className="medal" src="SilverMedal.svg" alt="Silver medal" /> : ""}
+                                            {item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" alt="Bronze medal" /> : ""}
+                                        </StevenTableCell>
+                                        <StevenTableCell>
                                             <Nav.Link
                                                 className="clickable"
                                                 onClick={() => navigate(`/pickhistory?user=${item.username}`)}
@@ -164,24 +171,25 @@ const Standings = () => {
                                             >
                                                 {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
                                             </Nav.Link>
-                                        </td>
-                                        <td> {item.resultSum}</td>
-                                        <td>{perfectWeeks[item.username]}</td>
-                                        <td>{negFourWeeks[item.username]}</td>
-                                    </tr>
+                                        </StevenTableCell>
+                                        <StevenTableCell> {item.resultSum}</StevenTableCell>
+                                        <StevenTableCell>{perfectWeeks[item.username]}</StevenTableCell>
+                                        <StevenTableCell>{negFourWeeks[item.username]}</StevenTableCell>
+                                    </StevenTableRow>
                                 );
                             }
+                            return null;
                         })}
                     {data
                         .sort((a, b) => b.resultSum - a.resultSum)
                         .map((item) => {
                             if (item.rank > 3) {
                                 return (
-                                    <tr className="s-row" key={item.username}>
-                                        <td className={getPlace(item.rank)}>
-                                            {item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" /> : item.rank}
-                                        </td>
-                                        <td className="s1-cell">
+                                    <StevenTableRow className="s-row" key={item.username}>
+                                        <StevenTableCell className={getPlace(item.rank)}>
+                                            {item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" /> : item.rank}
+                                        </StevenTableCell>
+                                        <StevenTableCell className="s1-cell">
                                             <Nav.Link
                                                 className="clickable"
                                                 onClick={() => navigate(`/pickhistory?user=${item.username}`)}
@@ -189,16 +197,18 @@ const Standings = () => {
                                             >
                                                 {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
                                             </Nav.Link>
-                                        </td>
-                                        <td className="s2-cell"> {item.resultSum}</td>
-                                        <td className="s2-cell">{perfectWeeks[item.username]}</td>
-                                        <td className="s2-cell">{negFourWeeks[item.username]}</td>
-                                    </tr>
+                                        </StevenTableCell>
+                                        <StevenTableCell className="s2-cell"> {item.resultSum}</StevenTableCell>
+                                        <StevenTableCell className="s2-cell">{perfectWeeks[item.username]}</StevenTableCell>
+                                        <StevenTableCell className="s2-cell">{negFourWeeks[item.username]}</StevenTableCell>
+                                    </StevenTableRow>
                                 );
                             }
+                            return null;
                         })}
-                </tbody>
-            </Table>
+                    </StevenTableBody>
+                </StevenTable>
+            </StevenTableContainer>
         </Container>
     );
 }

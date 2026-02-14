@@ -45,7 +45,19 @@ export default async function tuesdayJob(season, week, weekType) {
 
       const picksCursor = picksCollection.find({}, { session });
       let picks = await picksCursor.toArray();
-      const picksNoId = picks.map(({ _id, ...rest }) => rest);
+      const gamesForWeek = await gamesCollection.find({}, { session }).toArray();
+      const gameTimeById = gamesForWeek.reduce((acc, game) => {
+        acc[String(game._id)] = game.commence_time;
+        if (game.gameId) {
+          acc[String(game.gameId)] = game.commence_time;
+        }
+        return acc;
+      }, {});
+
+      const picksNoId = picks.map(({ _id, ...rest }) => ({
+        ...rest,
+        commence_time: rest.gameId ? gameTimeById[String(rest.gameId)] ?? null : null
+      }));
 
       // Step 1: Build user-to-picks map
       const picksByUser = picksNoId.reduce((acc, pick) => {
@@ -75,7 +87,8 @@ export default async function tuesdayJob(season, week, weekType) {
             season,
             week,
             result: -1,
-            createdAt: Date()
+            createdAt: Date(),
+            commence_time: null
           };
           picksNoId.push(blankPick);
         }

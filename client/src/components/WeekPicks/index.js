@@ -2,6 +2,14 @@ import { useState, useEffect } from "react";
 import { Container, Row } from 'react-bootstrap';
 import './style.css'
 import pickService from "../../services/pickService";
+import {
+    StevenTableContainer,
+    StevenTable,
+    StevenTableHead,
+    StevenTableBody,
+    StevenTableRow,
+    StevenTableCell
+} from "../Common/StevenTable";
 
 const WeekPicks = (props) => {
     const [picks, setPicks] = useState([])
@@ -28,24 +36,26 @@ const WeekPicks = (props) => {
                 <h5>Week Picks</h5>
             </Row>
             <Row>
-                <table striped bordered hover class="wp-table">
-                    <thead>
-                        <tr>
-                        <th>Submitted</th>
-                        <th>User</th>
-                        <th>Pick</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <StevenTableContainer>
+                    <StevenTable className="wp-table">
+                        <StevenTableHead>
+                            <StevenTableRow>
+                                <StevenTableCell>Submitted</StevenTableCell>
+                                <StevenTableCell>User</StevenTableCell>
+                                <StevenTableCell>Pick</StevenTableCell>
+                            </StevenTableRow>
+                        </StevenTableHead>
+                        <StevenTableBody>
                         {picks.map((item) => (
-                            <tr key={item._id} class="wp-row">
-                                <td class="wp-cell">{new Date(item.createdAt).toLocaleString()}</td>
-                                <td class="wp-cell">{item.username}</td>
-                                <td class="wp-cell">{item.text}</td>
-                            </tr>
+                            <StevenTableRow key={item._id} className="wp-row">
+                                <StevenTableCell className="wp-cell">{new Date(item.createdAt).toLocaleString()}</StevenTableCell>
+                                <StevenTableCell className="wp-cell">{item.username}</StevenTableCell>
+                                <StevenTableCell className="wp-cell">{item.text}</StevenTableCell>
+                            </StevenTableRow>
                         ))}
-                    </tbody>
-                </table>
+                        </StevenTableBody>
+                    </StevenTable>
+                </StevenTableContainer>
             </Row>
         </Container>
     );

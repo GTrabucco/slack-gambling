@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
-import { Container, Row, Col, Table, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Alert } from 'react-bootstrap';
 import StevenButton from "../../Common/StevenButton";
 import issueService from "../../../services/issueService";
+import {
+    StevenTableContainer,
+    StevenTable,
+    StevenTableHead,
+    StevenTableBody,
+    StevenTableRow,
+    StevenTableCell
+} from "../../Common/StevenTable";
 
 const ViewReports = () => {
     const [error, setError] = useState("");
@@ -52,36 +60,38 @@ const ViewReports = () => {
             <Row>
                 <Col>
                     {error && <Alert variant="danger">{error}</Alert>}
-                    <Table striped bordered hover>
-                        <thead>
-                            <tr>
-                                <th>Created At</th>
-                                <th>User</th>
-                                <th>Description</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <StevenTableContainer>
+                        <StevenTable>
+                            <StevenTableHead>
+                                <StevenTableRow>
+                                    <StevenTableCell>Created At</StevenTableCell>
+                                    <StevenTableCell>User</StevenTableCell>
+                                    <StevenTableCell>Description</StevenTableCell>
+                                    <StevenTableCell>Action</StevenTableCell>
+                                </StevenTableRow>
+                            </StevenTableHead>
+                            <StevenTableBody>
                             {reports.length > 0 ? (
                                 reports
                                     .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
                                     .map((report) => (
-                                        <tr key={report._id}>
-                                            <td>{new Date(report.createdAt).toLocaleString()}</td>
-                                            <td>{report.username}</td>
-                                            <td>{report.description}</td>
-                                            <td>
+                                        <StevenTableRow key={report._id}>
+                                            <StevenTableCell>{new Date(report.createdAt).toLocaleString()}</StevenTableCell>
+                                            <StevenTableCell>{report.username}</StevenTableCell>
+                                            <StevenTableCell>{report.description}</StevenTableCell>
+                                            <StevenTableCell>
                                                 <StevenButton onClick={() => handleClose(report._id)}>Close Report</StevenButton>
-                                            </td>
-                                        </tr>
+                                            </StevenTableCell>
+                                        </StevenTableRow>
                                     ))
                             ) : (
-                                <tr>
-                                    <td colSpan="4">No reports available.</td>
-                                </tr>
+                                <StevenTableRow>
+                                    <StevenTableCell colSpan={4}>No reports available.</StevenTableCell>
+                                </StevenTableRow>
                             )}
-                        </tbody>
-                    </Table>
+                            </StevenTableBody>
+                        </StevenTable>
+                    </StevenTableContainer>
                 </Col>                
             </Row>
         </Container>

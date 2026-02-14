@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Navbar, Nav, Button } from "react-bootstrap";
+import { Navbar, Nav } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import { LogoutButton } from "../Common/logout.button";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
-    BsClockHistory, BsBug, BsCalculator, BsCardChecklist,
+    BsClockHistory, BsBug, BsCalculator, BsCardChecklist, BsList,
     BsPersonCircle, BsHouseDoor
 } from "react-icons/bs";
 import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
@@ -97,9 +97,15 @@ const StevenNavbar = () => {
             </Dialog>
             <Navbar className="bg-body-tertiary" expand="lg">
                 <Navbar.Brand style={{ cursor: "pointer" }}>
-                    <Button onClick={(e) => handleShow(e)} className="accordian" style={{ marginLeft: 15 }}>
-                        <img src="/menu.svg" alt="Menu" style={{ width: '45px', height: '24px' }} />
-                    </Button>
+                    <button
+                        type="button"
+                        className="menu-toggle"
+                        aria-label="Toggle navigation menu"
+                        onClick={(e) => handleShow(e)}
+                        style={{ marginLeft: 15 }}
+                    >
+                        <BsList size={26} />
+                    </button>
                     <a className="navbar-brand text-body-secondary" href="/">
                         <img alt="" className="spin" width="45" height="45" src="/stevenlogo.png" style={{ marginLeft: 15 }} />
                         <span style={{ fontWeight: 400, fontSize: 18, marginLeft: 10 }}>Slack Gambling</span>

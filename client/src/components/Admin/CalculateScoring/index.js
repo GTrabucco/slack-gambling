@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Table, Form } from 'react-bootstrap';
+import { Container, Row, Col, Form } from 'react-bootstrap';
 import StevenButton from "../../Common/StevenButton";
 import pickService from "../../../services/pickService";
+import {
+    StevenTableContainer,
+    StevenTable,
+    StevenTableHead,
+    StevenTableBody,
+    StevenTableRow,
+    StevenTableCell
+} from "../../Common/StevenTable";
 
 const CalculateScoring = () => {
     const [picks, setPicks] = useState([]);
@@ -108,10 +116,11 @@ const CalculateScoring = () => {
             </Row>
             <Row>
               <Col>
-                <Table striped bordered hover responsive>
-                    <thead>
-                        <tr>
-                            <th>
+                <StevenTableContainer>
+                    <StevenTable>
+                        <StevenTableHead>
+                            <StevenTableRow>
+                                <StevenTableCell>
                                 Created At
                                 <br />
                                 <input
@@ -119,8 +128,8 @@ const CalculateScoring = () => {
                                     value={dateFilter}
                                     onChange={(e) => setDateFilter(e.target.value)}
                                 />
-                            </th>
-                            <th>
+                                </StevenTableCell>
+                                <StevenTableCell>
                                 Week
                                 <br />
                                 <input
@@ -128,8 +137,8 @@ const CalculateScoring = () => {
                                     value={weekFilter}
                                     onChange={(e) => setWeekFilter(e.target.value)}
                                 />
-                            </th>
-                            <th>
+                                </StevenTableCell>
+                                <StevenTableCell>
                                 User
                                 <br />
                                 <input
@@ -137,8 +146,8 @@ const CalculateScoring = () => {
                                     value={userFilter}
                                     onChange={(e) => setUserFilter(e.target.value)}
                                 />
-                            </th>
-                            <th>
+                                </StevenTableCell>
+                                <StevenTableCell>
                                 Bet
                                 <br/>
                                 <input
@@ -148,12 +157,12 @@ const CalculateScoring = () => {
                                         setBetFilter(e.target.value )
                                     }
                                 />
-                            </th>
-                            <th>Result</th>
-                            <th></th>
-                        </tr>                    
-                    </thead>
-                    <tbody>
+                                </StevenTableCell>
+                                <StevenTableCell>Result</StevenTableCell>
+                                <StevenTableCell></StevenTableCell>
+                            </StevenTableRow>
+                        </StevenTableHead>
+                        <StevenTableBody>
                         {filteredPicks
                             .map((pick) => {
                                 let text = pick["text"];
@@ -162,12 +171,12 @@ const CalculateScoring = () => {
                                 let week = pick["week"];
                                 let createdAt = pick["createdAt"];
                                 return (
-                                    <tr key={pick["_id"]}>
-                                        <td>{new Date(createdAt).toLocaleDateString(undefined, options)}</td>
-                                        <td>{week}</td>
-                                        <td>{user.split("@")[0]}</td>
-                                        <td>{text}</td>
-                                        <td>
+                                    <StevenTableRow key={pick["_id"]}>
+                                        <StevenTableCell>{new Date(createdAt).toLocaleDateString(undefined, options)}</StevenTableCell>
+                                        <StevenTableCell>{week}</StevenTableCell>
+                                        <StevenTableCell>{user.split("@")[0]}</StevenTableCell>
+                                        <StevenTableCell>{text}</StevenTableCell>
+                                        <StevenTableCell>
                                             <Form.Control
                                                 type="number"
                                                 min="-1"
@@ -176,18 +185,19 @@ const CalculateScoring = () => {
                                                 value={result}
                                                 onChange={(e) => handleResultChange(e, pick)}
                                             />
-                                        </td>
-                                        <td className="cs5-cell">
+                                        </StevenTableCell>
+                                        <StevenTableCell className="cs5-cell">
                                             <StevenButton onClick={() => handleUpdateResult(pick["_id"], result)}>
                                                 Update
                                             </StevenButton>
-                                        </td>
-                                    </tr>
+                                        </StevenTableCell>
+                                    </StevenTableRow>
                                 );
                             }
                         )}
-                    </tbody>
-                </Table>       
+                        </StevenTableBody>
+                    </StevenTable>
+                </StevenTableContainer>       
               </Col>
             </Row>
         </Container>       

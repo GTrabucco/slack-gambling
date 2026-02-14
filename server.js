@@ -95,6 +95,16 @@ app.get('/api/games', async (req, res) => {
     }
 });
 
+app.get('/api/games-history', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const data = await db.collection('Games_History').find({}).toArray();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching data from MongoDB' });
+    }
+});
+
 app.get('/api/get-game', async (req, res) => {
     try {
         const { gameId } = req.query;

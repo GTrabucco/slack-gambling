@@ -1,22 +1,28 @@
-.accordian {
-  background-color: transparent;
-  padding: 0.25rem;
-  outline: none;
-  border-color: lightgray;
+.bg-body-tertiary .navbar-brand {
+  display: flex;
+  align-items: center;
 }
 
-.accordian:focus,
-.accordian:active {
-  background-color: transparent !important;
-  outline: none !important;
-  box-shadow: none !important;
-  transition: width 0.3s ease !important;
-  background-color: transparent !important;
+.menu-toggle {
+  width: 42px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.375rem;
+  background-color: #fff;
+  color: #343a40;
 }
 
-.accordian:hover {
-  background-color: transparent !important;
-  border-color: lightgrey !important;
+.menu-toggle:hover {
+  border-color: rgba(0, 0, 0, 0.35);
+  background-color: #f8f9fa;
+}
+
+.menu-toggle:focus {
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
 .menu-links:nth-child(1) {
