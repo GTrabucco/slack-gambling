@@ -1,24 +1,22 @@
 import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import axios from "axios";
+import userService from "../../../services/userService";
 import {
   TableContainer,
   Table,
-  TableHead,
-  TableBody,
   TableRow,
   TableCell,
+  TableBody,
   Paper,
   Typography,
   FormControl,
   Select,
   MenuItem,
 } from "@mui/material";
+import pickService from "../../../services/pickService";
 
 const Statistics = () => {
   const { user, isLoading } = useAuth0();
-  const apiBaseUrl = process.env.NODE_ENV === "production" ? "" : "http://localhost:5000";
-
   const [users, setUsers] = useState([]);
   const [picks, setPicks] = useState([]);
   const [pickGroups, setPickGroups] = useState([]);
@@ -35,10 +33,7 @@ const Statistics = () => {
 
   const fetchPickHistory = async (username) => {
     try {
-      const response = await axios.get(`${apiBaseUrl}/api/get-pick-history`, {
-        params: username !== "All" ? { username } : {}
-      });
-
+      const response = await pickService.getPickHistory(username)
       setPicks(response.data);
 
       const grouped = Object.values(
@@ -53,8 +48,7 @@ const Statistics = () => {
 
   const getUsers = async () => {
     try {
-      const response = await axios.get(`${apiBaseUrl}/api/get-users`);
-
+      const response = await userService.getAllUsers();
       const sorted = [...response.data].sort((a, b) => {
         const aName = (a.displayName || a.username).toLowerCase();
         const bName = (b.displayName || b.username).toLowerCase();

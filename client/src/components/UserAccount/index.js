@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Container, Table, Form, Row } from 'react-bootstrap';
 import { useAuth0 } from "@auth0/auth0-react";
-import axios from 'axios';
 import StevenNotification from "../StevenNotification";
 import './style.css'
 import StevenButton from "../Common/StevenButton";
+import userService from "../../services/userService";
 
 const UserAccount = () => {
     const { user } = useAuth0();
@@ -13,17 +13,11 @@ const UserAccount = () => {
     const [receiveSundayReminderChecked, setReceiveSundayReminderChecked] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState('');
-    const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
     useEffect(() => {
         const fetchUserDetails = async () => {
             try {
-                const response = await axios.get(`${apiBaseUrl}/api/userdetails`, {
-                    params: {
-                        username: user.name
-                    }
-                });
-
+                const response = await userService.getByUsername(user.name);
                 const details = response.data[0];
                 if (!details) {
                     updateUserDetails();
@@ -38,12 +32,12 @@ const UserAccount = () => {
         };
 
         fetchUserDetails();
-    }, [user.name, apiBaseUrl]);
+    }, [user.name]);
 
     const updateUserDetails = async (e) => {
         try {
             const username = user.name;
-            await axios.post(`${apiBaseUrl}/api/update-userdetails`, {
+            await userService.updateUserDetails({
                 username: username,
                 displayName: displayName,
                 receiveSundayReminder: receiveSundayReminderChecked,

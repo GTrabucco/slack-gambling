@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { Container, Row, Col, Form } from 'react-bootstrap';
 import StevenButton from "../../Common/StevenButton";
-import axios from 'axios';
 import './style.css'
+import jobService from "../../../services/jobService";
 
 const JobRunner = () => {
     const [result, setResult] = useState("");
     const [season, setSeason] = useState("2025");
     const [week, setWeek] = useState("");
     const [weekType, setWeekType] = useState("");
-    const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
     const validDay = async (day) => {
         if (!day) return false;
@@ -38,8 +37,8 @@ const JobRunner = () => {
     const tuesdayJob = async () => {
         if (!window.confirm("Are you sure you want to run the Tuesday Job?")) return;
         try {
-            if (validDay("tuesday")) {
-                const res = await axios.post(`${apiBaseUrl}/api/tuesday-job`, { season, week, weekType });
+            if (await validDay("tuesday")) {
+                const res = await jobService.runTuesdayJob(season, week, weekType);
                 setResult(res.data.output); 
             } 
         } catch (error) {
@@ -50,8 +49,8 @@ const JobRunner = () => {
     const fridayJob = async () => {
         if (!window.confirm("Are you sure you want to run the Friday Job?")) return;
         try {
-            if (validDay("friday")) {
-                const res = await axios.post(`${apiBaseUrl}/api/friday-job`, { season, week, weekType });
+            if (await validDay("friday")) {
+                const res = await jobService.runFridayJob(season, week, weekType);
                 setResult(res.data.output); 
             } 
         } catch (error) {
@@ -62,7 +61,7 @@ const JobRunner = () => {
     const sundayReminderJob = async () => {
         if (!window.confirm("Are you sure you want to run the Sunday Reminder Job?")) return;
         try {
-            const res = await axios.post(`${apiBaseUrl}/api/sunday-reminder-job`);
+            const res = await jobService.runSundayReminderJob();
             setResult(res.data.output);
         } catch (error) {
             setResult("Error: " + error.message);

@@ -6,30 +6,25 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import StevenButton from "../Common/StevenButton";
+import gameService from "../../services/gameService";
 
 const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) => {
-  const [errors, setErrors] = useState("");
   const [weatherData, setWeatherData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cityName, setCityName] = useState("");
-  const apiBaseUrl = process.env.NODE_ENV === "production" ? "" : "http://localhost:5000";
   const handleShowStevenInfo = () => {
     setShowStevenInfo(false);
   };
 
   const getGame = async () => {
     try {
-      const response = await axios.get(`${apiBaseUrl}/api/get-game`, {
-        params: { gameId: selectedGameId },
-        timeout: 5000,
-      });
+      const response = await gameService.getGame(selectedGameId);
 
       const game = response.data?.[0];
       if (!game) throw new Error("Game not found");
       await populate(game.home_team, game.commence_time);
     } catch (error) {
       console.error("Error fetching game:", error);
-      setErrors("Error fetching game data");
       setWeatherData([]);
       setLoading(false);
     }
@@ -141,18 +136,6 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
     return cityCoordinates[city]?.longitude ?? null;
   }
 
-  const getWeatherDescription = async (details) => {
-    try {
-      const response = await axios.get(`${apiBaseUrl}/api/get-weather-description`, {
-        params: { details },
-        timeout: 5000,
-      });
-      console.log('response', response)
-    } catch (error) {
-      console.log('error')
-    }
-  }
-
   const getWeather = async (city, gameDate) => {
     try {
       if (!city || !gameDate) return [];
@@ -203,7 +186,6 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
       const city = getCityFromTeam(homeTeam);
       setCityName(city)
       const next4Hours = await getWeather(city, gameDate);
-      //const weatherDescription = await getWeatherDescription(next4Hours);
       setWeatherData(next4Hours);
     } catch (error) {
       console.error("Error populating weather:", error);
@@ -218,7 +200,6 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
     else {
       setWeatherData([]);
       setLoading(true);
-      setErrors("");
     }
   }, [showStevenInfo, selectedGameId]);
 

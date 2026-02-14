@@ -397,17 +397,6 @@ app.post('/api/update-userdetails', async (req, res) => {
     }
 });
 
-app.get('/api/get-all-pick-history', async (req, res) => {
-    try {
-        const db = client.db(DATABASE_NAME);
-        const data = await db.collection('Picks_History').find({}).toArray();
-        res.json(data);
-    } catch (error) {
-        console.log(error)
-        res.status(500).json({ error: 'Error fetching data from MongoDB' });
-    }
-});
-
 app.post('/api/set-cookie', (req, res) => {
     const { token } = req.body;
 

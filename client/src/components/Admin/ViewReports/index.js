@@ -1,16 +1,15 @@
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Table, Alert } from 'react-bootstrap';
 import StevenButton from "../../Common/StevenButton";
-import axios from 'axios';
+import issueService from "../../../services/issueService";
 
 const ViewReports = () => {
     const [error, setError] = useState("");
     const [reports, setReports] = useState([]);
-    const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
     const fetchReports = async () => {
         try {
-            const response = await axios.get(`${apiBaseUrl}/api/get-reports`);
+            const response = await issueService.getReports();
             if (response.data) {
                 setReports(response.data);
                 setError("");
@@ -38,7 +37,7 @@ const ViewReports = () => {
 
     const closeReport = async (id) => {
         try {
-            await axios.post(`${apiBaseUrl}/api/close-report`, { id });
+            await issueService.closeReport(id);
         } catch (error) {
             console.error('Error closing report:', error);
             setError('Error closing report');

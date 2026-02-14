@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Table, Button, Form } from 'react-bootstrap';
-import axios from 'axios';
+import { Container, Row, Col, Table, Form } from 'react-bootstrap';
 import StevenButton from "../../Common/StevenButton";
+import pickService from "../../../services/pickService";
 
 const CalculateScoring = () => {
-    const [error, setError] = useState("");
     const [picks, setPicks] = useState([]);
     const [filteredPicks, setFilteredPicks] = useState([]);
     const [betFilter, setBetFilter] = useState("");
     const [weekFilter, setWeekFilter] = useState("");
     const [userFilter, setUserFilter] = useState("");
     const [dateFilter, setDateFilter] = useState("")
-    const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
     const options = {
         year: "numeric",
         month: "numeric",
@@ -21,7 +19,7 @@ const CalculateScoring = () => {
     useEffect(() => {
         const fetchPickHistory = async () => {
             try {
-                const response = await axios.get(`${apiBaseUrl}/api/get-all-pick-history`);
+                const response = await pickService.getPickHistory("All", null);
                 if (response.data != null) {  
                     const sortedPicks = response.data.sort((a, b) => 
                         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -31,7 +29,7 @@ const CalculateScoring = () => {
                     setFilteredPicks(sortedPicks);
                 }
             } catch (error) {
-                setError('Error fetching picks');
+                console.error('Error fetching picks:', error);
             }
         };
 
@@ -53,10 +51,7 @@ const CalculateScoring = () => {
 
     const handleUpdateResult = async (id, updatedResult) => {
         try {
-          await axios.post(`${apiBaseUrl}/api/update-pick-history`, {
-            id: id,
-            result: updatedResult
-          });
+          await pickService.updatePickHistory(id, updatedResult);
         } catch (error) {
           console.error('Error updating result:', error);
         }

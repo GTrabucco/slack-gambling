@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Form, Container, Alert } from 'react-bootstrap';
-import axios from 'axios';
 import { useAuth0 } from '@auth0/auth0-react';
 import { useLocation } from 'react-router-dom';
 import StevenButton from "../Common/StevenButton";
+import issueService from "../../services/issueService";
 
 const ReportIssue = () => {
   const location = useLocation();
@@ -11,7 +11,6 @@ const ReportIssue = () => {
   const [issueDescription, setIssueDescription] = useState(description);
   const [submitted, setSubmitted] = useState(false);
   const { user } = useAuth0();
-  const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +21,7 @@ const ReportIssue = () => {
     };
 
     try {
-      await axios.post(`${apiBaseUrl}/api/report-issue`, issueData);
+      await issueService.reportIssue(issueData);
       setSubmitted(true); 
       setIssueDescription('');
     } catch (error) {

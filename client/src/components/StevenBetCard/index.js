@@ -5,10 +5,9 @@ import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
 import { FaTrash } from 'react-icons/fa';
 import Paper from '@mui/material/Paper';
-import axios from "axios";
+import pickService from "../../services/pickService";
 
 const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByGameId, user, gameStarted, setSelectedPicks, setTempPicks }) => {
-    const apiBaseUrl = process.env.NODE_ENV === "production" ? "" : "http://localhost:5000";
     const removePick = async (pickIdentifier, text) => {
         const existingPickGameId = pickIdentifier.split('-')[0];
         const commenceTime = getCommenceTimeByGameId(existingPickGameId)
@@ -22,7 +21,7 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
             const pickType = pickIdentifier.split('-')[1]
             const username = user.name;
             const data = { username, gameId, pickType, text }
-            await axios.post(`${apiBaseUrl}/api/remove-pick`, data);
+            await pickService.removePick(data);
             setSelectedPicks(prevState => {
                 const newState = prevState.filter(
                     pick => !(pick.gameId === gameId && pick.type === pickType)

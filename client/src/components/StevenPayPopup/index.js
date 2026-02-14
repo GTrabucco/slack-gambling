@@ -4,8 +4,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
 import StevenButton from "../Common/StevenButton";
-import axios from "axios";
-const apiBaseUrl = process.env.NODE_ENV === "production" ? "" : "http://localhost:5000";
+import userService from "../../services/userService";
 
 const StevenPayPopup = ({ showVenmo, setShowVenmo, setMessage, user }) => {
     const handleCloseVenmo = async (status) => {
@@ -16,12 +15,10 @@ const StevenPayPopup = ({ showVenmo, setShowVenmo, setMessage, user }) => {
         setShowVenmo(false);
     };
 
-    const updateHasPaid = async (e) => {
+    const updateHasPaid = async () => {
         try {
             const username = user.name;
-            await axios.post(`${apiBaseUrl}/api/has-paid`, {
-                username: username
-            });
+            await userService.markHasPaid(username);
         } catch (error) {
             setMessage('Error updating user details has paid');
         }

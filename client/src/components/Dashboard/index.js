@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import axios from 'axios';
 import './style.css'
 import { useAuth0 } from "@auth0/auth0-react";
 import StevenNotification from "../StevenNotification";
 import StevenPayPopup from "../StevenPayPopup";
 import StevenBetCard from "../StevenBetCard";
 import StevenGameList from "../StevenGameList";
+import userService from "../../services/userService";
 
 const Dashboard = () => {
   const [games, setGames] = useState([]);
@@ -14,14 +14,12 @@ const Dashboard = () => {
   const [errors, setError] = useState("")
   const [showVenmo, setShowVenmo] = useState(false)
   const [message, setMessage] = useState("");
- 
-  const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
   const { user } = useAuth0();
 
   const createUserDetails = async (e) => {
     try {
       const username = user.name;
-      await axios.post(`${apiBaseUrl}/api/update-userdetails`, {
+      await userService.updateUserDetails({
         username: username,
         displayName: "",
         receiveSundayReminder: false,
@@ -36,12 +34,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
-        const response = await axios.get(`${apiBaseUrl}/api/userdetails`, {
-          params: {
-            username: user.name
-          }
-        });
-
+        const response = await userService.getByUsername(user.name);
         const details = response.data[0];
         if (!details) {
           createUserDetails();
@@ -61,7 +54,7 @@ const Dashboard = () => {
     };
 
     fetchUserDetails();
-  }, [user.name, apiBaseUrl]);
+  }, [user.name]);
 
   const getCommenceTimeByGameId = (gameId) => {
     const obj = games.find(item => item["_id"] === gameId);

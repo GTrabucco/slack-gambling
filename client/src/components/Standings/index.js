@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Container, Row, Table, Nav, Form } from "react-bootstrap";
-import axios from "axios";
 import './style.css';
 import { useNavigate } from "react-router-dom";
+import userService from "../../services/userService";
+import pickService from "../../services/pickService";
 
 const Standings = () => {
     const [error, setError] = useState("");
@@ -15,7 +16,6 @@ const Standings = () => {
     const [seasons, setSeasons] = useState(["2025"]);
     const [selectedSeason, setSelectedSeason] = useState("2025");
     const [lastPlaceRank, setLastPlaceRank] = useState(null);
-    const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -26,7 +26,7 @@ const Standings = () => {
     useEffect(() => {
         const fetchUsers = async () => {
             try {
-                const response = await axios.get(`${apiBaseUrl}/api/get-users`);
+                const response = await userService.getAllUsers();
                 if (response.data != null) {
                     setUsers(Object.groupBy(response.data, ({ username }) => username));
                 }
@@ -37,10 +37,7 @@ const Standings = () => {
 
         const fetchPickHistory = async () => {
             try {
-                const response = await axios.get(`${apiBaseUrl}/api/get-pick-history`, {
-                    params: { season: selectedSeason }
-                });
-
+                const response = await pickService.getPickHistory(null, selectedSeason);
                 if (response.data != null) {
                     let picks = response.data;
                     const groupedByUser = Object.groupBy(picks, ({ username }) => username);
@@ -99,6 +96,7 @@ const Standings = () => {
                     setNegativeWeeks(negativeWeeks);
                 }
             } catch (error) {
+                console.log(error);
                 setError('Error fetching picks');
             }
         };
@@ -119,13 +117,6 @@ const Standings = () => {
                 return "";
         }
     };
-
-    function a11yProps(index) {
-        return {
-            id: `simple-tab-${index}`,
-            'aria-controls': `simple-tabpanel-${index}`,
-        };
-    }
 
     return (
         <Container>

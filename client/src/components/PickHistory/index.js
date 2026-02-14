@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Table } from 'react-bootstrap';
-import axios from 'axios';
 import { useAuth0 } from "@auth0/auth0-react";
 import './style.css';
 import { useLocation } from 'react-router-dom';
 import StevenNotification from "../StevenNotification";
 import { useNavigate } from "react-router-dom";
 import StevenButton from "../Common/StevenButton";
+import pickService from "../../services/pickService";
 
 const PickHistory = () => {
     const SEASON = "2025"
     const [error, setError] = useState("");
     const [picks, setPicks] = useState([]);
     const { user } = useAuth0();
-    const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
     const userParam = queryParams.get('user');
@@ -27,13 +26,7 @@ const PickHistory = () => {
     useEffect(() => {
         const fetchPickHistory = async () => {
             try {
-                const response = await axios.get(`${apiBaseUrl}/api/get-pick-history`, {
-                    params: {
-                        username: usernameDisplay,
-                        season: SEASON
-                    }
-                });
-
+                const response = await pickService.getPickHistory(usernameDisplay, SEASON)
                 if (response.data != null) {
                     const sortedPicks = response.data.sort((a, b) =>
                         new Date(b.createdAt) - new Date(a.createdAt)
@@ -46,7 +39,7 @@ const PickHistory = () => {
         };
 
         fetchPickHistory();
-    }, [usernameDisplay, apiBaseUrl]);
+    }, [usernameDisplay]);
 
     const groupedByWeek = picks.reduce((acc, pick) => {
         const week = pick.week ?? "Unknown Week";

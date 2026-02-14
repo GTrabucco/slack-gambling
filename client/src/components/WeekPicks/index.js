@@ -1,30 +1,21 @@
 import { useState, useEffect } from "react";
 import { Container, Row } from 'react-bootstrap';
-import axios from 'axios'
-import { useAuth0 } from "@auth0/auth0-react";
 import './style.css'
-import { useLocation } from 'react-router-dom';
+import pickService from "../../services/pickService";
 
 const WeekPicks = (props) => {
-    const [error, setError] = useState("");
     const [picks, setPicks] = useState([])
-    const { user } = useAuth0();
-    const apiBaseUrl = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000';
-    const location = useLocation();
-    const queryParams = new URLSearchParams(location.search);
-    const userParam = queryParams.get('user');
-    const usernameDisplay = userParam ? userParam : user.name
 
     useEffect(() => {
         const fetchPickHistory = async () => {
             try {
-                const response = await axios.get(`${apiBaseUrl}/api/get-weekly-picks`);
+                const response = await pickService.getWeeklyPicks();
 
                 if (response.data != null) {
                     setPicks(response.data);
                 }
             } catch (error) {
-                setError('Error fetching picks');
+                console.error('Error fetching picks:', error);
             }
         };
 

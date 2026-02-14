@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Row, Col, Form } from 'react-bootstrap';
 import Paper from '@mui/material/Paper';
-import axios from "axios";
 import StevenGameInfo from "../StevenGameInfo";
 import StevenButton from "../Common/StevenButton";
+import gameService from "../../services/gameService";
+import pickService from "../../services/pickService";
 const StevenGameList = ({ tempPicks,
     setMessage,
     gameStarted,
@@ -18,11 +19,10 @@ const StevenGameList = ({ tempPicks,
 }) => {
     const [selectedGameId, setSelectedGameId] = useState()
     const [showStevenInfo, setShowStevenInfo] = useState(false)
-    const apiBaseUrl = process.env.NODE_ENV === "production" ? "" : "http://localhost:5000";
     useEffect(() => {
         const fetchGames = async () => {
             try {
-                const response = await axios.get(`${apiBaseUrl}/api/games`);
+                const response = await gameService.getGames();
                 setGames(response.data);
             } catch (error) {
                 setError('Error fetching games');
@@ -35,11 +35,7 @@ const StevenGameList = ({ tempPicks,
 
     const fetchPicks = async () => {
         try {
-            const response = await axios.get(`${apiBaseUrl}/api/get-weekly-picks`, {
-                params: {
-                    username: user.name
-                }
-            });
+            const response = await pickService.getWeeklyPicks(user.name);
 
             if (response.data != null) {
                 setSelectedPicks(response.data);
@@ -55,7 +51,7 @@ const StevenGameList = ({ tempPicks,
         try {
             const username = user.name;
             const data = { username, homeTeam, awayTeam, type, gameId, value, text }
-            await axios.post(`${apiBaseUrl}/api/submit-picks`, data);
+            await pickService.submitPick(data);
         } catch (error) {
             setError('Error submitting pick');
         }
