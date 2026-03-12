@@ -1,4 +1,5 @@
 import { useAuth0 } from "@auth0/auth0-react";
+import Typography from "@mui/material/Typography";
 
 export const LogoutButton = () => {
   const { logout } = useAuth0();
@@ -17,6 +18,6 @@ export const LogoutButton = () => {
   };
 
   return (
-    <span style={{fontFamily: "Segoe UI", fontWeight: 500, fontSize: 16, color: "black"}} onClick={handleLogout}>Log Out</span>
+    <Typography component="span" onClick={handleLogout} sx={{ fontFamily: "Segoe UI", fontWeight: 500, fontSize: 16, color: "black", cursor: "pointer" }}>Log Out</Typography>
   );
 };

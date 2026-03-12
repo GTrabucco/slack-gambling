@@ -69,7 +69,8 @@ function calculatePickResult(pick, result) {
 
   switch (pick.type) {
     case 'favorite':
-    case 'dog': {
+    case 'dog':
+    case 'gotw': {
       const pickedTeam = pick.text.split(' ').slice(0, -1).join(' ');
       if (pickedTeam === result.homeTeam) {
         return homeScore + value - awayScore > 0 ? 1 : homeScore + value - awayScore < 0 ? -1 : 0;

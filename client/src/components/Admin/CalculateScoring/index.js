@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form } from 'react-bootstrap';
+import React, { useState, useEffect, useMemo } from "react";
+import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import StevenButton from "../../Common/StevenButton";
 import pickService from "../../../services/pickService";
 import {
@@ -13,11 +15,11 @@ import {
 
 const CalculateScoring = () => {
     const [picks, setPicks] = useState([]);
-    const [filteredPicks, setFilteredPicks] = useState([]);
+    const [editedResults, setEditedResults] = useState({});
     const [betFilter, setBetFilter] = useState("");
     const [weekFilter, setWeekFilter] = useState("");
     const [userFilter, setUserFilter] = useState("");
-    const [dateFilter, setDateFilter] = useState("")
+    const [dateFilter, setDateFilter] = useState("");
     const options = {
         year: "numeric",
         month: "numeric",
@@ -28,13 +30,11 @@ const CalculateScoring = () => {
         const fetchPickHistory = async () => {
             try {
                 const response = await pickService.getPickHistory("All", null);
-                if (response.data != null) {  
-                    const sortedPicks = response.data.sort((a, b) => 
+                if (response.data != null) {
+                    const sortedPicks = response.data.sort((a, b) =>
                         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
                     );
-
                     setPicks(sortedPicks);
-                    setFilteredPicks(sortedPicks);
                 }
             } catch (error) {
                 console.error('Error fetching picks:', error);
@@ -44,119 +44,81 @@ const CalculateScoring = () => {
         fetchPickHistory();
     }, []);
 
+    const filteredPicks = useMemo(() => {
+        const betLower = betFilter.toLowerCase();
+        const userLower = userFilter.toLowerCase();
+        const weekLower = weekFilter.toLowerCase();
+        return picks.filter(pick => {
+            if (betLower && !pick.text.toLowerCase().includes(betLower)) return false;
+            if (userLower && !pick.username.toLowerCase().includes(userLower)) return false;
+            if (weekLower && !pick.week.toLowerCase().includes(weekLower)) return false;
+            if (dateFilter && !new Date(pick.createdAt).toLocaleDateString(undefined, options).includes(dateFilter)) return false;
+            return true;
+        });
+    }, [picks, betFilter, userFilter, weekFilter, dateFilter]);
+
+    const getResult = (pick) =>
+        editedResults[pick._id] !== undefined ? editedResults[pick._id] : pick.result;
+
     const handleResultChange = (event, pick) => {
         const value = event.target.value;
         if (!isNaN(value)) {
-            setFilteredPicks((prevPicks) =>
-                prevPicks.map((p) =>
-                    p._id === pick["_id"]
-                    ? { ...p, result: value }
-                    : p
-                )
-            );
+            setEditedResults(prev => ({ ...prev, [pick._id]: value }));
         }
     };
 
-    const handleUpdateResult = async (id, updatedResult) => {
+    const handleUpdateResult = async (id, pick) => {
+        const result = getResult(pick);
         try {
-          await pickService.updatePickHistory(id, updatedResult);
+            await pickService.updatePickHistory(id, result);
         } catch (error) {
-          console.error('Error updating result:', error);
+            console.error('Error updating result:', error);
         }
     };
-
-    useEffect(() => {
-        if (betFilter) {
-            const filtered = picks.filter(pick =>
-                pick.text.toLowerCase().includes(betFilter.toLowerCase())
-            );
-            setFilteredPicks(filtered);
-        } else {
-            setFilteredPicks(picks);
-        }
-    }, [betFilter, picks]);
-
-    useEffect(() => {
-        if (userFilter) {
-            const filtered = picks.filter(pick =>
-                pick.username.toLowerCase().includes(userFilter.toLowerCase())
-            );
-            setFilteredPicks(filtered);
-        } else {
-            setFilteredPicks(picks);
-        }
-    }, [userFilter, picks]);
-
-     useEffect(() => {
-        if (weekFilter) {
-            const filtered = picks.filter(pick =>
-                pick.week.toLowerCase().includes(weekFilter.toLowerCase())
-            );
-            setFilteredPicks(filtered);
-        } else {
-            setFilteredPicks(picks);
-        }
-    }, [weekFilter, picks]);
-
-    useEffect(() => {
-        if (dateFilter) {
-            const filtered = picks.filter(pick => 
-                new Date(pick.createdAt).toLocaleString().includes(dateFilter)
-            );
-            setFilteredPicks(filtered);
-        } else {
-            setFilteredPicks(picks);
-        }
-    }, [dateFilter, picks]);
 
     return (
         <Container>
-            <Row>
-                <h2>Calculate Scoring</h2>
-            </Row>
-            <Row>
-              <Col>
+            <Typography variant="h5" sx={{ mb: 2 }}>Calculate Scoring</Typography>
+            <Box>
                 <StevenTableContainer>
                     <StevenTable>
                         <StevenTableHead>
                             <StevenTableRow>
                                 <StevenTableCell>
-                                Created At
-                                <br />
-                                <input
-                                    type="text"
-                                    value={dateFilter}
-                                    onChange={(e) => setDateFilter(e.target.value)}
-                                />
+                                    Created At
+                                    <br />
+                                    <input
+                                        type="text"
+                                        value={dateFilter}
+                                        onChange={(e) => setDateFilter(e.target.value)}
+                                    />
                                 </StevenTableCell>
                                 <StevenTableCell>
-                                Week
-                                <br />
-                                <input
-                                    type="text"
-                                    value={weekFilter}
-                                    onChange={(e) => setWeekFilter(e.target.value)}
-                                />
+                                    Week
+                                    <br />
+                                    <input
+                                        type="text"
+                                        value={weekFilter}
+                                        onChange={(e) => setWeekFilter(e.target.value)}
+                                    />
                                 </StevenTableCell>
                                 <StevenTableCell>
-                                User
-                                <br />
-                                <input
-                                    type="text"
-                                    value={userFilter}
-                                    onChange={(e) => setUserFilter(e.target.value)}
-                                />
+                                    User
+                                    <br />
+                                    <input
+                                        type="text"
+                                        value={userFilter}
+                                        onChange={(e) => setUserFilter(e.target.value)}
+                                    />
                                 </StevenTableCell>
                                 <StevenTableCell>
-                                Bet
-                                <br/>
-                                <input
-                                    type="text"
-                                    value={betFilter}
-                                    onChange={(e) =>
-                                        setBetFilter(e.target.value )
-                                    }
-                                />
+                                    Bet
+                                    <br />
+                                    <input
+                                        type="text"
+                                        value={betFilter}
+                                        onChange={(e) => setBetFilter(e.target.value)}
+                                    />
                                 </StevenTableCell>
                                 <StevenTableCell>Result</StevenTableCell>
                                 <StevenTableCell></StevenTableCell>
@@ -177,17 +139,18 @@ const CalculateScoring = () => {
                                         <StevenTableCell>{user.split("@")[0]}</StevenTableCell>
                                         <StevenTableCell>{text}</StevenTableCell>
                                         <StevenTableCell>
-                                            <Form.Control
+                                            <input
                                                 type="number"
-                                                min="-1"
-                                                max="1"
-                                                step="1"
-                                                value={result}
+                                                min={-1}
+                                                max={1}
+                                                step={1}
+                                                value={getResult(pick)}
                                                 onChange={(e) => handleResultChange(e, pick)}
+                                                style={{ width: 60 }}
                                             />
                                         </StevenTableCell>
                                         <StevenTableCell className="cs5-cell">
-                                            <StevenButton onClick={() => handleUpdateResult(pick["_id"], result)}>
+                                            <StevenButton onClick={() => handleUpdateResult(pick["_id"], pick)}>
                                                 Update
                                             </StevenButton>
                                         </StevenTableCell>
@@ -197,10 +160,9 @@ const CalculateScoring = () => {
                         )}
                         </StevenTableBody>
                     </StevenTable>
-                </StevenTableContainer>       
-              </Col>
-            </Row>
-        </Container>       
+                </StevenTableContainer>
+            </Box>
+        </Container>
     );
 };
 

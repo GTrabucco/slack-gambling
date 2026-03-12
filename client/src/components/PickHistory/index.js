@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Container, Row, Form } from 'react-bootstrap';
+import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
+import FormControl from "@mui/material/FormControl";
+import FormLabel from "@mui/material/FormLabel";
+import Typography from "@mui/material/Typography";
 import { useAuth0 } from "@auth0/auth0-react";
 import './style.css';
 import { useLocation } from 'react-router-dom';
@@ -92,17 +96,15 @@ const PickHistory = () => {
     const sortedWeekKeys = Object.keys(groupedByWeek).sort((a, b) => Number(b) - Number(a));
     return (
         <Container>
-            <Row>
-                <StevenNotification
-                    message={message}
-                    setMessage={setMessage}
-                />
-            </Row>
+            <StevenNotification
+                message={message}
+                setMessage={setMessage}
+            />
             <br />
-            <Row className="mb-3">
-                {error && <div style={{ color: 'red' }}>{error}</div>}
-                <Form.Group controlId="seasonSelect">
-                    <Form.Label>Season</Form.Label>
+            <Box sx={{ mb: 2 }}>
+                {error && <Typography color="error" sx={{ mb: 1 }}>{error}</Typography>}
+                <FormControl size="small">
+                    <FormLabel>Season</FormLabel>
                     <StevenSelect
                         value={selectedSeason}
                         onChange={(e) => setSelectedSeason(e.target.value)}
@@ -111,58 +113,55 @@ const PickHistory = () => {
                             ...seasonOptions.map((season) => ({ value: season, label: season }))
                         ]}
                     />
-                </Form.Group>
-            </Row>
-            <Row>
-                <div style={{ paddingBottom: 20 }}>
-                    <h3>Season Total: {picks.reduce((acc, item) => acc + item.result, 0)}</h3>
-                </div>
-                <StevenTableContainer>
-                    <StevenTable>
-                        <StevenTableBody>
-                        {sortedWeekKeys.map(week => (
-                            <React.Fragment key={week}>
-
-                                <StevenTableRow>
-                                    <StevenTableCell colSpan={4} style={{ backgroundColor: "#eee", fontWeight: "bold" }}>
-                                        Week {week} ({(() => {const sum = groupedByWeek[week].reduce((acc, item) => acc + item.result, 0);
-                                                                return sum > 0 ? <span style={{ color: "green" }}>+{sum}</span> : <span style={{ color: "red" }}>{sum}</span>;
-                                                             })()})
+                </FormControl>
+            </Box>
+            <Box sx={{ pb: 2.5 }}>
+                <Typography variant="h6">Season Total: {picks.reduce((acc, item) => acc + item.result, 0)}</Typography>
+            </Box>
+            <StevenTableContainer>
+                <StevenTable>
+                    <StevenTableBody>
+                    {sortedWeekKeys.map(week => (
+                        <React.Fragment key={week}>
+                            <StevenTableRow>
+                                <StevenTableCell colSpan={4} sx={{ backgroundColor: "#eee", fontWeight: "bold" }}>
+                                    Week {week} ({(() => {const sum = groupedByWeek[week].reduce((acc, item) => acc + item.result, 0);
+                                                            return sum > 0 ? <span style={{ color: "green" }}>+{sum}</span> : <span style={{ color: "red" }}>{sum}</span>;
+                                                         })()})
+                                </StevenTableCell>
+                            </StevenTableRow>
+                            {groupedByWeek[week].map(item => (
+                                <StevenTableRow className="ph-row" key={item._id}>
+                                    <StevenTableCell className="ph2-cell">
+                                        {item.result > 0 ? (
+                                            <span style={{ color: "green" }}><b>{item.text}</b></span>
+                                        ) : item.result < 0 ? (
+                                            <span style={{ color: "red" }}><b>{item.text}</b></span>
+                                        ) : (
+                                            <b>{item.text}</b>
+                                        )}
+                                    </StevenTableCell>
+                                    <StevenTableCell className="ph3-cell">
+                                        {item.result > 0 ? (
+                                            <span style={{ color: "green" }}><b>1</b></span>
+                                        ) : item.result < 0 ? (
+                                            <span style={{ color: "red" }}><b>-1</b></span>
+                                        ) : (
+                                            <b>0</b>
+                                        )}
+                                    </StevenTableCell>
+                                    <StevenTableCell>
+                                        <StevenButton onClick={() => disputePick(item.text)}>
+                                            Dispute
+                                        </StevenButton>
                                     </StevenTableCell>
                                 </StevenTableRow>
-                                {groupedByWeek[week].map(item => (
-                                    <StevenTableRow className="ph-row" key={item._id}>
-                                        <StevenTableCell className="ph2-cell">
-                                            {item.result > 0 ? (
-                                                <span style={{ color: "green" }}><b>{item.text}</b></span>
-                                            ) : item.result < 0 ? (
-                                                <span style={{ color: "red" }}><b>{item.text}</b></span>
-                                            ) : (
-                                                <b>{item.text}</b>
-                                            )}
-                                        </StevenTableCell>
-                                        <StevenTableCell className="ph3-cell">
-                                            {item.result > 0 ? (
-                                                <span style={{ color: "green" }}><b>1</b></span>
-                                            ) : item.result < 0 ? (
-                                                <span style={{ color: "red" }}><b>-1</b></span>
-                                            ) : (
-                                                <b>0</b>
-                                            )}
-                                        </StevenTableCell>
-                                        <StevenTableCell>
-                                            <StevenButton onClick={() => disputePick(item.text)}>
-                                                Dispute
-                                            </StevenButton>
-                                        </StevenTableCell>
-                                    </StevenTableRow>
-                                ))}
-                            </React.Fragment>
-                        ))}
-                        </StevenTableBody>
-                    </StevenTable>
-                </StevenTableContainer>
-            </Row>
+                            ))}
+                        </React.Fragment>
+                    ))}
+                    </StevenTableBody>
+                </StevenTable>
+            </StevenTableContainer>
         </Container>
     );
 }

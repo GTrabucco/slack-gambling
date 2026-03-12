@@ -1,38 +1,37 @@
-import React, { useEffect, useState } from "react";
-import { Toast } from 'react-bootstrap';
+import { useEffect, useState } from "react";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 const StevenNotification = ({ message, setMessage, type }) => {
-    const [messageVisible, setMessageVisible] = useState(false)
-    useEffect(() => {
-        const showMessage = () => {
-            setMessageVisible(true)
-            window.setTimeout(() => {
-                setMessageVisible(false)
-                setMessage("")
-            }, 5000)
-        }
+    const [open, setOpen] = useState(false);
 
-        if (message) {
-            showMessage()
-        }
-    }, [message])
+    useEffect(() => {
+        if (message) setOpen(true);
+    }, [message]);
+
+    const handleClose = (_, reason) => {
+        if (reason === "clickaway") return;
+        setOpen(false);
+        setMessage("");
+    };
 
     return (
-        <div>
-            <div
-                aria-live="polite"
-                aria-atomic="true"
-                className="position-fixed top-0 start-0 p-3"
-                style={{ zIndex: 1050 }}
+        <Snackbar
+            open={open}
+            autoHideDuration={3000}
+            onClose={handleClose}
+            anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+            <Alert
+                onClose={handleClose}
+                severity={type === "error" ? "error" : "success"}
+                variant="filled"
+                sx={{ width: "100%" }}
             >
-                <Toast onClose={() => setMessageVisible(false)} show={messageVisible} delay={3000} autohide>
-                    <Toast.Header>
-                        <strong className="me-auto">{message}</strong>
-                    </Toast.Header>
-                </Toast>
-            </div>
-        </div>
+                {message}
+            </Alert>
+        </Snackbar>
     );
-}
+};
 
-export default StevenNotification
+export default StevenNotification;

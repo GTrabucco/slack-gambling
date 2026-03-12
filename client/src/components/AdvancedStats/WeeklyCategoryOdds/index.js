@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Form } from "react-bootstrap";
-import { Typography } from "@mui/material";
+import { Box, FormLabel, Typography } from "@mui/material";
 import pickService from "../../../services/pickService";
 import StevenSelect from "../../Common/StevenSelect";
 import {
@@ -95,14 +94,14 @@ const WeeklyCategoryOdds = () => {
         Shows weekly hit rates by pick type. If you picked randomly, expected hits are the sum of weekly type hit rates.
       </Typography>
 
-      <Form.Group controlId="seasonSelect" style={{ padding: "0 16px 16px 16px" }}>
-        <Form.Label>Season</Form.Label>
+      <Box sx={{ px: 2, pb: 2 }}>
+        <FormLabel>Season</FormLabel>
         <StevenSelect
           value={selectedSeason}
           onChange={(e) => setSelectedSeason(e.target.value)}
           options={seasonOptions.map((season) => ({ value: season, label: season }))}
         />
-      </Form.Group>
+      </Box>
 
       <StevenTableContainer sx={{ margin: "0 16px 16px 16px" }}>
         <StevenTable>

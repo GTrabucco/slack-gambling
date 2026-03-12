@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Row, Col, Form } from 'react-bootstrap';
-import Paper from '@mui/material/Paper';
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 import StevenGameInfo from "../StevenGameInfo";
 import StevenButton from "../Common/StevenButton";
 import gameService from "../../services/gameService";
@@ -86,18 +87,34 @@ const StevenGameList = ({ tempPicks,
     }
 
     const updatePick = (gameId, homeTeam, awayTeam, type, value, text, commenceTime) => {
-        if (gameStarted(commenceTime)) {
-            setMessage("Game Already Started");
-            return;
-        }
+        // if (gameStarted(commenceTime)) {
+        //     setError("Game Already Started");
+        //     return;
+        // }
 
         const existingPick = tempPicks.find(pick => pick.type === type);
         if (existingPick) {
             const existingPickCommenceTime = getCommenceTimeByGameId(existingPick.gameId);
-            if (gameStarted(existingPickCommenceTime)) {
-                setMessage(`You already selected a ${type} in a game that has started`);
-                return;
-            }
+            // if (gameStarted(existingPickCommenceTime)) {
+            //     setError(`You already selected a ${type} in a game that has started`);
+            //     return;
+            // }
+        }
+
+        if (type === "gotw") {
+            setTempPicks(prevState => {
+                const existingIndex = prevState.findIndex(pick => pick.type === "gotw");
+                if (existingIndex !== -1 && prevState[existingIndex].text === text) {
+                    return prevState.filter((_, i) => i !== existingIndex);
+                }
+                if (existingIndex !== -1) {
+                    const newState = [...prevState];
+                    newState[existingIndex] = { gameId, homeTeam, awayTeam, type, value, text };
+                    return newState;
+                }
+                return [...prevState, { gameId, homeTeam, awayTeam, type, value, text }];
+            });
+            return;
         }
 
         const oppositePick = tempPicks.find(pick => pick.type === isOpposite(type) && pick.gameId === gameId)
@@ -143,6 +160,10 @@ const StevenGameList = ({ tempPicks,
             return [...prevState, { gameId, homeTeam, awayTeam, type, value, text }];
         });
     };
+    const gotwGameId = games.length > 0
+        ? [...games].sort((a, b) => new Date(b["commence_time"]) - new Date(a["commence_time"]))[0]["_id"]
+        : null;
+
     return (
         <>
             <StevenGameInfo
@@ -150,9 +171,8 @@ const StevenGameList = ({ tempPicks,
                 selectedGameId={selectedGameId}
                 setShowStevenInfo={setShowStevenInfo}
             />
-            <Row className="justify-content-md-center">
-                <Form onSubmit={(e) => submitPicks(e)}>
-                    {games
+            <Box component="form" onSubmit={(e) => submitPicks(e)} sx={{ maxWidth: 600, mx: "auto" }}>
+                {games
                         .sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]))
                         .map((game) => {
                             let home_team = game["home_team"];
@@ -173,13 +193,20 @@ const StevenGameList = ({ tempPicks,
                             let underdog = +home_spread > +away_spread ? home_team + " +" + home_spread : away_team + " +" + away_spread
                             let favorite_spread = +home_spread > +away_spread ? +away_spread : +home_spread
                             let underdog_spread = +home_spread > +away_spread ? +home_spread : +away_spread
+
+                            const isGotw = game["_id"] === gotwGameId;
+
                             const away_picked = Array.isArray(tempPicks)
-                                ? tempPicks.find(obj => obj.type === "dog" && obj.text.includes(away_team_name)) ||
-                                tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(away_team_name))
+                                ? isGotw
+                                    ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes(away_team_name))
+                                    : tempPicks.find(obj => obj.type === "dog" && obj.text.includes(away_team_name)) ||
+                                      tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(away_team_name))
                                 : null;
                             const home_picked = Array.isArray(tempPicks)
-                                ? tempPicks.find(obj => obj.type === "dog" && obj.text.includes(home_team_name)) ||
-                                tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(home_team_name))
+                                ? isGotw
+                                    ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes(home_team_name))
+                                    : tempPicks.find(obj => obj.type === "dog" && obj.text.includes(home_team_name)) ||
+                                      tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(home_team_name))
                                 : null;
                             const over_picked = Array.isArray(tempPicks)
                                 ? tempPicks.find(obj => obj.type === "over" && obj.gameId === game["_id"])
@@ -188,146 +215,115 @@ const StevenGameList = ({ tempPicks,
                                 ? tempPicks.find(obj => obj.type === "under" && obj.gameId === game["_id"])
                                 : null;
                             const dateObj = new Date(commenceTime);
-                            let header = (
-                                <Paper style={{ marginBottom: 20 }} elevation={2}>
-                                    <Row>
-                                        <Col style={{ marginTop: 10, marginBottom: 10 }}>
-                                            <b style={{ marginLeft: 10 }}>
-                                                {
-                                                    `${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`
-                                                }
-                                            </b>
-                                        </Col>
-                                        <Col style={{ marginTop: 10, marginBottom: 10 }}>
-                                            <span
-                                                onClick={() => {
-                                                    setShowStevenInfo(true)
-                                                    setSelectedGameId(game["gameId"])
-                                                }}
-                                                style={{
-                                                    marginLeft: 10,
-                                                    fontSize: "0.85rem",
-                                                    textDecoration: "underline",
-                                                    cursor: "pointer",
-                                                    color: "#6c757d"
-                                                }}
-                                            >
-                                                Weather Info
-                                            </span>
-                                        </Col>
-                                    </Row>
-                                    <div className="d-flex justify-content-center align-items-center text-center w-100">
-                                        <div className={`team-container ${away_picked ? "picked" : ""}`} onClick={() =>
+                            return (
+                                <Paper
+                                    key={game["_id"]}
+                                    sx={{
+                                        mb: 2.5,
+                                        ...(isGotw && {
+                                            border: "2px solid #D4AF37",
+                                            boxShadow: "0 2px 16px rgba(212, 175, 55, 0.35)",
+                                        })
+                                    }}
+                                    elevation={isGotw ? 4 : 2}
+                                >
+                                    {isGotw && (
+                                        <Box sx={{
+                                            background: "linear-gradient(90deg, #9a7c0a 0%, #D4AF37 40%, #F5CB5C 70%, #D4AF37 100%)",
+                                            color: "#3d2b00",
+                                            px: 1.5,
+                                            py: 0.75,
+                                            borderRadius: "2px 2px 0 0",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            gap: 0.5,
+                                        }}>
+                                            <Typography variant="caption" fontWeight="bold" sx={{ fontSize: "0.8rem", letterSpacing: "0.04em" }}>
+                                                GAME OF THE WEEK
+                                            </Typography>
+                                        </Box>
+                                    )}
+                                    <Box sx={{ display: "flex", justifyContent: "space-between", px: 1.5, pt: 1.5 }}>
+                                        <Typography variant="body2" fontWeight="bold">
+                                            {`${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
+                                        </Typography>
+                                        <Typography
+                                            variant="body2"
+                                            onClick={() => {
+                                                setShowStevenInfo(true);
+                                                setSelectedGameId(game["gameId"]);
+                                            }}
+                                            sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
+                                        >
+                                            Weather Info
+                                        </Typography>
+                                    </Box>
+                                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", textAlign: "center", width: "100%" }}>
+                                        <div className={`team-container ${away_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
                                             updatePick(
                                                 game["_id"],
                                                 home_team,
                                                 away_team,
-                                                away_spread > 0 ? "dog" : "favorite",
+                                                isGotw ? "gotw" : (away_spread > 0 ? "dog" : "favorite"),
                                                 away_spread > 0 ? underdog_spread : favorite_spread,
                                                 away_spread > 0 ? underdog : favorite,
                                                 commenceTime
                                             )
                                         }>
-                                            <img
-                                                src={away_logo}
-                                                alt={away_team}
-                                                className="logo"
-                                            />
+                                            <img src={away_logo} alt={away_team} className="logo" />
                                             <div><div className="team-name">{away_team}</div><b>{away_spread > 0 ? "+" + away_spread : away_spread}</b></div>
                                         </div>
-                                        <div className={`team-container ${home_picked ? "picked" : ""}`} onClick={() =>
+                                        <div className={`team-container ${home_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
                                             updatePick(
                                                 game["_id"],
                                                 home_team,
                                                 away_team,
-                                                away_spread > 0 ? "favorite" : "dog",
+                                                isGotw ? "gotw" : (away_spread > 0 ? "favorite" : "dog"),
                                                 away_spread > 0 ? favorite_spread : underdog_spread,
                                                 away_spread > 0 ? favorite : underdog,
                                                 commenceTime
                                             )
                                         }>
-                                            <img
-                                                src={home_logo}
-                                                alt={home_team}
-                                                className="logo"
-                                            />
+                                            <img src={home_logo} alt={home_team} className="logo" />
                                             <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
                                         </div>
-                                        <div className="icon-text-container">
-                                            {over_picked ? (
-                                                <span className="total-picked">
-                                                    <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
-                                                        updatePick(
-                                                            game["_id"],
-                                                            home_team,
-                                                            away_team,
-                                                            "over",
-                                                            over,
-                                                            `${home_team} ${away_team} Over ${over}`,
-                                                            commenceTime
-                                                        )
+                                        {!isGotw && (
+                                            <div className="icon-text-container">
+                                                {over_picked ? (
+                                                    <span className="total-picked">
+                                                        <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
+                                                            updatePick(game["_id"], home_team, away_team, "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
+                                                        }></h2>
+                                                    </span>
+                                                ) : (
+                                                    <h2 className="total bi bi-arrow-up-square-fill" onClick={() =>
+                                                        updatePick(game["_id"], home_team, away_team, "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
                                                     }></h2>
-                                                </span>
-                                            ) : (
-                                                <h2 className="total bi bi-arrow-up-square-fill" onClick={() =>
-                                                    updatePick(
-                                                        game["_id"],
-                                                        home_team,
-                                                        away_team,
-                                                        "over",
-                                                        over,
-                                                        `${home_team} ${away_team} Over ${over}`,
-                                                        commenceTime
-                                                    )
-                                                }></h2>
-                                            )}
-                                            <div className="over-text">
-                                                <b>{over}</b>
+                                                )}
+                                                <div className="over-text"><b>{over}</b></div>
+                                                {under_picked ? (
+                                                    <span className="total-picked">
+                                                        <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
+                                                            updatePick(game["_id"], home_team, away_team, "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
+                                                        }></h2>
+                                                    </span>
+                                                ) : (
+                                                    <h2 className="total bi bi-arrow-down-square-fill" onClick={() =>
+                                                        updatePick(game["_id"], home_team, away_team, "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
+                                                    }></h2>
+                                                )}
                                             </div>
-                                            {under_picked ? (
-                                                <span className="total-picked">
-                                                    <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
-                                                        updatePick(
-                                                            game["_id"],
-                                                            home_team,
-                                                            away_team,
-                                                            "under",
-                                                            under,
-                                                            `${home_team} ${away_team} Under ${under}`,
-                                                            commenceTime
-                                                        )
-                                                    }></h2>
-                                                </span>
-                                            ) : (
-                                                <h2 className="total bi bi-arrow-down-square-fill" onClick={() =>
-                                                    updatePick(
-                                                        game["_id"],
-                                                        home_team,
-                                                        away_team,
-                                                        "under",
-                                                        under,
-                                                        `${home_team} ${away_team} Under ${under}`,
-                                                        commenceTime
-                                                    )
-                                                }></h2>
-                                            )}
-                                        </div>
+                                        )}
                                     </div>
                                 </Paper>
                             );
-
-                            return header;
                         })}
-                    <Row className="mt-5">
-                        <Col xs={12} md={{ span: 3, offset: 9 }} className="text-md-end text-center">
-                            <StevenButton className="w-100" type="submit">
-                                Submit
-                            </StevenButton>
-                        </Col>
-                    </Row>
-                    <br />
-                </Form>
-            </Row>
+                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 5, mb: 1 }}>
+                    <StevenButton type="submit">Submit</StevenButton>
+                </Box>
+                <br />
+            </Box>
         </>
     );
 };

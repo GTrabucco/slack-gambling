@@ -36,6 +36,8 @@
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.6);
   background-color: white;
   border-radius: 12px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .total {
@@ -76,7 +78,9 @@
   margin-bottom: 10px;
 }
 
-.total-picked {
-  color: #1976d2;
-  padding: 10px;
+.gotw-picked {
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
+  background-color: rgba(212, 175, 55, 0.25);
+  border: 1.5px solid #D4AF37;
+  border-radius: 12px;
 }

@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
-import { Container, Row, Nav, Form } from "react-bootstrap";
+import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
+import Alert from "@mui/material/Alert";
+import FormControl from "@mui/material/FormControl";
+import FormLabel from "@mui/material/FormLabel";
+import MuiLink from "@mui/material/Link";
 import './style.css';
 import { useNavigate } from "react-router-dom";
 import userService from "../../services/userService";
@@ -129,26 +134,26 @@ const Standings = () => {
 
     return (
         <Container>
-            <Row className="mb-3">
-                <Form.Group controlId="seasonSelect">
-                    <Form.Label>Season</Form.Label>
+            <Box sx={{ mb: 2, pt: 2 }}>
+                <FormControl size="small">
+                    <FormLabel>Season</FormLabel>
                     <StevenSelect
                         value={selectedSeason}
                         onChange={(e) => setSelectedSeason(e.target.value)}
                         options={seasons.map((season) => ({ value: season, label: season }))}
                     />
-                </Form.Group>
-            </Row>
-            {error && <div className="alert alert-danger">{error}</div>}
-            <StevenTableContainer>
-                <StevenTable>
+                </FormControl>
+            </Box>
+            {error && <Alert severity="danger" sx={{ mb: 2 }}>{error}</Alert>}
+            <StevenTableContainer sx={{ overflowX: 'auto', overflowY: 'visible' }}>
+                <StevenTable stickyHeader>
                     <StevenTableHead>
                         <StevenTableRow>
-                            <StevenTableCell></StevenTableCell>
-                            <StevenTableCell>Name</StevenTableCell>
-                            <StevenTableCell>Points</StevenTableCell>
-                            <StevenTableCell>4/4 Weeks</StevenTableCell>
-                            <StevenTableCell>0/4 Weeks</StevenTableCell>
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }}></StevenTableCell>
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>Name</StevenTableCell>
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>Points</StevenTableCell>
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>4/4 Weeks</StevenTableCell>
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>0/4 Weeks</StevenTableCell>
                         </StevenTableRow>
                     </StevenTableHead>
                     <StevenTableBody>
@@ -164,13 +169,14 @@ const Standings = () => {
                                             {item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" alt="Bronze medal" /> : ""}
                                         </StevenTableCell>
                                         <StevenTableCell>
-                                            <Nav.Link
-                                                className="clickable"
+                                            <MuiLink
+                                                component="button"
+                                                underline="hover"
                                                 onClick={() => navigate(`/pickhistory?user=${item.username}`)}
-                                                style={{ cursor: "pointer", color: "blue" }}
+                                                sx={{ cursor: "pointer" }}
                                             >
                                                 {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
-                                            </Nav.Link>
+                                            </MuiLink>
                                         </StevenTableCell>
                                         <StevenTableCell> {item.resultSum}</StevenTableCell>
                                         <StevenTableCell>{perfectWeeks[item.username]}</StevenTableCell>
@@ -190,13 +196,14 @@ const Standings = () => {
                                             {item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" /> : item.rank}
                                         </StevenTableCell>
                                         <StevenTableCell className="s1-cell">
-                                            <Nav.Link
-                                                className="clickable"
+                                            <MuiLink
+                                                component="button"
+                                                underline="hover"
                                                 onClick={() => navigate(`/pickhistory?user=${item.username}`)}
-                                                style={{ cursor: "pointer", color: "blue" }}
+                                                sx={{ cursor: "pointer" }}
                                             >
                                                 {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
-                                            </Nav.Link>
+                                            </MuiLink>
                                         </StevenTableCell>
                                         <StevenTableCell className="s2-cell"> {item.resultSum}</StevenTableCell>
                                         <StevenTableCell className="s2-cell">{perfectWeeks[item.username]}</StevenTableCell>

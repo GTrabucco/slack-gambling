@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { Form } from "react-bootstrap";
-import { Typography } from "@mui/material";
+import { Box, FormLabel, Typography } from "@mui/material";
 import userService from "../../../services/userService";
 import pickService from "../../../services/pickService";
 import gameService from "../../../services/gameService";
@@ -178,8 +177,8 @@ const PickTiming = () => {
         Buckets are based on time between pick submission and game kickoff.
       </Typography>
 
-      <Form.Group controlId="playerSelect" style={{ padding: "0 16px 16px 16px" }}>
-        <Form.Label>Player</Form.Label>
+      <Box sx={{ px: 2, pb: 2 }}>
+        <FormLabel>Player</FormLabel>
         <StevenSelect
           value={selectedPlayer}
           onChange={(e) => {
@@ -191,10 +190,10 @@ const PickTiming = () => {
             label: u.displayName || u.username.split("@")[0],
           }))}
         />
-      </Form.Group>
+      </Box>
 
-      <Form.Group controlId="seasonSelect" style={{ padding: "0 16px 16px 16px" }}>
-        <Form.Label>Season</Form.Label>
+      <Box sx={{ px: 2, pb: 2 }}>
+        <FormLabel>Season</FormLabel>
         <StevenSelect
           value={selectedSeason}
           onChange={(e) => setSelectedSeason(e.target.value)}
@@ -203,7 +202,7 @@ const PickTiming = () => {
             label: season,
           }))}
         />
-      </Form.Group>
+      </Box>
 
       <StevenTableContainer sx={{ margin: "0 16px 16px 16px" }}>
         <StevenTable>

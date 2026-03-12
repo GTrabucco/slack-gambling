@@ -12,10 +12,10 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
     const removePick = async (pickIdentifier, text) => {
         const existingPickGameId = pickIdentifier.split('-')[0];
         const commenceTime = getCommenceTimeByGameId(existingPickGameId)
-        if (gameStarted(commenceTime)) {
-            setMessage("Can't Remove. Game Already Started")
-            return;
-        }
+        // if (gameStarted(commenceTime)) {
+        //     setError("Can't Remove. Game Already Started")
+        //     return;
+        // }
 
         try {
             const gameId = pickIdentifier.split('-')[0]
@@ -48,7 +48,7 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
             <StevenTableContainer>
                 <StevenTable>
                     <StevenTableBody>
-                        {['favorite', 'dog', 'over', 'under'].map((type) => {
+                        {['favorite', 'dog', 'over', 'under', 'gotw'].map((type) => {
                             const pick = Array.isArray(selectedPicks)
                                 ? selectedPicks.find(obj => obj.type === type)
                                 : null;
@@ -61,7 +61,7 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                             return (
                                 <StevenTableRow key={type}>
                                     <StevenTableCell>
-                                        <b>{type.charAt(0).toUpperCase() + type.slice(1)}</b>
+                                        <b>{type === 'gotw' ? 'Game of the Week' : type.charAt(0).toUpperCase() + type.slice(1)}</b>
                                     </StevenTableCell>
                                     <StevenTableCell>
                                         {value}

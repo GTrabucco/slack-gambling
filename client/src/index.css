@@ -2,14 +2,13 @@ body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: monospace, Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 code {
-  font-family: monospace, source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
 }
 
 body, html, * {
-  font-family: monospace, Tahoma, Geneva, Verdana, sans-serif !important;
+  font-family: 'Inter', sans-serif !important;
 }

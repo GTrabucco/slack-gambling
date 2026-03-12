@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { Alert, Form } from "react-bootstrap";
 import "./style.css";
-import { Typography } from "@mui/material";
+import { Alert, Box, FormLabel, Typography } from "@mui/material";
 import userService from "../../../services/userService";
 import pickService from "../../../services/pickService";
 import StevenSelect from "../../Common/StevenSelect";
@@ -152,13 +151,13 @@ const TeamsBet = () => {
         Team Bet History
       </Typography>
       {error && (
-        <div style={{ padding: "0 16px 16px 16px" }}>
-          <Alert variant="danger">{error}</Alert>
-        </div>
+        <Box sx={{ px: 2, pb: 2 }}>
+          <Alert severity="error">{error}</Alert>
+        </Box>
       )}
 
-      <Form.Group controlId="playerSelect" style={{ padding: "0 16px 16px 16px" }}>
-        <Form.Label>Player</Form.Label>
+      <Box sx={{ px: 2, pb: 2 }}>
+        <FormLabel>Player</FormLabel>
         <StevenSelect
             value={selectedPlayer}
             onChange={(e) => {
@@ -170,10 +169,10 @@ const TeamsBet = () => {
               label: u.displayName || u.username.split("@")[0],
             }))}
         />
-      </Form.Group>
+      </Box>
 
-      <Form.Group controlId="seasonSelect" style={{ padding: "0 16px 16px 16px" }}>
-        <Form.Label>Season</Form.Label>
+      <Box sx={{ px: 2, pb: 2 }}>
+        <FormLabel>Season</FormLabel>
         <StevenSelect
             value={selectedSeason}
             onChange={(e) => setSelectedSeason(e.target.value)}
@@ -182,7 +181,7 @@ const TeamsBet = () => {
               label: season,
             }))}
         />
-      </Form.Group>
+      </Box>
 
       <StevenTable>
         <StevenTableHead>

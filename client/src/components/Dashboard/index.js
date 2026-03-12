@@ -70,8 +70,9 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <StevenNotification
-        message={message}
-        setMessage={setMessage}
+        message={errors || message}
+        setMessage={() => { setMessage(""); setError(""); }}
+        type={errors ? "error" : "success"}
       />
       <br />
       <StevenPayPopup

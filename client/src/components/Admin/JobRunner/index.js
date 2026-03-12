@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { Container, Row, Col, Form } from 'react-bootstrap';
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import StevenButton from "../../Common/StevenButton";
 import './style.css'
 import jobService from "../../../services/jobService";
@@ -71,75 +75,67 @@ const JobRunner = () => {
     const isJobDisabled = !season.trim() || !week.trim() || !weekType.trim();
 
     return (
-        <Container className="mt-4 p-4 border rounded bg-light">
-            <Form>
-                <Row className="mb-3">
-                    <Col md={4}>
-                        <Form.Group controlId="formSeason">
-                            <Form.Label>Season</Form.Label>
-                            <Form.Control
-                                type="number"
-                                value={season}
-                                onChange={(e) => setSeason(e.target.value)}
-                                required
-                            />
-                        </Form.Group>
-                    </Col>
-                    <Col md={4}>
-                        <Form.Group controlId="formWeek">
-                            <Form.Label>Week</Form.Label>
-                            <Form.Control
-                                type="number"
-                                value={week}
-                                onChange={(e) => setWeek(e.target.value)}
-                                required
-                            />
-                        </Form.Group>
-                    </Col>
-                    <Col md={4}>
-                        <Form.Group controlId="formWeekType">
-                            <Form.Label>Week Type (Preseason = 1, Regular = 2, Playoffs = 3)</Form.Label>
-                            <Form.Control
-                                type="number"
-                                value={weekType}
-                                onChange={(e) => setWeekType(e.target.value)}
-                                required
-                            />
-                        </Form.Group>
-                    </Col>
-                </Row>
-                <Row className="mb-3">
-                    <Col className="d-grid">
-                        <StevenButton
-                            onClick={tuesdayJob}
-                            disabled={isJobDisabled}
-                        >
+        <Box sx={{ mt: 4, p: 4, border: 1, borderColor: "divider", borderRadius: 1, bgcolor: "grey.50" }}>
+            <Stack spacing={3}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} md={4}>
+                        <TextField
+                            label="Season"
+                            type="number"
+                            value={season}
+                            onChange={(e) => setSeason(e.target.value)}
+                            required
+                            fullWidth
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <TextField
+                            label="Week"
+                            type="number"
+                            value={week}
+                            onChange={(e) => setWeek(e.target.value)}
+                            required
+                            fullWidth
+                            size="small"
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <TextField
+                            label="Week Type (Preseason=1, Regular=2, Playoffs=3)"
+                            type="number"
+                            value={weekType}
+                            onChange={(e) => setWeekType(e.target.value)}
+                            required
+                            fullWidth
+                            size="small"
+                        />
+                    </Grid>
+                </Grid>
+
+                <Grid container spacing={2}>
+                    <Grid item xs={12} md={4}>
+                        <StevenButton onClick={tuesdayJob} disabled={isJobDisabled} fullWidth>
                             Run Tuesday Job
                         </StevenButton>
-                    </Col>
-                    <Col className="d-grid">
-                        <StevenButton
-                            onClick={fridayJob}
-                            disabled={isJobDisabled}
-                        >
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <StevenButton onClick={fridayJob} disabled={isJobDisabled} fullWidth>
                             Run Friday Job
                         </StevenButton>
-                    </Col>
-                    <Col className="d-grid">
-                        <StevenButton
-                            onClick={sundayReminderJob}
-                        >
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <StevenButton onClick={sundayReminderJob} fullWidth>
                             Run Sunday Reminder
                         </StevenButton>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col>
-                        <Form.Text className="text-success">{result}</Form.Text>
-                    </Col>
-                </Row>
-            </Form>
-        </Container>
+                    </Grid>
+                </Grid>
+
+                {result && (
+                    <Typography color="success.main">{result}</Typography>
+                )}
+            </Stack>
+        </Box>
     );
 };
 

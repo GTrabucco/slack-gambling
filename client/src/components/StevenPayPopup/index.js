@@ -3,6 +3,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 import StevenButton from "../Common/StevenButton";
 import userService from "../../services/userService";
 
@@ -31,23 +32,17 @@ const StevenPayPopup = ({ showVenmo, setShowVenmo, setMessage, user }) => {
             </DialogTitle>
             <DialogContent dividers>
                 <Typography gutterBottom>
-                    <a
-                        href="https://venmo.com/u/Giulian-Trabucco?txn=pay&amount=105&note=Slack Pool"
-                        style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", color: "inherit" }}
-                    >
+                    <Box component="a" href="https://venmo.com/u/Giulian-Trabucco?txn=pay&amount=105&note=Slack Pool" sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none", color: "inherit" }}>
                         <img className="medal" src="venmo.png" alt="Venmo" />
                         <span>Venmo</span>
-                    </a>
+                    </Box>
                 </Typography>
                 <br />
                 <Typography gutterBottom>
-                    <a
-                        href="https://cash.app/$GiulianTrabucco/105"
-                        style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none", color: "inherit" }}
-                    >
+                    <Box component="a" href="https://cash.app/$GiulianTrabucco/105" sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none", color: "inherit" }}>
                         <img className="medal" src="cashapp.webp" alt="Cash App" />
                         <span>Cash App</span>
-                    </a>
+                    </Box>
                 </Typography>
             </DialogContent>
             <DialogActions>

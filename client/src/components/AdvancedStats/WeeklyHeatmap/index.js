@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { Form } from "react-bootstrap";
-import { Box, Typography } from "@mui/material";
+import { Box, FormLabel, Typography } from "@mui/material";
 import userService from "../../../services/userService";
 import pickService from "../../../services/pickService";
 import StevenSelect from "../../Common/StevenSelect";
@@ -127,8 +126,8 @@ const WeeklyHeatmap = () => {
         Color is based on average result per cell: +1 win, 0 push, -1 loss.
       </Box>
 
-      <Form.Group controlId="playerSelect" style={{ padding: "0 16px 16px 16px" }}>
-        <Form.Label>Player</Form.Label>
+      <Box sx={{ px: 2, pb: 2 }}>
+        <FormLabel>Player</FormLabel>
         <StevenSelect
           value={selectedPlayer}
           onChange={(e) => {
@@ -140,10 +139,10 @@ const WeeklyHeatmap = () => {
             label: u.displayName || u.username.split("@")[0],
           }))}
         />
-      </Form.Group>
+      </Box>
 
-      <Form.Group controlId="seasonSelect" style={{ padding: "0 16px 16px 16px" }}>
-        <Form.Label>Season</Form.Label>
+      <Box sx={{ px: 2, pb: 2 }}>
+        <FormLabel>Season</FormLabel>
         <StevenSelect
           value={selectedSeason}
           onChange={(e) => setSelectedSeason(e.target.value)}
@@ -152,7 +151,7 @@ const WeeklyHeatmap = () => {
             label: season,
           }))}
         />
-      </Form.Group>
+      </Box>
 
       <Box sx={{ px: 2, pb: 2 }}>
         <StevenTableContainer>

@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { Container, Form, Row, Col } from 'react-bootstrap';
+import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import Typography from "@mui/material/Typography";
 import { useAuth0 } from "@auth0/auth0-react";
 import StevenNotification from "../StevenNotification";
 import './style.css'
@@ -52,71 +58,73 @@ const UserAccount = () => {
     };
 
     return (
-        <Container className="ua-page mt-4">
-            <Row>
-                <StevenNotification message={message} setMessage={setMessage} />
-            </Row>
+        <Container sx={{ mt: 4 }}>
+            <StevenNotification message={message} setMessage={setMessage} />
 
-            <Row className="mt-3 justify-content-center">
-                <Col md={8} lg={7}>
-                    <Form
-                        className="ua-panel"
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            updateUserDetails();
-                        }}
-                    >
-                        <div className="ua-header">
-                            <h4>Account Settings</h4>
-                            <p>Manage your display name and reminder preferences.</p>
-                        </div>
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+                <Box
+                    component="form"
+                    className="ua-panel"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        updateUserDetails();
+                    }}
+                    sx={{ width: "100%", maxWidth: 600 }}
+                >
+                    <div className="ua-header">
+                        <Typography variant="h6">Account Settings</Typography>
+                        <Typography variant="body2">Manage your display name and reminder preferences.</Typography>
+                    </div>
 
-                        <Form.Group controlId="displayName" className="ua-section">
-                            <Form.Label>Display Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={displayName}
-                                onChange={(e) => setDisplayName(e.target.value)}
-                                placeholder={user.name}
+                    <Stack spacing={2} className="ua-section">
+                        <TextField
+                            id="displayName"
+                            label="Display Name"
+                            fullWidth
+                            value={displayName}
+                            onChange={(e) => setDisplayName(e.target.value)}
+                            placeholder={user.name}
+                            size="small"
+                            helperText="This is shown on standings and pick history."
+                        />
+                    </Stack>
+
+                    <div className="ua-section">
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Email</Typography>
+                        <div className="ua-readonly">{user.email}</div>
+                    </div>
+
+                    <div className="ua-section">
+                        <FormControlLabel
+                            control={
+                                <Checkbox
+                                    checked={receiveSundayReminderChecked}
+                                    onChange={() => setReceiveSundayReminderChecked(!receiveSundayReminderChecked)}
+                                />
+                            }
+                            label="Receive Sunday 9:00 AM ET reminder"
+                        />
+                        {receiveSundayReminderChecked && (
+                            <TextField
+                                id="phoneNumber"
+                                label="Phone Number"
+                                type="tel"
+                                fullWidth
+                                placeholder="e.g. 123-456-7890"
+                                value={phoneNumber}
+                                onChange={(e) => setPhoneNumber(e.target.value)}
+                                size="small"
+                                sx={{ mt: 1.5 }}
                             />
-                            <div className="ua-help">This is shown on standings and pick history.</div>
-                        </Form.Group>
+                        )}
+                    </div>
 
-                        <div className="ua-section">
-                            <Form.Label>Email</Form.Label>
-                            <div className="ua-readonly">{user.email}</div>
-                        </div>
-
-                        <div className="ua-section">
-                            <Form.Check
-                                checked={receiveSundayReminderChecked}
-                                onChange={() => setReceiveSundayReminderChecked(!receiveSundayReminderChecked)}
-                                label="Receive Sunday 9:00 AM ET reminder"
-                            />
-                            {receiveSundayReminderChecked && (
-                                <Form.Group controlId="formPhoneNumber" className="mt-3">
-                                    <Form.Label>Phone Number</Form.Label>
-                                    <Form.Control
-                                        type="tel"
-                                        placeholder="e.g. 123-456-7890"
-                                        value={phoneNumber}
-                                        onChange={(e) => setPhoneNumber(e.target.value)}
-                                    />
-                                </Form.Group>
-                            )}
-                        </div>
-
-                        <div className="ua-actions">
-                            <StevenButton type="submit">
-                                Save Changes
-                            </StevenButton>
-                        </div>
-                    </Form>
-                </Col>
-            </Row>
+                    <div className="ua-actions">
+                        <StevenButton type="submit">Save Changes</StevenButton>
+                    </div>
+                </Box>
+            </Box>
         </Container>
-
-
     );
 };
 

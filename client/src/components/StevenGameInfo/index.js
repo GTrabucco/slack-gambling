@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Row, Col, Card } from "react-bootstrap";
+import Grid from "@mui/material/Grid";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Typography from "@mui/material/Typography";
 import PageLoader from "../PageLoader";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
@@ -210,39 +213,31 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
           <PageLoader />
         ) : weatherData.length ? (
           <>
-            <Row className="m-2">Note: time displayed in local time </Row>
-            <Row className="m-2">City: {cityName}</Row>
-            <Row className="g-2">
+            <Typography variant="body2" sx={{ mb: 1 }}>Note: time displayed in local time</Typography>
+            <Typography variant="body2" sx={{ mb: 2 }}>City: {cityName}</Typography>
+            <Grid container spacing={2}>
               {weatherData.map((hour) => {
                 const [hh, mm] = hour.time.split("T")[1].split(":");
                 const hour12 = ((+hh + 11) % 12) + 1;
                 const ampm = +hh >= 12 ? "PM" : "AM";
                 const formattedTime = `${hour12}:${mm} ${ampm}`;
                 return (
-                  <Col xs={12} key={hour.time}>
-                    <Card className="shadow-sm">
-                      <Card.Body>
-                        <Card.Text className="mb-1">
-                          <b>Time:</b> {formattedTime}
-                        </Card.Text>
-                        <Card.Text className="mb-1">
-                          <b>Temp:</b> {hour.temperature}°F
-                        </Card.Text>
-                        <Card.Text className="mb-1">
-                          <b>Wind:</b> {hour.wind} mph
-                        </Card.Text>
-                        <Card.Text className="mb-1">
-                          <b>Precipitation:</b> {hour.precipitation} %
-                        </Card.Text>
-                      </Card.Body>
+                  <Grid item xs={12} key={hour.time}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="body2"><b>Time:</b> {formattedTime}</Typography>
+                        <Typography variant="body2"><b>Temp:</b> {hour.temperature}°F</Typography>
+                        <Typography variant="body2"><b>Wind:</b> {hour.wind} mph</Typography>
+                        <Typography variant="body2"><b>Precipitation:</b> {hour.precipitation}%</Typography>
+                      </CardContent>
                     </Card>
-                  </Col>
-                )}
-              )}
-            </Row>
+                  </Grid>
+                );
+              })}
+            </Grid>
           </>
         ) : (
-          <p>No weather data available</p>
+          <Typography>No weather data available</Typography>
         )}
       </DialogContent>
       <DialogActions>

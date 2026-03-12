@@ -1,5 +1,9 @@
 import { useState } from 'react';
-import { Form, Container, Alert } from 'react-bootstrap';
+import Container from "@mui/material/Container";
+import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import { useAuth0 } from '@auth0/auth0-react';
 import { useLocation } from 'react-router-dom';
 import StevenButton from "../Common/StevenButton";
@@ -30,29 +34,27 @@ const ReportIssue = () => {
   };
 
   return (
-    <Container className="mt-4">
-      <h2>Report an Issue</h2>
+    <Container sx={{ mt: 4 }}>
+      <Typography variant="h5" gutterBottom>Report an Issue</Typography>
       {submitted && (
-        <Alert variant="success">
+        <Alert severity="success" sx={{ mb: 2 }}>
           Thank you for reporting the issue!
         </Alert>
       )}
       {!submitted && (
-        <Form onSubmit={handleSubmit}>
-          <Form.Group className="mb-3" controlId="issueDescription">
-            <Form.Control 
-              as="textarea" 
-              rows={3} 
-              placeholder="Describe the issue..." 
-              value={issueDescription}
-              onChange={(e) => setIssueDescription(e.target.value)}
-              required
-            />
-          </Form.Group>
-          <StevenButton type="submit">
-            Submit
-          </StevenButton>
-        </Form>
+        <Box component="form" onSubmit={handleSubmit}>
+          <TextField
+            multiline
+            rows={3}
+            fullWidth
+            placeholder="Describe the issue..."
+            value={issueDescription || ""}
+            onChange={(e) => setIssueDescription(e.target.value)}
+            required
+            sx={{ mb: 2 }}
+          />
+          <StevenButton type="submit">Submit</StevenButton>
+        </Box>
       )}
     </Container>
   );

@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { Container, Row, Col, Alert } from 'react-bootstrap';
+import Box from "@mui/material/Box";
+import Alert from "@mui/material/Alert";
+import Typography from "@mui/material/Typography";
 import StevenButton from "../../Common/StevenButton";
 import issueService from "../../../services/issueService";
 import {
@@ -53,48 +55,42 @@ const ViewReports = () => {
     };
 
     return (
-        <Container>
-            <Row>
-                <h2>Issues</h2>
-            </Row>
-            <Row>
-                <Col>
-                    {error && <Alert variant="danger">{error}</Alert>}
-                    <StevenTableContainer>
-                        <StevenTable>
-                            <StevenTableHead>
-                                <StevenTableRow>
-                                    <StevenTableCell>Created At</StevenTableCell>
-                                    <StevenTableCell>User</StevenTableCell>
-                                    <StevenTableCell>Description</StevenTableCell>
-                                    <StevenTableCell>Action</StevenTableCell>
+        <Box>
+            <Typography variant="h5" sx={{ mb: 2 }}>Issues</Typography>
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            <StevenTableContainer>
+                <StevenTable>
+                    <StevenTableHead>
+                        <StevenTableRow>
+                            <StevenTableCell>Created At</StevenTableCell>
+                            <StevenTableCell>User</StevenTableCell>
+                            <StevenTableCell>Description</StevenTableCell>
+                            <StevenTableCell>Action</StevenTableCell>
+                        </StevenTableRow>
+                    </StevenTableHead>
+                    <StevenTableBody>
+                    {reports.length > 0 ? (
+                        reports
+                            .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+                            .map((report) => (
+                                <StevenTableRow key={report._id}>
+                                    <StevenTableCell>{new Date(report.createdAt).toLocaleString()}</StevenTableCell>
+                                    <StevenTableCell>{report.username}</StevenTableCell>
+                                    <StevenTableCell>{report.description}</StevenTableCell>
+                                    <StevenTableCell>
+                                        <StevenButton onClick={() => handleClose(report._id)}>Close Report</StevenButton>
+                                    </StevenTableCell>
                                 </StevenTableRow>
-                            </StevenTableHead>
-                            <StevenTableBody>
-                            {reports.length > 0 ? (
-                                reports
-                                    .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-                                    .map((report) => (
-                                        <StevenTableRow key={report._id}>
-                                            <StevenTableCell>{new Date(report.createdAt).toLocaleString()}</StevenTableCell>
-                                            <StevenTableCell>{report.username}</StevenTableCell>
-                                            <StevenTableCell>{report.description}</StevenTableCell>
-                                            <StevenTableCell>
-                                                <StevenButton onClick={() => handleClose(report._id)}>Close Report</StevenButton>
-                                            </StevenTableCell>
-                                        </StevenTableRow>
-                                    ))
-                            ) : (
-                                <StevenTableRow>
-                                    <StevenTableCell colSpan={4}>No reports available.</StevenTableCell>
-                                </StevenTableRow>
-                            )}
-                            </StevenTableBody>
-                        </StevenTable>
-                    </StevenTableContainer>
-                </Col>                
-            </Row>
-        </Container>
+                            ))
+                    ) : (
+                        <StevenTableRow>
+                            <StevenTableCell colSpan={4}>No reports available.</StevenTableCell>
+                        </StevenTableRow>
+                    )}
+                    </StevenTableBody>
+                </StevenTable>
+            </StevenTableContainer>
+        </Box>
     );
 }
 
