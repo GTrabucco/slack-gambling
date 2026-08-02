@@ -29,7 +29,7 @@ export const LoginButton = () => {
   }, [isAuthenticated, getAccessTokenSilently]);
 
   return (
-    <StevenButton onClick={handleLogin}>
+    <StevenButton onClick={handleLogin} fullWidth>
       Log In
     </StevenButton>
   );

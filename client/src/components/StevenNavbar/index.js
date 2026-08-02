@@ -95,12 +95,13 @@ const StevenNavbar = () => {
                         <img alt="" width="45" height="45" src="/stevenlogo.png" />
                         <Typography sx={{ fontWeight: 400, fontSize: 18 }}>Slack Gambling</Typography>
                     </Box>
-                    <Typography
+                    <StevenButton
                         onClick={() => setShowRules(true)}
-                        sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
+                        variant="outlined"
+                        size="small"
                     >
                         Rules
-                    </Typography>
+                    </StevenButton>
                 </Toolbar>
             </AppBar>
 

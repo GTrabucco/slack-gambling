@@ -32,7 +32,7 @@ export const SignupButton = () => {
   }, [isAuthenticated, getAccessTokenSilently]);
 
   return (
-    <StevenButton onClick={handleSignUp}>
+    <StevenButton onClick={handleSignUp} fullWidth variant="outlined">
       Sign Up
     </StevenButton>
   );
