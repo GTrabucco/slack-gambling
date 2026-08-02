@@ -63,15 +63,17 @@ const Standings = () => {
                     Object.entries(groupedByUser).forEach(([username, userPicks]) => {
                         userTotals[username] = 0;
                         const picksByWeek = Object.groupBy(userPicks, ({ week }) => week);
+                        const perfectScore = parseInt(selectedSeason) >= 2026 ? 5 : 4;
+                        const worstScore = parseInt(selectedSeason) >= 2026 ? -5 : -4;
                         Object.values(picksByWeek).forEach(weeklyPicks => {
                             const resultSum = weeklyPicks.reduce((sum, pick) => sum + pick.result, 0);
                             userTotals[username] += resultSum;
                             userTimelapse[username] = userTimelapse[username] || [];
                             userTimelapse[username].push(resultSum);
 
-                            if (resultSum === 4) {
+                            if (resultSum === perfectScore) {
                                 newPerfectWeeks[username] = (newPerfectWeeks[username] || 0) + 1;
-                            } else if (resultSum === -4) {
+                            } else if (resultSum === worstScore) {
                                 newNegFourWeeks[username] = (newNegFourWeeks[username] || 0) + 1;
                             }
 
@@ -152,8 +154,8 @@ const Standings = () => {
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}></StevenTableCell>
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}>Name</StevenTableCell>
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}>Points</StevenTableCell>
-                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>4/4 Weeks</StevenTableCell>
-                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>0/4 Weeks</StevenTableCell>
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>{parseInt(selectedSeason) >= 2026 ? "5/5 Weeks" : "4/4 Weeks"}</StevenTableCell>
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>{parseInt(selectedSeason) >= 2026 ? "0/5 Weeks" : "0/4 Weeks"}</StevenTableCell>
                         </StevenTableRow>
                     </StevenTableHead>
                     <StevenTableBody>
