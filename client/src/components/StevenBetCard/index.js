@@ -12,10 +12,10 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
     const removePick = async (pickIdentifier, text) => {
         const existingPickGameId = pickIdentifier.split('-')[0];
         const commenceTime = getCommenceTimeByGameId(existingPickGameId)
-        // if (gameStarted(commenceTime)) {
-        //     setError("Can't Remove. Game Already Started")
-        //     return;
-        // }
+        if (gameStarted(commenceTime)) {
+            setError("Can't Remove. Game Already Started")
+            return;
+        }
 
         try {
             const gameId = pickIdentifier.split('-')[0]

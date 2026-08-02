@@ -62,14 +62,13 @@ const StevenNavbar = () => {
                 <DialogTitle>Slack Gambling Rules</DialogTitle>
                 <DialogContent dividers>
                     {[
-                        <><b>1.</b> Games update on <b>Tuesdays</b> and <b>Fridays</b>. You'll see games from <b>Tue-Thu</b> during the week, and <b>Fri-Mon</b> over the weekend.</>,
-                        <><b>2.</b> Pick a Favorite, Underdog, Over and Under each week</>,
-                        <><b>3.</b> Submit picks using the button at the bottom of the page</>,
-                        <><b>4.</b> Picks can be changed until the game starts</>,
-                        <><b>5.</b> Scoring: +1 for correct, -1 for incorrect, 0 for push</>,
-                        <><b>6.</b> Earn 1 share in the Perfect Week Pool by going 4/4 in a week. The pool payout is split among all shareholders at season's end</>,
-                        <><b>7.</b> Enable text reminders and edit your display name on the Account page</>,
-                        <><b>8.</b> Submit questions or issues via the Report Issue page</>,
+                        <><b>1.</b> Games for the full week are posted every <b>Tuesday</b>. Lines update daily. Your locked-in pick value never changes even if the line moves.</>,
+                        <><b>2.</b> Each week, pick one <b>Favorite</b>, one <b>Underdog</b>, one <b>Over</b>, one <b>Under</b>, and one pick (spread or total) on the <b>Game of the Week</b>.</>,
+                        <><b>3.</b> Picks can be changed any time before the game kicks off. Once the game starts, your pick is locked.</>,
+                        <><b>4.</b> <b>Scoring:</b> +1 correct, -1 incorrect, 0 push. Missing a pick type counts as -1.</>,
+                        <><b>5.</b> Go <b>5/5</b> in a week (Favorite, Underdog, Over, Under, and Game of the Week) to earn a share of the <b>Perfect Week Pool</b>, paid out at season's end.</>,
+                        <><b>6.</b> Set up text reminders and your display name on the <b>Account</b> page.</>,
+                        <><b>7.</b> Questions or problems? Use the <b>Report Issue</b> page.</>,
                     ].map((rule, i) => (
                         <Typography key={i} gutterBottom>{rule}</Typography>
                     ))}
@@ -117,12 +116,12 @@ const StevenNavbar = () => {
                                         selected={isActive}
                                         sx={{
                                             "&.Mui-selected": {
-                                                backgroundColor: "#e8f0fe",
-                                                borderLeft: "3px solid #1a73e8",
-                                                "& .MuiListItemText-primary": { color: "#1a73e8", fontWeight: 700 },
-                                                "& .MuiListItemIcon-root": { color: "#1a73e8" },
+                                                backgroundColor: "rgba(144, 202, 249, 0.12)",
+                                                borderLeft: "3px solid #90caf9",
+                                                "& .MuiListItemText-primary": { color: "#90caf9", fontWeight: 700 },
+                                                "& .MuiListItemIcon-root": { color: "#90caf9" },
                                             },
-                                            "&.Mui-selected:hover": { backgroundColor: "#dce8fd" },
+                                            "&.Mui-selected:hover": { backgroundColor: "rgba(144, 202, 249, 0.2)" },
                                         }}
                                     >
                                         <ListItemIcon sx={{ minWidth: 36, fontSize: 18 }}>{link.icon}</ListItemIcon>

@@ -18,6 +18,6 @@ export const LogoutButton = () => {
   };
 
   return (
-    <Typography component="span" onClick={handleLogout} sx={{ fontFamily: "Segoe UI", fontWeight: 500, fontSize: 16, color: "black", cursor: "pointer" }}>Log Out</Typography>
+    <Typography component="span" onClick={handleLogout} sx={{ fontFamily: "Segoe UI", fontWeight: 500, fontSize: 15, cursor: "pointer" }}>Log Out</Typography>
   );
 };

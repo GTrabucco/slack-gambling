@@ -9,6 +9,10 @@ const jobService = {
     return apiClient.post("/api/friday-job", { season, week, weekType });
   },
 
+  runRefreshJob: async () => {
+    return apiClient.post("/api/refresh-job");
+  },
+
   runSundayReminderJob: async () => {
     return apiClient.post("/api/sunday-reminder-job");
   },

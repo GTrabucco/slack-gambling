@@ -8,6 +8,7 @@ import cron from 'node-cron';
 import fridayJob from './fridayjobnew.js';
 import tuesdayJob from './tuesdayjobnew.js';
 import sundayReminder from './sundayremindernew.js';
+import refreshJob from './refreshjobnew.js';
 import { weatherAgent } from './weatherAgent.js';
 import RateLimit from 'express-rate-limit';
 
@@ -72,6 +73,40 @@ cron.schedule("0 9 * * 0", async () =>
     {
         timezone: "America/New_York"
     }
+);
+
+// Tuesday 6am ET: process last week's picks and load full week of games
+cron.schedule("0 6 * * 2", async () => {
+        console.log("Running automatic Tuesday job...");
+        try {
+            await tuesdayJob(SEASON, null, null);
+        } catch (error) {
+            console.error("Automatic Tuesday job failed:", error);
+        }
+    },
+    { timezone: "America/New_York" }
+);
+
+// Refresh lines: Mon–Sat at 8am and 6pm ET
+cron.schedule("0 8,18 * * 1-6", async () => {
+        try {
+            await refreshJob();
+        } catch (error) {
+            console.error("Refresh job (Mon-Sat) failed:", error);
+        }
+    },
+    { timezone: "America/New_York" }
+);
+
+// Refresh lines: Sunday at 8am, 12pm, 3pm, 6pm ET
+cron.schedule("0 8,12,15,18 * * 0", async () => {
+        try {
+            await refreshJob();
+        } catch (error) {
+            console.error("Refresh job (Sunday) failed:", error);
+        }
+    },
+    { timezone: "America/New_York" }
 );
 
 app.get("/api/get-weather-description", async (req, res) => {
@@ -155,6 +190,16 @@ app.post('/api/friday-job', async (req, res) => {
     } catch (error) {
         console.error('Friday Job Error:', error);
         res.status(500).json({ error: 'Friday job failed', details: error.message });
+    }
+});
+
+app.post('/api/refresh-job', async (req, res) => {
+    try {
+        const result = await refreshJob();
+        res.json({ message: 'Refresh job executed successfully', result });
+    } catch (error) {
+        console.error('Refresh Job Error:', error);
+        res.status(500).json({ error: 'Refresh job failed', details: error.message });
     }
 });
 

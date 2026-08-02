@@ -87,18 +87,18 @@ const StevenGameList = ({ tempPicks,
     }
 
     const updatePick = (gameId, homeTeam, awayTeam, type, value, text, commenceTime) => {
-        // if (gameStarted(commenceTime)) {
-        //     setError("Game Already Started");
-        //     return;
-        // }
+        if (gameStarted(commenceTime)) {
+            setError("Game Already Started");
+            return;
+        }
 
         const existingPick = tempPicks.find(pick => pick.type === type);
         if (existingPick) {
             const existingPickCommenceTime = getCommenceTimeByGameId(existingPick.gameId);
-            // if (gameStarted(existingPickCommenceTime)) {
-            //     setError(`You already selected a ${type} in a game that has started`);
-            //     return;
-            // }
+            if (gameStarted(existingPickCommenceTime)) {
+                setError(`You already selected a ${type} in a game that has started`);
+                return;
+            }
         }
 
         if (type === "gotw") {
@@ -214,6 +214,7 @@ const StevenGameList = ({ tempPicks,
                             const under_picked = Array.isArray(tempPicks)
                                 ? tempPicks.find(obj => obj.type === "under" && obj.gameId === game["_id"])
                                 : null;
+
                             const dateObj = new Date(commenceTime);
                             return (
                                 <Paper
@@ -288,8 +289,7 @@ const StevenGameList = ({ tempPicks,
                                             <img src={home_logo} alt={home_team} className="logo" />
                                             <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
                                         </div>
-                                        {!isGotw && (
-                                            <div className="icon-text-container">
+                                        <div className="icon-text-container">
                                                 {over_picked ? (
                                                     <span className="total-picked">
                                                         <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
@@ -314,7 +314,6 @@ const StevenGameList = ({ tempPicks,
                                                     }></h2>
                                                 )}
                                             </div>
-                                        )}
                                     </div>
                                 </Paper>
                             );

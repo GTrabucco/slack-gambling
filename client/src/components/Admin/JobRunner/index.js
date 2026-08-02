@@ -50,13 +50,11 @@ const JobRunner = () => {
         }
     };
 
-    const fridayJob = async () => {
-        if (!window.confirm("Are you sure you want to run the Friday Job?")) return;
+    const refreshJob = async () => {
+        if (!window.confirm("Are you sure you want to run the Refresh Job?")) return;
         try {
-            if (await validDay("friday")) {
-                const res = await jobService.runFridayJob(season, week, weekType);
-                setResult(res.data.output); 
-            } 
+            const res = await jobService.runRefreshJob();
+            setResult(res.data.result);
         } catch (error) {
             setResult("Error: " + error.message);
         }
@@ -75,7 +73,7 @@ const JobRunner = () => {
     const isJobDisabled = !season.trim() || !week.trim() || !weekType.trim();
 
     return (
-        <Box sx={{ mt: 4, p: 4, border: 1, borderColor: "divider", borderRadius: 1, bgcolor: "grey.50" }}>
+        <Box sx={{ mt: 4, p: 4, border: 1, borderColor: "divider", borderRadius: 1, bgcolor: "background.paper" }}>
             <Stack spacing={3}>
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={4}>
@@ -120,8 +118,8 @@ const JobRunner = () => {
                         </StevenButton>
                     </Grid>
                     <Grid item xs={12} md={4}>
-                        <StevenButton onClick={fridayJob} disabled={isJobDisabled} fullWidth>
-                            Run Friday Job
+                        <StevenButton onClick={refreshJob} fullWidth>
+                            Run Refresh Job
                         </StevenButton>
                     </Grid>
                     <Grid item xs={12} md={4}>

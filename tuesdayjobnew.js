@@ -109,15 +109,16 @@ export default async function tuesdayJob(season, week, weekType) {
         await gamesCollection.deleteMany({}, { session });
       }
       
-      // Load new games from TheOdds API
+      // Load new games from TheOdds API — full week (Tue through Mon)
       const now = new Date();
       const currentDay = now.getDay();
       const tuesday = new Date(now);
-      tuesday.setDate(now.getDate() - currentDay + 2); 
+      tuesday.setDate(now.getDate() - currentDay + 2);
       tuesday.setHours(0, 0, 0, 0);
-      const thursday = new Date(tuesday.getTime() + 2 * 24 * 60 * 60 * 1000);
-      thursday.setHours(23, 59, 59, 999); 
-      let newGames = await getGames(tuesday, thursday);
+      const monday = new Date(tuesday);
+      monday.setDate(tuesday.getDate() + 6);
+      monday.setHours(23, 59, 59, 999);
+      let newGames = await getGames(tuesday, monday);
 
       // Add season and week to new games
       week = parseInt(week) + 1
