@@ -5,7 +5,6 @@ import dotenv from 'dotenv';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import cron from 'node-cron';
-import fridayJob from './fridayjobnew.js';
 import tuesdayJob from './tuesdayjobnew.js';
 import sundayReminder from './sundayremindernew.js';
 import refreshJob from './refreshjobnew.js';
@@ -62,14 +61,13 @@ const connectDB = async () => {
 
 connectDB();
 
-cron.schedule("0 9 * * 0", async () => 
-    {
-        try {
-            const result = await sundayReminder();
-        } catch (error) {
-            console.error("Failed to send Sunday reminder:", error);
-        }
-    },
+cron.schedule("0 9 * * 0", async () => {
+    try {
+        const result = await sundayReminder();
+    } catch (error) {
+        console.error("Failed to send Sunday reminder:", error);
+    }
+},
     {
         timezone: "America/New_York"
     }
@@ -77,35 +75,35 @@ cron.schedule("0 9 * * 0", async () =>
 
 // Tuesday 6am ET: process last week's picks and load full week of games
 cron.schedule("0 6 * * 2", async () => {
-        console.log("Running automatic Tuesday job...");
-        try {
-            await tuesdayJob(SEASON, null, null);
-        } catch (error) {
-            console.error("Automatic Tuesday job failed:", error);
-        }
-    },
+    console.log("Running automatic Tuesday job...");
+    try {
+        await tuesdayJob(SEASON, null, null);
+    } catch (error) {
+        console.error("Automatic Tuesday job failed:", error);
+    }
+},
     { timezone: "America/New_York" }
 );
 
 // Refresh lines: Mon–Sat at 8am and 6pm ET
 cron.schedule("0 8,18 * * 1-6", async () => {
-        try {
-            await refreshJob();
-        } catch (error) {
-            console.error("Refresh job (Mon-Sat) failed:", error);
-        }
-    },
+    try {
+        await refreshJob();
+    } catch (error) {
+        console.error("Refresh job (Mon-Sat) failed:", error);
+    }
+},
     { timezone: "America/New_York" }
 );
 
 // Refresh lines: Sunday at 8am, 12pm, 3pm, 6pm ET
 cron.schedule("0 8,12,15,18 * * 0", async () => {
-        try {
-            await refreshJob();
-        } catch (error) {
-            console.error("Refresh job (Sunday) failed:", error);
-        }
-    },
+    try {
+        await refreshJob();
+    } catch (error) {
+        console.error("Refresh job (Sunday) failed:", error);
+    }
+},
     { timezone: "America/New_York" }
 );
 
@@ -113,7 +111,7 @@ app.get("/api/get-weather-description", async (req, res) => {
     try {
         const { details } = req.query;
         const result = await weatherAgent(details);
-        res.json(result );
+        res.json(result);
     } catch (error) {
         console.error('Weather Agent Error:', error);
         res.status(500).json({ error: 'Weather Agent failed', details: error.message });
@@ -144,32 +142,12 @@ app.get('/api/get-game', async (req, res) => {
     try {
         const { gameId } = req.query;
         const db = client.db(DATABASE_NAME);
-        const data = await db.collection('Games').find({gameId: gameId}).toArray();
+        const data = await db.collection('Games').find({ gameId: gameId }).toArray();
         res.json(data);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching data from MongoDB' });
     }
 });
-
-app.get('/api/backup-picks', async (req, res) => {
-    try {
-        const picksToSave = await picksCollection.find({}).toArray();
-        if (picksToSave.length === 0) return res.status(404).send("No picks to backup.");
-
-        const now = new Date();
-        const fileName = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${now.getFullYear()}.txt`;
-        const fileContent = JSON.stringify(picksToSave, null, 2);
-
-        res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
-        res.setHeader("Content-Type", "text/plain");
-
-        res.send(fileContent);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Failed to create backup");
-    }
-});
-
 
 app.post('/api/tuesday-job', async (req, res) => {
     try {
@@ -182,16 +160,6 @@ app.post('/api/tuesday-job', async (req, res) => {
     }
 });
 
-app.post('/api/friday-job', async (req, res) => {
-    try {
-        const { season, week, weekType } = req.body;
-        const result = await fridayJob(season, week, weekType);
-        res.json({ message: 'Friday job executed successfully', result });
-    } catch (error) {
-        console.error('Friday Job Error:', error);
-        res.status(500).json({ error: 'Friday job failed', details: error.message });
-    }
-});
 
 app.post('/api/refresh-job', async (req, res) => {
     try {

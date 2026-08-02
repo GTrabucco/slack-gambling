@@ -1,7 +1,6 @@
 {
   "type": "module",
   "dependencies": {
-    "@auth0/auth0-react": "^2.2.4",
     "@huggingface/inference": "^4.8.0",
     "@langchain/community": "^0.3.56",
     "@langchain/core": "^0.3.77",
@@ -16,8 +15,6 @@
     "express-rate-limit": "^8.0.1",
     "mongodb": "^6.18.0",
     "node-cron": "^4.2.1",
-    "path-to-regexp": "^0.1.12",
-    "react-router-dom": "^6.26.2",
     "twilio": "^5.8.0"
   },
   "scripts": {

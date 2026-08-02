@@ -67,7 +67,7 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                                         {value}
                                     </StevenTableCell>
                                     <StevenTableCell style={{ textAlign: 'center' }}>
-                                        {value && (
+                                        {key && (
                                             <span
                                                 onClick={() => removePick(key, value)}
                                                 style={{

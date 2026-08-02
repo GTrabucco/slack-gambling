@@ -151,7 +151,7 @@ const PickHistory = () => {
                                         )}
                                     </StevenTableCell>
                                     <StevenTableCell>
-                                        <StevenButton onClick={() => disputePick(item.text)}>
+                                        <StevenButton onClick={() => disputePick(`Week ${item.week}: ${item.text}`)}>
                                             Dispute
                                         </StevenButton>
                                     </StevenTableCell>
