@@ -8,7 +8,7 @@ import twilio from "twilio";
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) throw new Error('MONGODB_URI not found in .env file');
 
-export default async function tuesdayJob(season, week, weekType) {
+export default async function tuesdayJob() {
   const client = new MongoClient(MONGODB_URI, { useUnifiedTopology: true });
   try {
     await client.connect();
@@ -19,6 +19,12 @@ export default async function tuesdayJob(season, week, weekType) {
     const gamesCollection = db.collection('Games');
     const gamesHistoryCollection = db.collection('Games_History');
     const userDetails = db.collection('User_Details');
+    const configCollection = db.collection('Config');
+
+    // Read season/week/weekType from Config
+    const config = await configCollection.findOne({ _id: 'current' });
+    if (!config) throw new Error('Config not found in DB. Please set season, week, and weekType via the admin panel.');
+    let { season, week, weekType } = config;
 
     await session.withTransaction(async () => {
       // Add week fields to all picks
@@ -102,18 +108,24 @@ export default async function tuesdayJob(season, week, weekType) {
       let newGames = await getGames(tuesday, monday);
 
       // Add season and week to new games
-      week = parseInt(week) + 1
+      week = parseInt(week) + 1;
       newGames = newGames.map(game => ({ ...game, season, week }));
       if (newGames.length > 0) {
         await gamesCollection.insertMany(newGames, { session });
       }
 
+      // Persist incremented week back to Config
+      await configCollection.updateOne(
+        { _id: 'current' },
+        { $set: { week } },
+        { session }
+      );
+
       console.log(`Tuesday job completed for season ${season}, week ${week}`);
     });
 
-    await sendPicksBackup(picks, week - 1);
-
-    return `Tuesday job success for season ${season}, week ${week}`;
+    await sendPicksBackup(picks, config.week);
+    return `Tuesday job success for season ${season}, week ${parseInt(config.week) + 1}`;
   } catch (error) {
     console.error('Error during Tuesday job transaction:', error);
     throw error;

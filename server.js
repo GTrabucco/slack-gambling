@@ -151,12 +151,36 @@ app.get('/api/get-game', async (req, res) => {
 
 app.post('/api/tuesday-job', async (req, res) => {
     try {
-        const { season, week, weekType } = req.body;
-        const result = await tuesdayJob(season, week, weekType);
+        const result = await tuesdayJob();
         res.json({ message: 'Tuesday job executed successfully', result });
     } catch (error) {
         console.error('Tuesday Job Error:', error);
         res.status(500).json({ error: 'Tuesday job failed', details: error.message });
+    }
+});
+
+app.get('/api/config', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const config = await db.collection('Config').findOne({ _id: 'current' });
+        res.json(config || {});
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching config' });
+    }
+});
+
+app.post('/api/config', async (req, res) => {
+    try {
+        const { season, week, weekType } = req.body;
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Config').updateOne(
+            { _id: 'current' },
+            { $set: { season, week: parseInt(week), weekType: parseInt(weekType) } },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Error updating config' });
     }
 });
 

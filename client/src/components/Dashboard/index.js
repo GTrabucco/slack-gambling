@@ -5,6 +5,7 @@ import StevenNotification from "../StevenNotification";
 import StevenPayPopup from "../StevenPayPopup";
 import StevenBetCard from "../StevenBetCard";
 import StevenGameList from "../StevenGameList";
+import GotwReveal from "../GotwReveal";
 import userService from "../../services/userService";
 
 const Dashboard = () => {
@@ -91,6 +92,7 @@ const Dashboard = () => {
         setSelectedPicks={setSelectedPicks}
         setTempPicks={setTempPicks}
       />
+      <GotwReveal games={games} gameStarted={gameStarted} />
       <hr />
       <StevenGameList 
         tempPicks={tempPicks}

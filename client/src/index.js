@@ -29,14 +29,14 @@ root.render(
       <CssBaseline />
       <BrowserRouter>
         <Auth0Provider
-        domain={domain}
-        clientId={clientId}
-        authorizationParams={{
-          redirect_uri: window.location.origin,
-          audience: audience,
-          scope: "openid profile email read:current_user update:current_user_metadata read:users read:user_idp_tokens" 
-        }}
-      >
+          domain={domain}
+          clientId={clientId}
+          authorizationParams={{
+            redirect_uri: window.location.origin,
+            audience: audience,
+            scope: "openid profile email read:current_user update:current_user_metadata read:users read:user_idp_tokens" 
+          }}
+        >
         <App />
       </Auth0Provider>
     </BrowserRouter>

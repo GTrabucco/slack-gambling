@@ -69,8 +69,7 @@ function calculatePickResult(pick, result) {
 
   switch (pick.type) {
     case 'favorite':
-    case 'dog':
-    case 'gotw': {
+    case 'dog': {
       const pickedTeam = pick.text.split(' ').slice(0, -1).join(' ');
       if (pickedTeam === result.homeTeam) {
         return homeScore + value - awayScore > 0 ? 1 : homeScore + value - awayScore < 0 ? -1 : 0;
@@ -78,6 +77,23 @@ function calculatePickResult(pick, result) {
         return awayScore + value - homeScore > 0 ? 1 : awayScore + value - homeScore < 0 ? -1 : 0;
       } else {
         throw new Error(`Team mismatch in pick: ${JSON.stringify(pick)}`);
+      }
+    }
+
+    case 'gotw': {
+      if (pick.text.includes('Over')) {
+        return homeScore + awayScore - value > 0 ? 1 : homeScore + awayScore - value < 0 ? -1 : 0;
+      } else if (pick.text.includes('Under')) {
+        return homeScore + awayScore - value > 0 ? -1 : homeScore + awayScore - value < 0 ? 1 : 0;
+      } else {
+        const pickedTeam = pick.text.split(' ').slice(0, -1).join(' ');
+        if (pickedTeam === result.homeTeam) {
+          return homeScore + value - awayScore > 0 ? 1 : homeScore + value - awayScore < 0 ? -1 : 0;
+        } else if (pickedTeam === result.awayTeam) {
+          return awayScore + value - homeScore > 0 ? 1 : awayScore + value - homeScore < 0 ? -1 : 0;
+        } else {
+          throw new Error(`Team mismatch in pick: ${JSON.stringify(pick)}`);
+        }
       }
     }
 

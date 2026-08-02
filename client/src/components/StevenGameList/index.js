@@ -198,13 +198,13 @@ const StevenGameList = ({ tempPicks,
 
                             const away_picked = Array.isArray(tempPicks)
                                 ? isGotw
-                                    ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes(away_team_name))
+                                    ? tempPicks.find(obj => obj.type === "gotw" && !obj.text.includes("Over") && !obj.text.includes("Under") && obj.text.includes(away_team_name))
                                     : tempPicks.find(obj => obj.type === "dog" && obj.text.includes(away_team_name)) ||
                                       tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(away_team_name))
                                 : null;
                             const home_picked = Array.isArray(tempPicks)
                                 ? isGotw
-                                    ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes(home_team_name))
+                                    ? tempPicks.find(obj => obj.type === "gotw" && !obj.text.includes("Over") && !obj.text.includes("Under") && obj.text.includes(home_team_name))
                                     : tempPicks.find(obj => obj.type === "dog" && obj.text.includes(home_team_name)) ||
                                       tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(home_team_name))
                                 : null;
@@ -290,27 +290,27 @@ const StevenGameList = ({ tempPicks,
                                             <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
                                         </div>
                                         <div className="icon-text-container">
-                                                {over_picked ? (
+                                                {(isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Over")) : over_picked) ? (
                                                     <span className="total-picked">
                                                         <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
-                                                            updatePick(game["_id"], home_team, away_team, "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
+                                                            updatePick(game["_id"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
                                                         }></h2>
                                                     </span>
                                                 ) : (
                                                     <h2 className="total bi bi-arrow-up-square-fill" onClick={() =>
-                                                        updatePick(game["_id"], home_team, away_team, "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
+                                                        updatePick(game["_id"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
                                                     }></h2>
                                                 )}
                                                 <div className="over-text"><b>{over}</b></div>
-                                                {under_picked ? (
+                                                {(isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Under")) : under_picked) ? (
                                                     <span className="total-picked">
                                                         <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
-                                                            updatePick(game["_id"], home_team, away_team, "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
+                                                            updatePick(game["_id"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
                                                         }></h2>
                                                     </span>
                                                 ) : (
                                                     <h2 className="total bi bi-arrow-down-square-fill" onClick={() =>
-                                                        updatePick(game["_id"], home_team, away_team, "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
+                                                        updatePick(game["_id"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
                                                     }></h2>
                                                 )}
                                             </div>
