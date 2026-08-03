@@ -14,6 +14,7 @@ import PageLoader from "./components/PageLoader";
 import { AuthenticationGuard } from "./components/authentication-guard";
 import WeekPicks from "./components/WeekPicks";
 import JobRunner from "./components/Admin/JobRunner";
+import SundayReminderConfig from "./components/Admin/SundayReminderConfig";
 import AdvancedStats from "./components/AdvancedStats";
 import Statistics from "./components/AdvancedStats/Statistics";
 import TeamsBet from "./components/AdvancedStats/TeamsBet";
@@ -64,6 +65,7 @@ function App() {
           <Route path="/calculatescoring" element={<AuthenticationGuard component={CalculateScoring} /> } />
           <Route path="/viewreports" element={<AuthenticationGuard component={ViewReports} /> } />
           <Route path="/jobrunner" element={<AuthenticationGuard component={JobRunner} /> } />
+          <Route path="/sundayreminderconfig" element={<AuthenticationGuard component={SundayReminderConfig} /> } />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />

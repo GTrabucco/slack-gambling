@@ -20,7 +20,7 @@ import { LogoutButton } from "../Common/logout.button";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
     BsClockHistory, BsBug, BsCalculator, BsCardChecklist, BsList,
-    BsPersonCircle, BsHouseDoor
+    BsPersonCircle, BsHouseDoor, BsBell
 } from "react-icons/bs";
 import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
 import { ImStatsDots } from "react-icons/im";
@@ -52,6 +52,7 @@ const StevenNavbar = () => {
             { path: "/calculatescoring", label: "Calculate Scoring", icon: <BsCalculator /> },
             { path: "/viewReports", label: "Issues", icon: <BsCardChecklist /> },
             { path: "/jobrunner", label: "Job Runner", icon: <GiRunningNinja /> },
+            { path: "/sundayreminderconfig", label: "Sunday Reminders", icon: <BsBell /> },
         ] : []),
         { path: "/account", label: "Account", icon: <BsPersonCircle /> },
     ];

@@ -57,27 +57,29 @@ export default async function tuesdayJob() {
       const users = await userDetails.find({}, { session }).toArray();
       const usernames = users.map(u => u.username);
 
-      // Step 3: Fill missing picks
-      for (const username of usernames) {
-        const userPicks = picksByUser[username] || [];
-        const typesPicked = userPicks.map(p => p.type);
-        const allTypes = ['favorite', 'dog', 'over', 'under'];
+      // Step 3: Fill missing picks (skip week 1 — no penalty at start of season)
+      if (parseInt(week) > 1) {
+        for (const username of usernames) {
+          const userPicks = picksByUser[username] || [];
+          const typesPicked = userPicks.map(p => p.type);
+          const allTypes = ['favorite', 'dog', 'over', 'under'];
 
-        const missingTypes = allTypes.filter(t => !typesPicked.includes(t));
+          const missingTypes = allTypes.filter(t => !typesPicked.includes(t));
 
-        for (const type of missingTypes) {
-          const blankPick = {
-            username,
-            type,
-            gameId: null,
-            text: `Did not submit a ${type}`,
-            season,
-            week,
-            result: -1,
-            createdAt: Date(),
-            commence_time: null
-          };
-          picksNoId.push(blankPick);
+          for (const type of missingTypes) {
+            const blankPick = {
+              username,
+              type,
+              gameId: null,
+              text: `Did not submit a ${type}`,
+              season,
+              week,
+              result: -1,
+              createdAt: Date(),
+              commence_time: null
+            };
+            picksNoId.push(blankPick);
+          }
         }
       }
 
