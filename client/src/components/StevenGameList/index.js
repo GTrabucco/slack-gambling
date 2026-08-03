@@ -324,10 +324,21 @@ const StevenGameList = ({ tempPicks,
                                 </Paper>
                             );
                         })}
-                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 5, mb: 1 }}>
-                    <StevenButton type="submit">Submit</StevenButton>
-                </Box>
-                <br />
+                <Box sx={{ pb: 10 }} />
+            </Box>
+            <Box sx={{
+                position: "fixed",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                display: "flex",
+                justifyContent: "center",
+                p: 2,
+                backdropFilter: "blur(8px)",
+                backgroundColor: "rgba(0,0,0,0.5)",
+                zIndex: 1000,
+            }}>
+                <StevenButton type="submit" sx={{ width: "100%", maxWidth: 600 }}>Submit</StevenButton>
             </Box>
         </>
     );
