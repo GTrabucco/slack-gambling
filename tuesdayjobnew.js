@@ -84,7 +84,7 @@ export default async function tuesdayJob() {
       }
 
       // Process picks (add results etc)
-      const processedPicks = await processPicks(season, week, picksNoId, weekType);
+      const processedPicks = await processPicks(season, week, weekType, picksNoId);
 
       // Insert processed picks into Picks_History
       if (processedPicks.length > 0) {

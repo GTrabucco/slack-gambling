@@ -21,14 +21,15 @@ function buildBoxscoresUrl(season, week, weekType) {
   return url.toString();
 }
 
-function extractEventIds(items = []) {
+export function extractEventIds(boxscoresResponse) {
+  const items = boxscoresResponse?.data?.items ?? [];
   return items.map(item => {
     const ref = item['$ref'];
     return ref.split('/').pop().split('?')[0];
   });
 }
 
-async function fetchGameResults(eventIds) {
+export async function fetchGameResults(eventIds) {
   const results = [];
 
   for (const id of eventIds) {
@@ -58,7 +59,7 @@ async function fetchGameResults(eventIds) {
   return results;
 }
 
-function calculatePickResult(pick, result) {
+export function calculatePickResult(pick, result) {
   const homeScore = parseFloat(result.homeScore);
   const awayScore = parseFloat(result.awayScore);
   const value = parseFloat(pick.value);
@@ -108,7 +109,7 @@ function calculatePickResult(pick, result) {
   }
 }
 
-export async function processPicks(season, week, picks, weekType) {
+export async function processPicks(season, week, weekType, picks) {
   try {
     validateInputs(season, week, weekType);
 
@@ -119,7 +120,7 @@ export async function processPicks(season, week, picks, weekType) {
       throw new Error(`Failed to retrieve data: ${boxscoresResponse.status}`);
     }
 
-    const eventIds = extractEventIds(boxscoresResponse.data.items);
+    const eventIds = extractEventIds(boxscoresResponse);
     const gameResults = await fetchGameResults(eventIds);
     
     for (const pick of picks) {

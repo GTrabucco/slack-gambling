@@ -9,7 +9,6 @@ const ODDS_FORMAT = 'american';
 const DATE_FORMAT = 'iso';
 
 const oddsApiKey = process.env.ODDS_API_KEY;
-if (!oddsApiKey) throw new Error('ODDS_API_KEY not found in .env file');
 
 function formatGames(data) {
   const toReturn = [];

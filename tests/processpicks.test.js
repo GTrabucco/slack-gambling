@@ -1,7 +1,6 @@
 import { jest, describe, it, expect, beforeEach } from '@jest/globals';
-import { processPicks } from '../processpicksnew.js';
 
-// Mock axios
+// Mock axios BEFORE importing the module under test
 jest.unstable_mockModule('axios', () => ({
     default: {
         get: jest.fn()
@@ -9,6 +8,7 @@ jest.unstable_mockModule('axios', () => ({
 }));
 
 const { default: axios } = await import('axios');
+const { processPicks } = await import('../processpicksnew.js');
 
 const mockBoxscoresResponse = (eventIds) => ({
     status: 200,
