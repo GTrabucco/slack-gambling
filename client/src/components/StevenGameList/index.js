@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { FaPaperPlane } from 'react-icons/fa';
+import { MdCheckCircle } from 'react-icons/md';
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
@@ -279,6 +279,7 @@ const StevenGameList = ({ tempPicks,
                                                 commenceTime
                                             )
                                         }>
+                                            {away_picked && <MdCheckCircle style={{ position: "absolute", top: 6, right: 8, fontSize: "1rem", color: isGotw ? "#D4AF37" : "#90caf9" }} />}
                                             <img src={away_logo} alt={away_team} className="logo" />
                                             <div><div className="team-name">{away_team}</div><b>{away_spread > 0 ? "+" + away_spread : away_spread}</b></div>
                                         </div>
@@ -293,6 +294,7 @@ const StevenGameList = ({ tempPicks,
                                                 commenceTime
                                             )
                                         }>
+                                            {home_picked && <MdCheckCircle style={{ position: "absolute", top: 6, right: 8, fontSize: "1rem", color: isGotw ? "#D4AF37" : "#90caf9" }} />}
                                             <img src={home_logo} alt={home_team} className="logo" />
                                             <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
                                         </div>
@@ -330,27 +332,31 @@ const StevenGameList = ({ tempPicks,
             <Box sx={{
                 position: "fixed",
                 bottom: 20,
-                right: 20,
+                left: 0,
+                right: 0,
+                px: 2,
                 zIndex: 1000,
             }}>
                 <StevenButton
                     type="submit"
                     form="game-picks-form"
                     sx={{
-                        px: 4,
+                        width: "100%",
                         py: 1.5,
                         fontSize: "1rem",
                         fontWeight: "bold",
                         borderRadius: "50px",
-                        boxShadow: "0 4px 20px rgba(25, 118, 210, 0.6)",
+                        backgroundColor: "white",
+                        color: "#1976d2",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                         "&:hover": {
-                            boxShadow: "0 6px 28px rgba(25, 118, 210, 0.85)",
-                            transform: "translateY(-2px)",
+                            backgroundColor: "#f0f0f0",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                         },
                         transition: "all 0.2s ease-in-out",
                     }}
                 >
-                    Submit Picks <FaPaperPlane style={{ marginLeft: 8, fontSize: "0.9rem" }} />
+                    Submit Picks
                 </StevenButton>
             </Box>
         </>

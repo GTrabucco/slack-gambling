@@ -74,14 +74,12 @@
   background-color: rgba(25, 118, 210, 0.45);
 }
 
-.picked::after {
-  content: "✓";
-  position: absolute;
-  top: 6px;
-  right: 10px;
-  font-size: 0.85rem;
-  font-weight: bold;
-  color: #90caf9;
+.picked::after, .gotw-picked::after {
+  display: none;
+}
+
+.gotw-picked::after {
+  display: none;
 }
 
 .logo {

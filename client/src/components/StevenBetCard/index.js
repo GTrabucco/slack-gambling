@@ -23,21 +23,14 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
             const username = user.name;
             const data = { username, gameId, pickType, text }
             await pickService.removePick(data);
-            setSelectedPicks(prevState => {
-                const newState = prevState.filter(
-                    pick => !(pick.gameId === gameId && pick.type === pickType)
-                );
-
-                if (newState.length !== prevState.length) {
-                    const removedPick = prevState.find(pick => pick.gameId === gameId && pick.type === pickType);
-                    setMessage(`Removed ${removedPick.text}`);
-                    setTempPicks(tempPrev => tempPrev.filter(pick => !(pick.gameId === gameId && pick.type === pickType)));
-                } else {
-                    setMessage("Nothing to remove");
-                }
-
-                return newState;
-            });
+            const removedPick = selectedPicks.find(pick => pick.gameId === gameId && pick.type === pickType);
+            if (removedPick) {
+                setMessage(`Removed ${removedPick.text}`);
+                setSelectedPicks(prev => prev.filter(pick => !(pick.gameId === gameId && pick.type === pickType)));
+                setTempPicks(prev => prev.filter(pick => !(pick.gameId === gameId && pick.type === pickType)));
+            } else {
+                setMessage("Nothing to remove");
+            }
         } catch (error) {
             setError('Error submitting pick');
         }

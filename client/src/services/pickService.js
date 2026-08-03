@@ -1,5 +1,7 @@
 import apiClient from "./apiClient";
 
+const USE_DUMMY_DATA = true; // set to false to use real backend
+
 const pickService = {
     getPickHistory: async (username, season) => {
         const params = {};
@@ -16,6 +18,7 @@ const pickService = {
     },
 
     getWeeklyPicks: async (username) => {
+        if (USE_DUMMY_DATA) return { data: [] };
         const params = {};
 
         if (username != null) {
@@ -26,10 +29,12 @@ const pickService = {
     },
 
     submitPick: async (pick) => {
+        if (USE_DUMMY_DATA) return { data: { success: true } };
         return apiClient.post("/api/submit-picks", pick);
     },
 
     removePick: async (pick) => {
+        if (USE_DUMMY_DATA) return { data: { success: true } };
         return apiClient.post("/api/remove-pick", pick);
     },
 
