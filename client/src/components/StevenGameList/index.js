@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FaPaperPlane } from 'react-icons/fa';
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
@@ -180,7 +181,7 @@ const StevenGameList = ({ tempPicks,
                 selectedGameId={selectedGameId}
                 setShowStevenInfo={setShowStevenInfo}
             />
-            <Box component="form" onSubmit={(e) => submitPicks(e)} sx={{ maxWidth: 600, mx: "auto" }}>
+            <Box component="form" id="game-picks-form" onSubmit={(e) => submitPicks(e)} sx={{ maxWidth: 600, mx: "auto" }}>
                 {gameEntries
                         .map(({ game, isGotw }, entryIndex) => {
                             let home_team = game["home_team"];
@@ -328,17 +329,29 @@ const StevenGameList = ({ tempPicks,
             </Box>
             <Box sx={{
                 position: "fixed",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                display: "flex",
-                justifyContent: "center",
-                p: 2,
-                backdropFilter: "blur(8px)",
-                backgroundColor: "rgba(0,0,0,0.5)",
+                bottom: 20,
+                right: 20,
                 zIndex: 1000,
             }}>
-                <StevenButton type="submit" sx={{ width: "100%", maxWidth: 600 }}>Submit</StevenButton>
+                <StevenButton
+                    type="submit"
+                    form="game-picks-form"
+                    sx={{
+                        px: 4,
+                        py: 1.5,
+                        fontSize: "1rem",
+                        fontWeight: "bold",
+                        borderRadius: "50px",
+                        boxShadow: "0 4px 20px rgba(25, 118, 210, 0.6)",
+                        "&:hover": {
+                            boxShadow: "0 6px 28px rgba(25, 118, 210, 0.85)",
+                            transform: "translateY(-2px)",
+                        },
+                        transition: "all 0.2s ease-in-out",
+                    }}
+                >
+                    Submit Picks <FaPaperPlane style={{ marginLeft: 8, fontSize: "0.9rem" }} />
+                </StevenButton>
             </Box>
         </>
     );
