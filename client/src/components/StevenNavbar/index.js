@@ -74,7 +74,7 @@ const StevenNavbar = () => {
                     ))}
                 </DialogContent>
                 <DialogActions>
-                    <StevenButton onClick={() => setShowRules(false)}>Close</StevenButton>
+                    <StevenButton onClick={() => setShowRules(false)} sx={{ backgroundColor: "white", color: "black", "&:hover": { backgroundColor: "#f0f0f0" } }}>Close</StevenButton>
                 </DialogActions>
             </Dialog>
 
@@ -99,6 +99,7 @@ const StevenNavbar = () => {
                         onClick={() => setShowRules(true)}
                         variant="outlined"
                         size="small"
+                        sx={{ color: "red", borderColor: "red", "&:hover": { borderColor: "darkred", color: "darkred" } }}
                     >
                         Rules
                     </StevenButton>

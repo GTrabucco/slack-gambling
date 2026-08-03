@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { MdCheckCircle } from 'react-icons/md';
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
@@ -279,7 +278,6 @@ const StevenGameList = ({ tempPicks,
                                                 commenceTime
                                             )
                                         }>
-                                            {away_picked && <MdCheckCircle style={{ position: "absolute", top: 6, right: 8, fontSize: "1rem", color: isGotw ? "#D4AF37" : "#90caf9" }} />}
                                             <img src={away_logo} alt={away_team} className="logo" />
                                             <div><div className="team-name">{away_team}</div><b>{away_spread > 0 ? "+" + away_spread : away_spread}</b></div>
                                         </div>
@@ -294,7 +292,6 @@ const StevenGameList = ({ tempPicks,
                                                 commenceTime
                                             )
                                         }>
-                                            {home_picked && <MdCheckCircle style={{ position: "absolute", top: 6, right: 8, fontSize: "1rem", color: isGotw ? "#D4AF37" : "#90caf9" }} />}
                                             <img src={home_logo} alt={home_team} className="logo" />
                                             <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
                                         </div>
@@ -347,7 +344,7 @@ const StevenGameList = ({ tempPicks,
                         fontWeight: "bold",
                         borderRadius: "50px",
                         backgroundColor: "white",
-                        color: "#1976d2",
+                        color: "black",
                         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                         "&:hover": {
                             backgroundColor: "#f0f0f0",
