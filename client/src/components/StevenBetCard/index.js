@@ -59,7 +59,7 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                                 key = pick.gameId + "-" + type
                             }
                             return (
-                                <StevenTableRow key={type}>
+                                <StevenTableRow key={type} sx={type === 'gotw' ? { "& td": { color: "#D4AF37", fontWeight: "bold" } } : {}}>
                                     <StevenTableCell>
                                         <b>{type === 'gotw' ? 'Game of the Week' : type.charAt(0).toUpperCase() + type.slice(1)}</b>
                                     </StevenTableCell>
@@ -72,7 +72,7 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                                                 onClick={() => removePick(key, value)}
                                                 style={{
                                                     cursor: 'pointer',
-                                                    color: 'grey',
+                                                    color: type === 'gotw' ? '#D4AF37' : 'grey',
                                                     display: 'inline-flex',
                                                     justifyContent: 'center',
                                                     alignItems: 'center',

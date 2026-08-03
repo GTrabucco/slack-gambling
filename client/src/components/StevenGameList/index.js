@@ -59,11 +59,13 @@ const StevenGameList = ({ tempPicks,
     }
     const submitPicks = async (e) => {
         e.preventDefault();
-        const additions = Object.entries(tempPicks).filter(
-            ([key, value]) => !selectedPicks.hasOwnProperty(key) || selectedPicks[key] !== value
-        );
-        for (let pick in additions) {
-            await submitPick(additions[pick][1])
+        const additions = tempPicks.filter(tempPick => {
+            const existing = selectedPicks.find(p => p.type === tempPick.type);
+            if (!existing) return true;
+            return existing.gameId !== tempPick.gameId || existing.text !== tempPick.text;
+        });
+        for (let pick of additions) {
+            await submitPick(pick)
         }
 
         await fetchPicks();
@@ -164,6 +166,13 @@ const StevenGameList = ({ tempPicks,
         ? [...games].sort((a, b) => new Date(b["commence_time"]) - new Date(a["commence_time"]))[0]["_id"]
         : null;
 
+    // Build the ordered list: GOTW game first (as gotw), then all games in chronological order (GOTW game included as regular)
+    const sortedGames = [...games].sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]));
+    const gotwGame = games.find(g => g["_id"] === gotwGameId);
+    const gameEntries = gotwGame
+        ? [{ game: gotwGame, isGotw: true }, ...sortedGames.map(g => ({ game: g, isGotw: false }))]
+        : sortedGames.map(g => ({ game: g, isGotw: false }));
+
     return (
         <>
             <StevenGameInfo
@@ -172,9 +181,8 @@ const StevenGameList = ({ tempPicks,
                 setShowStevenInfo={setShowStevenInfo}
             />
             <Box component="form" onSubmit={(e) => submitPicks(e)} sx={{ maxWidth: 600, mx: "auto" }}>
-                {games
-                        .sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]))
-                        .map((game) => {
+                {gameEntries
+                        .map(({ game, isGotw }, entryIndex) => {
                             let home_team = game["home_team"];
                             let away_team = game["away_team"];
                             let home_spread = game["home_spread"]
@@ -193,8 +201,6 @@ const StevenGameList = ({ tempPicks,
                             let underdog = +home_spread > +away_spread ? home_team + " +" + home_spread : away_team + " +" + away_spread
                             let favorite_spread = +home_spread > +away_spread ? +away_spread : +home_spread
                             let underdog_spread = +home_spread > +away_spread ? +home_spread : +away_spread
-
-                            const isGotw = game["_id"] === gotwGameId;
 
                             const away_picked = Array.isArray(tempPicks)
                                 ? isGotw
@@ -218,7 +224,7 @@ const StevenGameList = ({ tempPicks,
                             const dateObj = new Date(commenceTime);
                             return (
                                 <Paper
-                                    key={game["_id"]}
+                                    key={isGotw ? `gotw-${game["_id"]}` : game["_id"]}
                                     sx={{
                                         mb: 2.5,
                                         ...(isGotw && {
@@ -291,7 +297,7 @@ const StevenGameList = ({ tempPicks,
                                         </div>
                                         <div className="icon-text-container">
                                                 {(isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Over")) : over_picked) ? (
-                                                    <span className="total-picked">
+                                                    <span className={isGotw ? "gotw-total-picked" : "total-picked"}>
                                                         <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
                                                             updatePick(game["_id"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
                                                         }></h2>
@@ -303,7 +309,7 @@ const StevenGameList = ({ tempPicks,
                                                 )}
                                                 <div className="over-text"><b>{over}</b></div>
                                                 {(isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Under")) : under_picked) ? (
-                                                    <span className="total-picked">
+                                                    <span className={isGotw ? "gotw-total-picked" : "total-picked"}>
                                                         <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
                                                             updatePick(game["_id"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
                                                         }></h2>

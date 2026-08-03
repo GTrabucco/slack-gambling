@@ -124,7 +124,7 @@ const PickHistory = () => {
                     {sortedWeekKeys.map(week => (
                         <React.Fragment key={week}>
                             <StevenTableRow>
-                                <StevenTableCell colSpan={4} sx={{ backgroundColor: "#eee", fontWeight: "bold" }}>
+                                <StevenTableCell colSpan={4} sx={{ backgroundColor: "#eee", fontWeight: "bold", color: "black" }}>
                                     Week {week} ({(() => {const sum = groupedByWeek[week].reduce((acc, item) => acc + item.result, 0);
                                                             return sum > 0 ? <span style={{ color: "green" }}>+{sum}</span> : <span style={{ color: "red" }}>{sum}</span>;
                                                          })()})
