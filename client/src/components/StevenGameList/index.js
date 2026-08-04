@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import Divider from "@mui/material/Divider";
 import StevenGameInfo from "../StevenGameInfo";
 import StevenButton from "../Common/StevenButton";
 import gameService from "../../services/gameService";
@@ -20,6 +28,7 @@ const StevenGameList = ({ tempPicks,
 }) => {
     const [selectedGameId, setSelectedGameId] = useState()
     const [showStevenInfo, setShowStevenInfo] = useState(false)
+    const [showConfirm, setShowConfirm] = useState(false)
     useEffect(() => {
         const fetchGames = async () => {
             try {
@@ -54,23 +63,34 @@ const StevenGameList = ({ tempPicks,
             const data = { username, homeTeam, awayTeam, type, gameId, value, text }
             await pickService.submitPick(data);
         } catch (error) {
-            setError('Error submitting pick');
+            const msg = error?.response?.data?.error || 'Error submitting pick';
+            setError(msg);
+            throw error;
         }
     }
-    const submitPicks = async (e) => {
-        e.preventDefault();
+    const submitPicks = async () => {
         const additions = tempPicks.filter(tempPick => {
             const existing = selectedPicks.find(p => p.type === tempPick.type);
             if (!existing) return true;
             return existing.gameId !== tempPick.gameId || existing.text !== tempPick.text;
         });
-        for (let pick of additions) {
-            await submitPick(pick)
+        const removals = selectedPicks.filter(existing =>
+            !tempPicks.find(p => p.type === existing.type)
+        );
+        try {
+            for (let pick of removals) {
+                await pickService.removePick({ username: user.name, pickType: pick.type, gameId: pick.gameId, text: pick.text });
+            }
+            for (let pick of additions) {
+                await submitPick(pick);
+            }
+            await fetchPicks();
+            setShowConfirm(false);
+            setMessage("Successfully Submitted Picks");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (_) {
+            setShowConfirm(false);
         }
-
-        await fetchPicks();
-        setMessage("Successfully Submitted Picks")
-        window.scrollTo({ top: 0, behavior: "smooth" })
     }
 
     const isOpposite = (type) => {
@@ -97,7 +117,7 @@ const StevenGameList = ({ tempPicks,
         const existingPick = tempPicks.find(pick => pick.type === type);
         if (existingPick) {
             const existingPickCommenceTime = getCommenceTimeByGameId(existingPick.gameId);
-            if (gameStarted(existingPickCommenceTime)) {
+            if (existingPickCommenceTime && gameStarted(existingPickCommenceTime)) {
                 setError(`You already selected a ${type} in a game that has started`);
                 return;
             }
@@ -119,27 +139,26 @@ const StevenGameList = ({ tempPicks,
             return;
         }
 
-        const oppositePick = tempPicks.find(pick => pick.type === isOpposite(type) && pick.gameId === gameId)
+        const oppositePick = tempPicks.find(pick =>
+            pick.type === isOpposite(type) &&
+            (type === "over" || type === "under" ? true : pick.gameId === gameId)
+        )
         if (oppositePick) {
             setTempPicks(prevState => {
-                const oppositeIndex = prevState.findIndex(
-                    pick => pick.type === isOpposite(type) && pick.gameId === gameId
+                // Remove the opposite pick and upsert the new pick in one update
+                const withoutOpposite = prevState.filter(
+                    pick => !(pick.type === isOpposite(type) &&
+                        (type === "over" || type === "under" ? true : pick.gameId === gameId))
                 );
-
-                if (oppositeIndex !== -1 && prevState[oppositeIndex].gameId === gameId) {
-                    const newState = [...prevState];
-                    newState.splice(oppositeIndex, 1);
+                const existingIndex = withoutOpposite.findIndex(pick => pick.type === type);
+                if (existingIndex !== -1) {
+                    const newState = [...withoutOpposite];
+                    newState[existingIndex] = { gameId, homeTeam, awayTeam, type, value, text };
                     return newState;
                 }
-
-                if (oppositeIndex !== -1) {
-                    const newState = [...prevState];
-                    newState[oppositeIndex] = { gameId, homeTeam, awayTeam, type, value, text };
-                    return newState;
-                }
-
-                return [...prevState, { gameId, homeTeam, awayTeam, type, value, text }];
+                return [...withoutOpposite, { gameId, homeTeam, awayTeam, type, value, text }];
             });
+            return;
         }
 
         setTempPicks(prevState => {
@@ -163,15 +182,26 @@ const StevenGameList = ({ tempPicks,
         });
     };
     const gotwGameId = games.length > 0
-        ? (games.find(g => g.isGotw)?._id ?? [...games].sort((a, b) => new Date(b["commence_time"]) - new Date(a["commence_time"]))[0]["_id"])
+        ? (games.find(g => g.isGotw)?.gameId ?? [...games].sort((a, b) => new Date(b["commence_time"]) - new Date(a["commence_time"]))[0]["gameId"])
         : null;
 
     // Build the ordered list: GOTW game first (as gotw), then all games in chronological order (GOTW game included as regular)
     const sortedGames = [...games].sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]));
-    const gotwGame = games.find(g => g["_id"] === gotwGameId);
+    const gotwGame = games.find(g => g["gameId"] === gotwGameId);
     const gameEntries = gotwGame
         ? [{ game: gotwGame, isGotw: true }, ...sortedGames.map(g => ({ game: g, isGotw: false }))]
         : sortedGames.map(g => ({ game: g, isGotw: false }));
+
+    const pickTypeLabel = (type) => {
+        switch (type) {
+            case "favorite": return "Favorite";
+            case "dog": return "Underdog";
+            case "over": return "Over";
+            case "under": return "Under";
+            case "gotw": return "Game of the Week";
+            default: return type;
+        }
+    };
 
     return (
         <>
@@ -180,7 +210,62 @@ const StevenGameList = ({ tempPicks,
                 selectedGameId={selectedGameId}
                 setShowStevenInfo={setShowStevenInfo}
             />
-            <Box component="form" id="game-picks-form" onSubmit={(e) => submitPicks(e)} sx={{ maxWidth: 600, mx: "auto" }}>
+
+            {/* Confirmation Modal */}
+            <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ fontWeight: 700 }}>Confirm Your Picks</DialogTitle>
+                <DialogContent dividers>
+                    {tempPicks.length === 0 ? (
+                        <Typography color="text.secondary">No picks selected.</Typography>
+                    ) : (
+                        <List disablePadding>
+                            {["favorite", "dog", "over", "under", "gotw"].map((type) => {
+                                const pick = tempPicks.find(p => p.type === type);
+                                const isTotal = type === "over" || type === "under" ||
+                                    (type === "gotw" && pick?.text?.includes("Over") || type === "gotw" && pick?.text?.includes("Under"));
+                                const homeLogoName = pick ? `logos/${pick.homeTeam?.split(" ").pop()}.png` : null;
+                                const awayLogoName = pick ? `logos/${pick.awayTeam?.split(" ").pop()}.png` : null;
+                                // For spread picks, determine which team was picked from the text
+                                const pickedTeamLogo = pick && !isTotal
+                                    ? (() => {
+                                        const homeLast = pick.homeTeam?.split(" ").pop();
+                                        const awayLast = pick.awayTeam?.split(" ").pop();
+                                        if (pick.text?.includes(pick.homeTeam)) return `logos/${homeLast}.png`;
+                                        if (pick.text?.includes(pick.awayTeam)) return `logos/${awayLast}.png`;
+                                        return null;
+                                    })()
+                                    : null;
+                                return (
+                                    <ListItem key={type} disablePadding sx={{ py: 0.75, gap: 1.5, alignItems: "center" }}>
+                                        <Box sx={{ width: 64, flexShrink: 0, display: "flex", gap: 0.5, justifyContent: "center", alignItems: "center" }}>
+                                            {pick && isTotal ? (
+                                                <>
+                                                    <img src={awayLogoName} alt="" width={28} height={28} style={{ objectFit: "contain" }} />
+                                                    <img src={homeLogoName} alt="" width={28} height={28} style={{ objectFit: "contain" }} />
+                                                </>
+                                            ) : pick && pickedTeamLogo ? (
+                                                <img src={pickedTeamLogo} alt="" width={32} height={32} style={{ objectFit: "contain" }} />
+                                            ) : null}
+                                        </Box>
+                                        <ListItemText
+                                            primary={pickTypeLabel(type)}
+                                            secondary={pick ? pick.text : <em style={{ color: "#888" }}>No pick</em>}
+                                            primaryTypographyProps={{ fontWeight: 600, fontSize: 14 }}
+                                            secondaryTypographyProps={{ fontSize: 13 }}
+                                        />
+                                    </ListItem>
+                                );
+                            })}
+                        </List>
+                    )}
+                </DialogContent>
+                <DialogActions sx={{ gap: 1, px: 2, pb: 2 }}>
+                    <StevenButton onClick={() => setShowConfirm(false)} sx={{ color: "gray", borderColor: "gray" }} variant="outlined">Cancel</StevenButton>
+                    <StevenButton onClick={submitPicks} sx={{ backgroundColor: "white", color: "black", "&:hover": { backgroundColor: "#f0f0f0" } }}>Confirm</StevenButton>
+                </DialogActions>
+            </Dialog>
+
+            <Box id="game-picks-form" sx={{ maxWidth: 600, mx: "auto" }}>
                 {gameEntries
                         .map(({ game, isGotw }, entryIndex) => {
                             let home_team = game["home_team"];
@@ -202,17 +287,18 @@ const StevenGameList = ({ tempPicks,
                             let favorite_spread = +home_spread > +away_spread ? +away_spread : +home_spread
                             let underdog_spread = +home_spread > +away_spread ? +home_spread : +away_spread
 
+                            const gameIdStr = game["gameId"];
                             const away_picked = Array.isArray(tempPicks)
                                 ? isGotw
                                     ? tempPicks.find(obj => obj.type === "gotw" && !obj.text.includes("Over") && !obj.text.includes("Under") && obj.text.includes(away_team_name))
-                                    : tempPicks.find(obj => obj.type === "dog" && obj.text.includes(away_team_name)) ||
-                                      tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(away_team_name))
+                                    : tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "dog" && obj.text.includes(away_team_name)) ||
+                                      tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "favorite" && obj.text.includes(away_team_name))
                                 : null;
                             const home_picked = Array.isArray(tempPicks)
                                 ? isGotw
                                     ? tempPicks.find(obj => obj.type === "gotw" && !obj.text.includes("Over") && !obj.text.includes("Under") && obj.text.includes(home_team_name))
-                                    : tempPicks.find(obj => obj.type === "dog" && obj.text.includes(home_team_name)) ||
-                                      tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(home_team_name))
+                                    : tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "dog" && obj.text.includes(home_team_name)) ||
+                                      tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "favorite" && obj.text.includes(home_team_name))
                                 : null;
                             const over_picked = Array.isArray(tempPicks)
                                 ? tempPicks.find(obj => obj.type === "over" && obj.text?.includes(home_team) && obj.text?.includes(away_team))
@@ -224,7 +310,7 @@ const StevenGameList = ({ tempPicks,
                             const dateObj = new Date(commenceTime);
                             return (
                                 <Paper
-                                    key={isGotw ? `gotw-${game["_id"]}` : game["_id"]}
+                                    key={isGotw ? `gotw-${game["gameId"]}` : game["gameId"]}
                                     sx={{
                                         mb: 2.5,
                                         ...(isGotw && {
@@ -269,7 +355,7 @@ const StevenGameList = ({ tempPicks,
                                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", textAlign: "center", width: "100%" }}>
                                         <div className={`team-container ${away_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
                                             updatePick(
-                                                game["_id"],
+                                                game["gameId"],
                                                 home_team,
                                                 away_team,
                                                 isGotw ? "gotw" : (away_spread > 0 ? "dog" : "favorite"),
@@ -283,7 +369,7 @@ const StevenGameList = ({ tempPicks,
                                         </div>
                                         <div className={`team-container ${home_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
                                             updatePick(
-                                                game["_id"],
+                                                game["gameId"],
                                                 home_team,
                                                 away_team,
                                                 isGotw ? "gotw" : (away_spread > 0 ? "favorite" : "dog"),
@@ -299,24 +385,24 @@ const StevenGameList = ({ tempPicks,
                                                 {(isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Over")) : over_picked) ? (
                                                     <span className={isGotw ? "gotw-total-picked" : "total-picked"}>
                                                         <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
-                                                            updatePick(game["_id"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
+                                                            updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
                                                         }></h2>
                                                     </span>
                                                 ) : (
                                                     <h2 className="total bi bi-arrow-up-square-fill" onClick={() =>
-                                                        updatePick(game["_id"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
+                                                        updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
                                                     }></h2>
                                                 )}
                                                 <div className="over-text"><b>{over}</b></div>
                                                 {(isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Under")) : under_picked) ? (
                                                     <span className={isGotw ? "gotw-total-picked" : "total-picked"}>
                                                         <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
-                                                            updatePick(game["_id"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
+                                                            updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
                                                         }></h2>
                                                     </span>
                                                 ) : (
                                                     <h2 className="total bi bi-arrow-down-square-fill" onClick={() =>
-                                                        updatePick(game["_id"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
+                                                        updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
                                                     }></h2>
                                                 )}
                                             </div>
@@ -325,18 +411,17 @@ const StevenGameList = ({ tempPicks,
                             );
                         })}
                 <Box sx={{ pb: 10 }} />
-            </Box>
-            <Box sx={{
-                position: "fixed",
-                bottom: 20,
-                left: 0,
-                right: 0,
-                px: 2,
-                zIndex: 1000,
-            }}>
-                <StevenButton
-                    type="submit"
-                    form="game-picks-form"
+                </Box>
+                <Box sx={{
+                    position: "fixed",
+                    bottom: 20,
+                    left: 0,
+                    right: 0,
+                    px: 2,
+                    zIndex: 1000,
+                }}>
+                    <StevenButton
+                        onClick={() => setShowConfirm(true)}
                     sx={{
                         width: "100%",
                         py: 1.5,

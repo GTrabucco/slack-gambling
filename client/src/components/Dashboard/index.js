@@ -58,8 +58,8 @@ const Dashboard = () => {
   }, [user.name]);
 
   const getCommenceTimeByGameId = (gameId) => {
-    const obj = games.find(item => item["_id"] === gameId);
-    return obj.commence_time
+    const obj = games.find(item => item["gameId"] === gameId);
+    return obj?.commence_time;
   }
 
   const gameStarted = (commenceTime) => {

@@ -242,6 +242,7 @@ const ManagePicks = () => {
                             <StevenTableHead>
                                 <StevenTableRow>
                                     <StevenTableCell>Type</StevenTableCell>
+                                    <StevenTableCell>Game ID</StevenTableCell>
                                     <StevenTableCell>Game</StevenTableCell>
                                     <StevenTableCell>Text</StevenTableCell>
                                     <StevenTableCell>Value</StevenTableCell>
@@ -261,10 +262,13 @@ const ManagePicks = () => {
                                                     size="small"
                                                 />
                                             </StevenTableCell>
+                                            <StevenTableCell sx={{ fontSize: 11, fontFamily: "monospace", color: "text.secondary" }}>
+                                                {pick.gameId ?? "—"}
+                                            </StevenTableCell>
                                             <StevenTableCell>
                                                 {pick.awayTeam && pick.homeTeam
                                                     ? `${pick.awayTeam} @ ${pick.homeTeam}`
-                                                    : pick.gameId ?? "—"}
+                                                    : "—"}
                                             </StevenTableCell>
                                             <StevenTableCell>{pick.text}</StevenTableCell>
                                             <StevenTableCell>{pick.value}</StevenTableCell>

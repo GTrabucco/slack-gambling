@@ -456,13 +456,42 @@ app.post('/api/submit-picks', submitLimiter, async (req, res) => {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    const VALID_TYPES = ['favorite', 'dog', 'over', 'under', 'gotw'];
+    if (!VALID_TYPES.includes(type)) {
+        return res.status(400).json({ error: 'Invalid pick type' });
+    }
+
     try {
         const db = client.db(DATABASE_NAME);
         const picksCollection = db.collection('Picks');
+        const gamesCollection = db.collection('Games');
+
+        // Validate the target game exists and hasn't started
+        let targetGame;
+        try {
+            targetGame = await gamesCollection.findOne({ gameId: gameId });
+        } catch (_) { /* invalid gameId */ }
+        if (!targetGame) return res.status(400).json({ error: 'Game not found' });
+        if (new Date(targetGame.commence_time) <= new Date()) {
+            return res.status(400).json({ error: 'That game has already started — pick is locked' });
+        }
+
         const config = await db.collection('Config').findOne({ _id: 'current' });
         const season = config?.season ?? null;
         const filter = { username: username, type: type };
         const existingPick = await picksCollection.findOne(filter);
+
+        // If the user already has a pick of this type in a started game, block the change
+        if (existingPick && existingPick.gameId !== gameId) {
+            let existingGame;
+            try {
+                existingGame = await gamesCollection.findOne({ gameId: existingPick.gameId });
+            } catch (_) { /* ignore */ }
+            if (existingGame && new Date(existingGame.commence_time) <= new Date()) {
+                return res.status(400).json({ error: `Your ${type} pick is locked — that game has already started` });
+            }
+        }
+
         if (existingPick && existingPick.gameId === gameId && existingPick.text === text) {
             await picksCollection.deleteOne(filter);
             console.log(`Deleted pick for username: ${username}, type: ${type}, text: ${text}`);
