@@ -33,6 +33,14 @@ const pickService = {
         return apiClient.post("/api/remove-pick", pick);
     },
 
+    adminDeletePick: async (id) => {
+        return apiClient.delete(`/api/picks/${id}`);
+    },
+
+    adminCreatePick: async (pick) => {
+        return apiClient.post("/api/admin/picks", pick);
+    },
+
     updatePickHistory: async (id, result) => {
         return apiClient.post("/api/update-pick-history", { id, result });
     },

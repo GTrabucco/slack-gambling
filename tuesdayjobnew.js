@@ -4,6 +4,7 @@ import { MongoClient } from "mongodb";
 import { getGames } from "./theoddsapinew.js";
 import { processPicks } from "./processpicksnew.js";
 import twilio from "twilio";
+import { logCronRun } from "./cronLogger.js";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) throw new Error('MONGODB_URI not found in .env file');
@@ -135,9 +136,12 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
     });
 
     await sendPicksBackup(picks, parseInt(week) - 1);
-    return `Tuesday job success for season ${season}, week ${week - 1}`;
+    const successMsg = `Tuesday job success for season ${season}, week ${week - 1}`;
+    await logCronRun('Tuesday Job', 'success', successMsg);
+    return successMsg;
   } catch (error) {
     console.error('Error during Tuesday job transaction:', error);
+    await logCronRun('Tuesday Job', 'error', error.message);
     throw error;
   } finally {
     await client.close();

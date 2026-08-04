@@ -34,6 +34,10 @@ const userService = {
     markHasPaid: async (username) => {
         return apiClient.post("/api/has-paid", { username });
     },
+
+    deleteUser: async (username) => {
+        return apiClient.delete(`/api/users/${encodeURIComponent(username)}`);
+    },
 }
 
 export default userService;

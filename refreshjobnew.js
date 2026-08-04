@@ -1,6 +1,7 @@
 import { MongoClient } from "mongodb";
 import { getGames } from "./theoddsapinew.js";
 import dotenv from "dotenv";
+import { logCronRun } from "./cronLogger.js";
 dotenv.config();
 
 export default async function refreshJob() {
@@ -47,9 +48,12 @@ export default async function refreshJob() {
     }
 
     console.log(`Refresh job: updated lines for ${updatedCount} games.`);
-    return `Refresh job success: updated ${updatedCount} games.`;
+    const successMsg = `Refresh job success: updated ${updatedCount} games.`;
+    await logCronRun('Refresh Job', 'success', successMsg);
+    return successMsg;
   } catch (error) {
     console.error("Error during refresh job:", error);
+    await logCronRun('Refresh Job', 'error', error.message);
     throw error;
   } finally {
     await client.close();

@@ -13,8 +13,20 @@ const gameService = {
     return apiClient.get("/api/get-game", { params: { gameId }, timeout: 5000 });
   },
 
-  getWeatherDescription: async (details) => {
-    return apiClient.get("/api/get-weather-description", { params: { details }, timeout: 5000 });
+  createGame: async (game) => {
+    return apiClient.post("/api/games", game);
+  },
+
+  updateGame: async (id, game) => {
+    return apiClient.put(`/api/games/${id}`, game);
+  },
+
+  setGotw: async (id) => {
+    return apiClient.put(`/api/games/${id}/gotw`);
+  },
+
+  deleteGame: async (id) => {
+    return apiClient.delete(`/api/games/${id}`);
   },
 };
 

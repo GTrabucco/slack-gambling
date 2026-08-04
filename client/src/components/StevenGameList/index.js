@@ -163,7 +163,7 @@ const StevenGameList = ({ tempPicks,
         });
     };
     const gotwGameId = games.length > 0
-        ? [...games].sort((a, b) => new Date(b["commence_time"]) - new Date(a["commence_time"]))[0]["_id"]
+        ? (games.find(g => g.isGotw)?._id ?? [...games].sort((a, b) => new Date(b["commence_time"]) - new Date(a["commence_time"]))[0]["_id"])
         : null;
 
     // Build the ordered list: GOTW game first (as gotw), then all games in chronological order (GOTW game included as regular)
@@ -215,10 +215,10 @@ const StevenGameList = ({ tempPicks,
                                       tempPicks.find(obj => obj.type === "favorite" && obj.text.includes(home_team_name))
                                 : null;
                             const over_picked = Array.isArray(tempPicks)
-                                ? tempPicks.find(obj => obj.type === "over" && obj.gameId === game["_id"])
+                                ? tempPicks.find(obj => obj.type === "over" && obj.text?.includes(home_team) && obj.text?.includes(away_team))
                                 : null;
                             const under_picked = Array.isArray(tempPicks)
-                                ? tempPicks.find(obj => obj.type === "under" && obj.gameId === game["_id"])
+                                ? tempPicks.find(obj => obj.type === "under" && obj.text?.includes(home_team) && obj.text?.includes(away_team))
                                 : null;
 
                             const dateObj = new Date(commenceTime);

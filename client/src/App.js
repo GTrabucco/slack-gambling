@@ -10,11 +10,14 @@ import AdminRoute from "./router/AdminRouter";
 import { disableReactDevTools } from '@fvilers/disable-react-devtools';
 import ReportIssue from "./components/ReportIssue";
 import ViewReports from "./components/Admin/ViewReports";
+import ViewLogs from "./components/Admin/ViewLogs";
+import ManageGames from "./components/Admin/ManageGames";
+import ManagePicks from "./components/Admin/ManagePicks";
+import ManageAccounts from "./components/Admin/ManageAccounts";
 import PageLoader from "./components/PageLoader";
 import { AuthenticationGuard } from "./components/authentication-guard";
 import WeekPicks from "./components/WeekPicks";
 import JobRunner from "./components/Admin/JobRunner";
-import SundayReminderConfig from "./components/Admin/SundayReminderConfig";
 import AdvancedStats from "./components/AdvancedStats";
 import Statistics from "./components/AdvancedStats/Statistics";
 import TeamsBet from "./components/AdvancedStats/TeamsBet";
@@ -64,8 +67,11 @@ function App() {
         <Route element={<AdminRoute />}>
           <Route path="/calculatescoring" element={<AuthenticationGuard component={CalculateScoring} /> } />
           <Route path="/viewreports" element={<AuthenticationGuard component={ViewReports} /> } />
+          <Route path="/viewlogs" element={<AuthenticationGuard component={ViewLogs} /> } />
+          <Route path="/managegames" element={<AuthenticationGuard component={ManageGames} /> } />
+          <Route path="/managepicks" element={<AuthenticationGuard component={ManagePicks} /> } />
+          <Route path="/manageaccounts" element={<AuthenticationGuard component={ManageAccounts} /> } />
           <Route path="/jobrunner" element={<AuthenticationGuard component={JobRunner} /> } />
-          <Route path="/sundayreminderconfig" element={<AuthenticationGuard component={SundayReminderConfig} /> } />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />

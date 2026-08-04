@@ -10,6 +10,7 @@ import ListItemText from "@mui/material/ListItemText";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import Collapse from "@mui/material/Collapse";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -20,7 +21,8 @@ import { LogoutButton } from "../Common/logout.button";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
     BsClockHistory, BsBug, BsCalculator, BsCardChecklist, BsList,
-    BsPersonCircle, BsHouseDoor, BsBell
+    BsPersonCircle, BsHouseDoor, BsTerminal, BsController, BsCardList,
+    BsPeopleFill, BsChevronDown, BsChevronRight, BsShieldLock
 } from "react-icons/bs";
 import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
 import { ImStatsDots } from "react-icons/im";
@@ -28,10 +30,16 @@ import { GiRunningNinja } from "react-icons/gi";
 import StevenButton from "../Common/StevenButton";
 import "./style.css";
 
+const ADMIN_PATHS = [
+    "/calculatescoring", "/viewReports", "/viewlogs",
+    "/managegames", "/managepicks", "/manageaccounts", "/jobrunner",
+];
+
 const StevenNavbar = () => {
     const { user } = useAuth0();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [showRules, setShowRules] = useState(false);
+    const [adminOpen, setAdminOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -42,20 +50,36 @@ const StevenNavbar = () => {
         setDrawerOpen(false);
     };
 
-    const menuLinks = [
+    const regularLinks = [
         { path: "/dashboard", label: "Home", icon: <BsHouseDoor /> },
         { path: "/standings", label: "Standings", icon: <IoPodiumOutline /> },
         { path: "/pickhistory", label: "History", icon: <BsClockHistory /> },
         { path: "/advancedStats", label: "Advanced Stats", icon: <ImStatsDots /> },
         { path: "/reportissue", label: "Report Issue", icon: <BsBug /> },
-        ...(isAdmin ? [
-            { path: "/calculatescoring", label: "Calculate Scoring", icon: <BsCalculator /> },
-            { path: "/viewReports", label: "Issues", icon: <BsCardChecklist /> },
-            { path: "/jobrunner", label: "Job Runner", icon: <GiRunningNinja /> },
-            { path: "/sundayreminderconfig", label: "Sunday Reminders", icon: <BsBell /> },
-        ] : []),
         { path: "/account", label: "Account", icon: <BsPersonCircle /> },
     ];
+
+    const adminLinks = [
+        { path: "/calculatescoring", label: "Calculate Scoring", icon: <BsCalculator /> },
+        { path: "/viewReports", label: "Issues", icon: <BsCardChecklist /> },
+        { path: "/viewlogs", label: "Logs", icon: <BsTerminal /> },
+        { path: "/managegames", label: "Manage Games", icon: <BsController /> },
+        { path: "/managepicks", label: "Manage Picks", icon: <BsCardList /> },
+        { path: "/manageaccounts", label: "Manage Accounts", icon: <BsPeopleFill /> },
+        { path: "/jobrunner", label: "Job Runner", icon: <GiRunningNinja /> },
+    ];
+
+    const isAdminActive = ADMIN_PATHS.includes(location.pathname);
+
+    const navItemSx = (isActive) => ({
+        "&.Mui-selected": {
+            backgroundColor: "rgba(144, 202, 249, 0.12)",
+            borderLeft: "3px solid #90caf9",
+            "& .MuiListItemText-primary": { color: "#90caf9", fontWeight: 700 },
+            "& .MuiListItemIcon-root": { color: "#90caf9" },
+        },
+        "&.Mui-selected:hover": { backgroundColor: "rgba(144, 202, 249, 0.2)" },
+    });
 
     return (
         <>
@@ -110,29 +134,57 @@ const StevenNavbar = () => {
             <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
                 <Box sx={{ width: 210 }} role="presentation">
                     <List>
-                        {menuLinks.map((link) => {
+                        {regularLinks.map((link) => {
                             const isActive = location.pathname === link.path;
                             return (
                                 <ListItem key={link.path} disablePadding>
-                                    <ListItemButton
-                                        onClick={() => handleNavigate(link.path)}
-                                        selected={isActive}
-                                        sx={{
-                                            "&.Mui-selected": {
-                                                backgroundColor: "rgba(144, 202, 249, 0.12)",
-                                                borderLeft: "3px solid #90caf9",
-                                                "& .MuiListItemText-primary": { color: "#90caf9", fontWeight: 700 },
-                                                "& .MuiListItemIcon-root": { color: "#90caf9" },
-                                            },
-                                            "&.Mui-selected:hover": { backgroundColor: "rgba(144, 202, 249, 0.2)" },
-                                        }}
-                                    >
+                                    <ListItemButton onClick={() => handleNavigate(link.path)} selected={isActive} sx={navItemSx(isActive)}>
                                         <ListItemIcon sx={{ minWidth: 36, fontSize: 18 }}>{link.icon}</ListItemIcon>
                                         <ListItemText primary={link.label} primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 500, fontSize: 15 }} />
                                     </ListItemButton>
                                 </ListItem>
                             );
                         })}
+
+                        {isAdmin && (
+                            <>
+                                <Divider />
+                                <ListItem disablePadding>
+                                    <ListItemButton
+                                        onClick={() => setAdminOpen((o) => !o)}
+                                        selected={isAdminActive && !adminOpen}
+                                        sx={{
+                                            ...navItemSx(isAdminActive),
+                                            ...(isAdminActive ? { borderLeft: "3px solid #90caf9" } : {}),
+                                        }}
+                                    >
+                                        <ListItemIcon sx={{ minWidth: 36, fontSize: 18, color: isAdminActive ? "#90caf9" : "inherit" }}>
+                                            <BsShieldLock />
+                                        </ListItemIcon>
+                                        <ListItemText primary="Admin" primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 600, fontSize: 15, color: isAdminActive ? "#90caf9" : "inherit" }} />
+                                        <Box sx={{ fontSize: 13, color: "text.secondary" }}>
+                                            {adminOpen ? <BsChevronDown /> : <BsChevronRight />}
+                                        </Box>
+                                    </ListItemButton>
+                                </ListItem>
+                                <Collapse in={adminOpen} timeout="auto" unmountOnExit>
+                                    <List disablePadding>
+                                        {adminLinks.map((link) => {
+                                            const isActive = location.pathname === link.path;
+                                            return (
+                                                <ListItem key={link.path} disablePadding>
+                                                    <ListItemButton onClick={() => handleNavigate(link.path)} selected={isActive} sx={{ pl: 4, ...navItemSx(isActive) }}>
+                                                        <ListItemIcon sx={{ minWidth: 36, fontSize: 16 }}>{link.icon}</ListItemIcon>
+                                                        <ListItemText primary={link.label} primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 500, fontSize: 14 }} />
+                                                    </ListItemButton>
+                                                </ListItem>
+                                            );
+                                        })}
+                                    </List>
+                                </Collapse>
+                            </>
+                        )}
+
                         <Divider />
                         <ListItem disablePadding>
                             <ListItemButton>

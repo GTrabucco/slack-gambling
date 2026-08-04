@@ -66,6 +66,8 @@ export async function getGames(startDate, endDate) {
   const sport = Number(weekType) === 1 ? SPORT_PRESEASON : SPORT_NFL;
   const formattedFrom = startDate.toISOString().split('.')[0] + 'Z';
   const formattedTo = endDate.toISOString().split('.')[0] + 'Z';
+
+  const cacheClient = new MongoClient(process.env.MONGODB_URI);
   try {
     const response = await axios.get(
       `https://api.the-odds-api.com/v4/sports/${sport}/odds`,
@@ -84,9 +86,39 @@ export async function getGames(startDate, endDate) {
     );
 
     const formattedGames = formatGames(response.data);
+
+    // Cache the successful response
+    try {
+      await cacheClient.connect();
+      await cacheClient.db('SlackGambling').collection('Games_Cache').updateOne(
+        { _id: 'latest' },
+        { $set: { games: formattedGames, cachedAt: new Date() } },
+        { upsert: true }
+      );
+    } catch (cacheErr) {
+      console.warn('Failed to cache odds response:', cacheErr.message);
+    } finally {
+      await cacheClient.close();
+    }
+
     return formattedGames;
   } catch (error) {
-    console.error('Error in theoddsapi getGames:', error);
+    console.error('Error in theoddsapi getGames — attempting cache fallback:', error.message);
+
+    // Fallback to cached response
+    try {
+      await cacheClient.connect();
+      const cached = await cacheClient.db('SlackGambling').collection('Games_Cache').findOne({ _id: 'latest' });
+      if (cached?.games) {
+        console.warn(`Using cached odds from ${cached.cachedAt}`);
+        return cached.games;
+      }
+    } catch (cacheErr) {
+      console.error('Cache fallback also failed:', cacheErr.message);
+    } finally {
+      await cacheClient.close();
+    }
+
     return [];
   }
 }

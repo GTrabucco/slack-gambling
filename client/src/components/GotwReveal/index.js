@@ -12,7 +12,7 @@ const GotwReveal = ({ games, gameStarted }) => {
     const [users, setUsers] = useState({});
 
     const gotwGame = games.length > 0
-        ? [...games].sort((a, b) => new Date(b.commence_time) - new Date(a.commence_time))[0]
+        ? (games.find(g => g.isGotw) ?? [...games].sort((a, b) => new Date(b.commence_time) - new Date(a.commence_time))[0])
         : null;
 
     const gotwStarted = gotwGame ? gameStarted(gotwGame.commence_time) : false;

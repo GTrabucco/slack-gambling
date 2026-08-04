@@ -1,6 +1,7 @@
 import { MongoClient } from "mongodb";
 import twilio from "twilio";
 import dotenv from "dotenv";
+import { logCronRun } from "./cronLogger.js";
 dotenv.config();
 
 async function sundayReminder() {
@@ -46,8 +47,10 @@ async function sundayReminder() {
     }
 
     console.log("Sunday Reminder Sent");
+    await logCronRun('Sunday Reminder', 'success', 'Sunday reminders sent successfully');
   } catch (error) {
     console.error("Error sending reminders:", error);
+    await logCronRun('Sunday Reminder', 'error', error.message);
   } finally {
     await client.close();
   }

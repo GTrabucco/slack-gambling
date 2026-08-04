@@ -8,7 +8,7 @@ import cron from 'node-cron';
 import tuesdayJob from './tuesdayjobnew.js';
 import sundayReminder from './sundayremindernew.js';
 import refreshJob from './refreshjobnew.js';
-import { weatherAgent } from './weatherAgent.js';
+import twilio from 'twilio';
 import RateLimit from 'express-rate-limit';
 
 dotenv.config();
@@ -60,11 +60,45 @@ const connectDB = async () => {
 
 connectDB();
 
+// Twilio alert helper for cron failures
+const twilioClient = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+async function sendFailureAlert(jobName, error) {
+    try {
+        await twilioClient.messages.create({
+            body: `🚨 ${jobName} failed: ${error.message}`,
+            from: '+18334966404',
+            to: process.env.ADMIN_PHONE_NUMBER,
+        });
+    } catch (e) {
+        console.error('Failed to send failure alert via Twilio:', e);
+    }
+}
+
+// MongoDB indexes
+async function createIndexes() {
+    try {
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Picks').createIndex({ username: 1, type: 1 });
+        await db.collection('Picks_History').createIndex({ username: 1, week: 1, season: 1 });
+        await db.collection('Games').createIndex({ gameId: 1 });
+        await db.collection('Games').createIndex({ week: 1 });
+        console.log('MongoDB indexes created');
+    } catch (e) {
+        console.error('Failed to create indexes:', e);
+    }
+}
+createIndexes();
+
+// Strict rate limiter for sensitive routes
+const submitLimiter = RateLimit({ windowMs: 15 * 60 * 1000, max: 60 });
+const adminLimiter = RateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
+
 cron.schedule("0 9 * * 0", async () => {
     try {
         const result = await sundayReminder();
     } catch (error) {
         console.error("Failed to send Sunday reminder:", error);
+        await sendFailureAlert('Sunday Reminder', error);
     }
 },
     {
@@ -79,6 +113,7 @@ cron.schedule("0 6 * * 2", async () => {
         await tuesdayJob();
     } catch (error) {
         console.error("Automatic Tuesday job failed:", error);
+        await sendFailureAlert('Tuesday Job', error);
     }
 },
     { timezone: "America/New_York" }
@@ -90,6 +125,7 @@ cron.schedule("0 8,18 * * 1-6", async () => {
         await refreshJob();
     } catch (error) {
         console.error("Refresh job (Mon-Sat) failed:", error);
+        await sendFailureAlert('Refresh Job (Mon-Sat)', error);
     }
 },
     { timezone: "America/New_York" }
@@ -101,21 +137,11 @@ cron.schedule("0 8,12,15,18 * * 0", async () => {
         await refreshJob();
     } catch (error) {
         console.error("Refresh job (Sunday) failed:", error);
+        await sendFailureAlert('Refresh Job (Sunday)', error);
     }
 },
     { timezone: "America/New_York" }
 );
-
-app.get("/api/get-weather-description", async (req, res) => {
-    try {
-        const { details } = req.query;
-        const result = await weatherAgent(details);
-        res.json(result);
-    } catch (error) {
-        console.error('Weather Agent Error:', error);
-        res.status(500).json({ error: 'Weather Agent failed', details: error.message });
-    }
-});
 
 app.get('/api/games', async (req, res) => {
     try {
@@ -124,6 +150,70 @@ app.get('/api/games', async (req, res) => {
         res.json(data);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching data from MongoDB' });
+    }
+});
+
+app.post('/api/games', adminLimiter, async (req, res) => {
+    try {
+        const { gameId, commence_time, home_team, away_team, home_spread, away_spread, over, under, season, week } = req.body;
+        if (!home_team || !away_team || !commence_time) {
+            return res.status(400).json({ error: 'home_team, away_team, and commence_time are required' });
+        }
+        const db = client.db(DATABASE_NAME);
+        const game = { gameId: gameId || null, commence_time, home_team, away_team, home_spread: home_spread || null, away_spread: away_spread || null, over: over || null, under: under || null, season, week, isGotw: false };
+        const result = await db.collection('Games').insertOne(game);
+        res.json({ success: true, insertedId: result.insertedId });
+    } catch (error) {
+        console.error('Error creating game:', error);
+        res.status(500).json({ error: 'Error creating game' });
+    }
+});
+
+app.put('/api/games/:id', adminLimiter, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { gameId, commence_time, home_team, away_team, home_spread, away_spread, over, under, season, week } = req.body;
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Games').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { gameId, commence_time, home_team, away_team, home_spread: home_spread || null, away_spread: away_spread || null, over: over || null, under: under || null, season, week } }
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating game:', error);
+        res.status(500).json({ error: 'Error updating game' });
+    }
+});
+
+app.put('/api/games/:id/gotw', adminLimiter, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = client.db(DATABASE_NAME);
+        const game = await db.collection('Games').findOne({ _id: new ObjectId(id) });
+        if (game?.isGotw) {
+            // Already GOTW — unset it
+            await db.collection('Games').updateOne({ _id: new ObjectId(id) }, { $set: { isGotw: false } });
+        } else {
+            // Set this as GOTW, clear all others
+            await db.collection('Games').updateMany({}, { $set: { isGotw: false } });
+            await db.collection('Games').updateOne({ _id: new ObjectId(id) }, { $set: { isGotw: true } });
+        }
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error setting GOTW:', error);
+        res.status(500).json({ error: 'Error setting game of the week' });
+    }
+});
+
+app.delete('/api/games/:id', adminLimiter, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Games').deleteOne({ _id: new ObjectId(id) });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting game:', error);
+        res.status(500).json({ error: 'Error deleting game' });
     }
 });
 
@@ -148,7 +238,7 @@ app.get('/api/get-game', async (req, res) => {
     }
 });
 
-app.post('/api/tuesday-job', async (req, res) => {
+app.post('/api/tuesday-job', adminLimiter, async (req, res) => {
     try {
         const { season, week, weekType } = req.body || {};
         const result = await tuesdayJob(season, week, weekType);
@@ -169,7 +259,7 @@ app.get('/api/config', async (req, res) => {
     }
 });
 
-app.post('/api/config', async (req, res) => {
+app.post('/api/config', adminLimiter, async (req, res) => {
     try {
         const { season, week, weekType } = req.body;
         const db = client.db(DATABASE_NAME);
@@ -184,6 +274,44 @@ app.post('/api/config', async (req, res) => {
     }
 });
 
+
+app.get('/api/text-history', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const logs = await db.collection('Text_History').aggregate([
+            { $sort: { Date: -1 } },
+            { $limit: 200 },
+            {
+                $lookup: {
+                    from: 'User_Details',
+                    localField: 'Number',
+                    foreignField: 'phoneNumber',
+                    as: 'user',
+                    pipeline: [{ $project: { username: 1 } }],
+                }
+            },
+            {
+                $addFields: {
+                    Username: { $arrayElemAt: ['$user.username', 0] }
+                }
+            },
+            { $project: { user: 0 } },
+        ]).toArray();
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching text history' });
+    }
+});
+
+app.get('/api/cron-logs', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const logs = await db.collection('Cron_Logs').find({}).sort({ timestamp: -1 }).limit(100).toArray();
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching cron logs' });
+    }
+});
 
 app.post('/api/refresh-job', async (req, res) => {
     try {
@@ -270,6 +398,35 @@ app.post('/api/update-pick-history', async (req, res) => {
     }
 })
 
+app.delete('/api/picks/:id', adminLimiter, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Picks').deleteOne({ _id: new ObjectId(id) });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting pick:', error);
+        res.status(500).json({ error: 'Error deleting pick' });
+    }
+});
+
+app.post('/api/admin/picks', adminLimiter, async (req, res) => {
+    try {
+        const { username, gameId, homeTeam, awayTeam, type, value, text, season, week } = req.body;
+        if (!username || !type || !gameId) {
+            return res.status(400).json({ error: 'username, type, and gameId are required' });
+        }
+        const db = client.db(DATABASE_NAME);
+        const filter = { username, type };
+        const update = { $set: { username, gameId, homeTeam, awayTeam, type, value, text, season, week, createdAt: new Date() } };
+        await db.collection('Picks').updateOne(filter, update, { upsert: true });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error creating pick:', error);
+        res.status(500).json({ error: 'Error creating pick' });
+    }
+});
+
 app.post('/api/remove-pick', async (req, res) => {
     const { gameId, pickType, username, text } = req.body;
     if (!pickType || !gameId || !text || !username) {
@@ -293,7 +450,7 @@ app.post('/api/remove-pick', async (req, res) => {
     }
 })
 
-app.post('/api/submit-picks', async (req, res) => {
+app.post('/api/submit-picks', submitLimiter, async (req, res) => {
     const { username, homeTeam, awayTeam, type, gameId, value, text } = req.body;
     if (!username || !homeTeam || !awayTeam || !type || !gameId || !value || !text) {
         return res.status(400).json({ error: 'Missing required fields' });
@@ -388,6 +545,18 @@ app.get('/api/userdetails', async (req, res) => {
     }
 });
 
+app.delete('/api/users/:username', adminLimiter, async (req, res) => {
+    try {
+        const { username } = req.params;
+        const db = client.db(DATABASE_NAME);
+        await db.collection('User_Details').deleteOne({ username });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ error: 'Error deleting user' });
+    }
+});
+
 app.get('/api/get-users', async (req, res) => {
     try {
         const db = client.db(DATABASE_NAME);
@@ -423,7 +592,7 @@ app.post('/api/has-paid', async (req, res) => {
 
 app.post('/api/update-userdetails', async (req, res) => {
     try {
-        const { username, receiveSundayReminder, displayName, phoneNumber } = req.body;
+        const { username, receiveSundayReminder, displayName, phoneNumber, hasPaid } = req.body;
         const db = client.db(DATABASE_NAME);
         const userDetails = db.collection('User_Details');
         const filter = { username: username };
@@ -433,7 +602,8 @@ app.post('/api/update-userdetails', async (req, res) => {
                 username: username,
                 receiveSundayReminder: receiveSundayReminder,
                 displayName: displayName,
-                phoneNumber: phoneNumber
+                phoneNumber: phoneNumber,
+                hasPaid: !!hasPaid,
             }
         };
 
