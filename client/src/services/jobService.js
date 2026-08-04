@@ -1,8 +1,8 @@
 import apiClient from "./apiClient";
 
 const jobService = {
-  runTuesdayJob: async () => {
-    return apiClient.post("/api/tuesday-job");
+  runTuesdayJob: async (params) => {
+    return apiClient.post("/api/tuesday-job", params);
   },
 
   runRefreshJob: async () => {

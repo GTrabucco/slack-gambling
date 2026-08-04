@@ -1,8 +1,10 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { MongoClient } from 'mongodb';
 dotenv.config();
 
-const SPORT = 'americanfootball_nfl'; // or 'americanfootball_nfl_preseason'
+const SPORT_NFL = 'americanfootball_nfl';
+const SPORT_PRESEASON = 'americanfootball_nfl_preseason';
 const REGIONS = 'us';
 const MARKETS = 'totals,spreads';
 const ODDS_FORMAT = 'american';
@@ -49,11 +51,24 @@ function formatGames(data) {
 }
 
 export async function getGames(startDate, endDate) {
+  const mongoClient = new MongoClient(process.env.MONGODB_URI);
+  let weekType = 2;
+  try {
+    await mongoClient.connect();
+    const config = await mongoClient.db('SlackGambling').collection('Config').findOne({ _id: 'current' });
+    weekType = config?.weekType ?? 2;
+  } catch (e) {
+    console.warn('getGames: could not read weekType from Config, defaulting to 2 (NFL regular season)');
+  } finally {
+    await mongoClient.close();
+  }
+
+  const sport = Number(weekType) === 1 ? SPORT_PRESEASON : SPORT_NFL;
   const formattedFrom = startDate.toISOString().split('.')[0] + 'Z';
   const formattedTo = endDate.toISOString().split('.')[0] + 'Z';
   try {
     const response = await axios.get(
-      `https://api.the-odds-api.com/v4/sports/${SPORT}/odds`,
+      `https://api.the-odds-api.com/v4/sports/${sport}/odds`,
       {
         params: {
           api_key: oddsApiKey,

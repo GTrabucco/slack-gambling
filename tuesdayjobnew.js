@@ -1,14 +1,14 @@
 import dotenv from "dotenv";
 dotenv.config();
 import { MongoClient } from "mongodb";
-import { getGames } from "./theoddsapinew.js";     
+import { getGames } from "./theoddsapinew.js";
 import { processPicks } from "./processpicksnew.js";
 import twilio from "twilio";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 if (!MONGODB_URI) throw new Error('MONGODB_URI not found in .env file');
 
-export default async function tuesdayJob() {
+export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) {
   const client = new MongoClient(MONGODB_URI, { useUnifiedTopology: true });
   try {
     await client.connect();
@@ -21,17 +21,25 @@ export default async function tuesdayJob() {
     const userDetails = db.collection('User_Details');
     const configCollection = db.collection('Config');
 
-    // Read season/week/weekType from Config
-    const config = await configCollection.findOne({ _id: 'current' });
-    if (!config) throw new Error('Config not found in DB. Please set season, week, and weekType via the admin panel.');
-    let { season, week, weekType } = config;
+    // Use passed params, or fall back to Config in DB
+    let season, week, weekType;
+    if (seasonParam && weekParam && weekTypeParam) {
+      season = seasonParam;
+      week = weekParam;
+      weekType = weekTypeParam;
+    } else {
+      const config = await configCollection.findOne({ _id: 'current' });
+      if (!config) throw new Error('Config not found in DB. Please set season, week, and weekType via the admin panel.');
+      ({ season, week, weekType } = config);
+    }
 
+    let picks = [];
     await session.withTransaction(async () => {
       // Add week fields to all picks
       await picksCollection.updateMany({}, { $set: { week } }, { session });
 
       const picksCursor = picksCollection.find({}, { session });
-      let picks = await picksCursor.toArray();
+      picks = await picksCursor.toArray();
       const gamesForWeek = await gamesCollection.find({}, { session }).toArray();
       const gameTimeById = gamesForWeek.reduce((acc, game) => {
         acc[String(game._id)] = game.commence_time;
@@ -90,14 +98,14 @@ export default async function tuesdayJob() {
       if (processedPicks.length > 0) {
         await picksHistoryCollection.insertMany(processedPicks, { session });
       }
-        
+
       // Backup Games to Games_History
       const games = await gamesCollection.find({}, { session }).toArray();
       if (games.length > 0) {
         await gamesHistoryCollection.insertMany(games, { session });
         await gamesCollection.deleteMany({}, { session });
       }
-      
+
       // Load new games from TheOdds API — full week (Tue through Mon)
       const now = new Date();
       const currentDay = now.getDay();
@@ -119,15 +127,15 @@ export default async function tuesdayJob() {
       // Persist incremented week back to Config
       await configCollection.updateOne(
         { _id: 'current' },
-        { $set: { week } },
-        { session }
+        { $set: { season, week, weekType } },
+        { session, upsert: true }
       );
 
-      console.log(`Tuesday job completed for season ${season}, week ${week}`);
+      console.log(`Tuesday job completed for season ${season}, week ${week - 1}`);
     });
 
-    await sendPicksBackup(picks, config.week);
-    return `Tuesday job success for season ${season}, week ${parseInt(config.week) + 1}`;
+    await sendPicksBackup(picks, parseInt(week) - 1);
+    return `Tuesday job success for season ${season}, week ${week - 1}`;
   } catch (error) {
     console.error('Error during Tuesday job transaction:', error);
     throw error;
@@ -183,7 +191,7 @@ async function sendPicksBackup(picks, week) {
   }
 }
 
-export async function removeDuplicates(db){
+export async function removeDuplicates(db) {
   const picksCollection = db.collection('Picks_History');
   const duplicates = await picksCollection
     .aggregate([

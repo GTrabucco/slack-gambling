@@ -54,10 +54,11 @@ const JobRunner = () => {
     };
 
     const tuesdayJob = async () => {
+        if (!isConfigValid) { setResult("Error: Please fill in Season, Week, and Week Type before running."); return; }
         if (!window.confirm("Are you sure you want to run the Tuesday Job?")) return;
         try {
             if (await validDay("tuesday")) {
-                const res = await jobService.runTuesdayJob();
+                const res = await jobService.runTuesdayJob({ season, week, weekType });
                 setResult(res.data.result);
             }
         } catch (error) {

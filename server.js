@@ -17,7 +17,6 @@ const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const SEASON = "2025"
 
 const allowedOrigins = [
     'https://slackgambling.com',
@@ -77,7 +76,7 @@ cron.schedule("0 9 * * 0", async () => {
 cron.schedule("0 6 * * 2", async () => {
     console.log("Running automatic Tuesday job...");
     try {
-        await tuesdayJob(SEASON, null, null);
+        await tuesdayJob();
     } catch (error) {
         console.error("Automatic Tuesday job failed:", error);
     }
@@ -151,7 +150,8 @@ app.get('/api/get-game', async (req, res) => {
 
 app.post('/api/tuesday-job', async (req, res) => {
     try {
-        const result = await tuesdayJob();
+        const { season, week, weekType } = req.body || {};
+        const result = await tuesdayJob(season, week, weekType);
         res.json({ message: 'Tuesday job executed successfully', result });
     } catch (error) {
         console.error('Tuesday Job Error:', error);
@@ -302,6 +302,8 @@ app.post('/api/submit-picks', async (req, res) => {
     try {
         const db = client.db(DATABASE_NAME);
         const picksCollection = db.collection('Picks');
+        const config = await db.collection('Config').findOne({ _id: 'current' });
+        const season = config?.season ?? null;
         const filter = { username: username, type: type };
         const existingPick = await picksCollection.findOne(filter);
         if (existingPick && existingPick.gameId === gameId && existingPick.text === text) {
@@ -320,7 +322,7 @@ app.post('/api/submit-picks', async (req, res) => {
                 username: username,
                 type: type,
                 createdAt: new Date(),
-                season: SEASON
+                season: season
             }
         };
 
