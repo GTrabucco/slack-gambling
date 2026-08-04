@@ -544,6 +544,35 @@ app.get('/api/get-weekly-picks', async (req, res) => {
     }
 });
 
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const config = await db.collection('Config').findOne({ _id: 'current' });
+        const season = req.query.season || config?.season;
+        const filter = season ? { season } : {};
+
+        const picks = await db.collection('Picks_History').find(filter).toArray();
+        const userTotals = {};
+        for (const pick of picks) {
+            if (!userTotals[pick.username]) userTotals[pick.username] = 0;
+            userTotals[pick.username] += pick.result || 0;
+        }
+
+        const users = await db.collection('User_Details').find({}).project({ username: 1, displayName: 1 }).toArray();
+        const displayMap = {};
+        for (const u of users) displayMap[u.username] = u.displayName || u.username.split('@')[0];
+
+        const sorted = Object.entries(userTotals)
+            .map(([username, score]) => ({ displayName: displayMap[username] || username.split('@')[0], score }))
+            .sort((a, b) => b.score - a.score);
+
+        res.json(sorted);
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        res.status(500).json({ error: 'Error fetching leaderboard' });
+    }
+});
+
 app.get('/api/get-pick-history', async (req, res) => {
     try {
         const { season, username } = req.query;

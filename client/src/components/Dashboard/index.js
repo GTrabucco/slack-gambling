@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import './style.css'
 import { useAuth0 } from "@auth0/auth0-react";
+import Divider from "@mui/material/Divider";
 import StevenNotification from "../StevenNotification";
 import StevenPayPopup from "../StevenPayPopup";
 import StevenBetCard from "../StevenBetCard";
 import StevenGameList from "../StevenGameList";
 import GotwReveal from "../GotwReveal";
+import TopLeaderboard from "../TopLeaderboard";
 import userService from "../../services/userService";
 
 const Dashboard = () => {
@@ -82,7 +84,9 @@ const Dashboard = () => {
         setMessage={setMessage}
         user={user}
       />
-      <StevenBetCard 
+      <TopLeaderboard />
+      <Divider sx={{ my: 2 }} />
+      <StevenBetCard
         selectedPicks={selectedPicks}
         setMessage={setMessage}
         setError={setError}
@@ -93,7 +97,7 @@ const Dashboard = () => {
         setTempPicks={setTempPicks}
       />
       <GotwReveal games={games} gameStarted={gameStarted} />
-      <hr />
+      <Divider sx={{ my: 2 }} />
       <StevenGameList 
         tempPicks={tempPicks}
         setMessage={setMessage}

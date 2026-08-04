@@ -1,0 +1,91 @@
+import { useState, useEffect } from "react";
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import apiClient from "../../services/apiClient";
+
+const RANKS = ["#1", "#2", "#3"];
+const COLORS = [
+    { bg: "rgba(212,175,55,0.15)", border: "rgba(212,175,55,0.6)", text: "#D4AF37" },
+    { bg: "transparent", border: "rgba(255,255,255,0.08)", text: "#888" },
+    { bg: "transparent", border: "rgba(255,255,255,0.06)", text: "#666" },
+];
+
+const getRankedTiers = (players) => {
+    const tiers = [];
+    for (const player of players) {
+        const last = tiers[tiers.length - 1];
+        if (last && last.score === player.score) {
+            last.players.push(player.displayName);
+        } else {
+            if (tiers.length === 3) break;
+            tiers.push({ score: player.score, players: [player.displayName] });
+        }
+    }
+    return tiers;
+};
+
+const TopLeaderboard = () => {
+    const [tiers, setTiers] = useState([]);
+
+    useEffect(() => {
+        apiClient.get("/api/leaderboard")
+            .then(res => setTiers(getRankedTiers(res.data || [])))
+            .catch(() => {});
+    }, []);
+
+    if (tiers.length === 0) return null;
+
+    return (
+        <Box sx={{ maxWidth: 600, mx: "auto", pt: 2, pb: 1 }}>
+            <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <Box sx={{ px: 2, py: 1, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                    <Typography sx={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "text.disabled" }}>
+                        Top 3 Leaderboard
+                    </Typography>
+                </Box>
+                {tiers.map((tier, rank) => (
+                    <Box
+                        key={rank}
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            px: 2,
+                            py: rank === 0 ? 1.5 : 1,
+                            background: COLORS[rank].bg,
+                            borderBottom: rank < tiers.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                        }}
+                    >
+                        <Typography sx={{
+                            fontSize: rank === 0 ? 13 : 11,
+                            fontWeight: 800,
+                            color: COLORS[rank].text,
+                            width: 32,
+                            flexShrink: 0,
+                            letterSpacing: "0.05em",
+                        }}>
+                            {RANKS[rank]}
+                        </Typography>
+                        <Typography sx={{
+                            flex: 1,
+                            fontSize: rank === 0 ? 15 : 13,
+                            fontWeight: rank === 0 ? 700 : 500,
+                            color: rank === 0 ? "#FFD700" : "text.primary",
+                        }}>
+                            {tier.players.join(" & ")}
+                        </Typography>
+                        <Typography sx={{
+                            fontSize: rank === 0 ? 14 : 12,
+                            fontWeight: 700,
+                            color: COLORS[rank].text,
+                        }}>
+                            {tier.score > 0 ? `+${tier.score}` : tier.score} pts
+                        </Typography>
+                    </Box>
+                ))}
+            </Paper>
+        </Box>
+    );
+};
+
+export default TopLeaderboard;

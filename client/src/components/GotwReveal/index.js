@@ -40,6 +40,7 @@ const GotwReveal = ({ games, gameStarted }) => {
         fetchData();
     }, [gotwStarted]);
 
+    if (!gotwGame) return null;
     if (!gotwStarted || allPicks.length === 0) return null;
 
     const activeGame = gotwGame;
@@ -50,7 +51,6 @@ const GotwReveal = ({ games, gameStarted }) => {
     const favoriteText = activeGame.home_spread < 0 ? activeGame.home_team : activeGame.away_team;
     const underdogText = activeGame.home_spread < 0 ? activeGame.away_team : activeGame.home_team;
 
-    // Spread picks: gotw type where text doesn't include Over/Under
     const favoritePickers = allPicks
         .filter(p => p.type === "gotw" && !p.text.includes("Over") && !p.text.includes("Under") && p.text.includes(favoriteText.split(" ").pop()))
         .map(p => displayName(p.username));
@@ -58,7 +58,6 @@ const GotwReveal = ({ games, gameStarted }) => {
         .filter(p => p.type === "gotw" && !p.text.includes("Over") && !p.text.includes("Under") && p.text.includes(underdogText.split(" ").pop()))
         .map(p => displayName(p.username));
 
-    // Over/Under picks: gotw type where text includes Over/Under
     const overPickers = allPicks
         .filter(p => p.type === "gotw" && p.text.includes("Over"))
         .map(p => displayName(p.username));
@@ -108,7 +107,7 @@ const GotwReveal = ({ games, gameStarted }) => {
     );
 
     return (
-        <Box sx={{ mb: 2.5, maxWidth: 600, mx: "auto", pt: 2 }}>
+        <Box sx={{ mb: 2.5, maxWidth: 600, mx: "auto" }}>
             <Paper sx={{
                 border: "2px solid #D4AF37",
                 boxShadow: "0 2px 16px rgba(212, 175, 55, 0.35)",

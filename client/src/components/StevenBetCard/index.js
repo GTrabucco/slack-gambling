@@ -1,4 +1,7 @@
 import { FaTrash } from 'react-icons/fa';
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 import pickService from "../../services/pickService";
 import {
     StevenTableContainer,
@@ -37,10 +40,16 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
     }
 
     return (
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <StevenTableContainer>
-                <StevenTable>
-                    <StevenTableBody>
+        <Box sx={{ maxWidth: 600, mx: "auto", my: 2 }}>
+            <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+                <Box sx={{ px: 2, py: 1, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                    <Typography sx={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "text.disabled" }}>
+                        My Picks
+                    </Typography>
+                </Box>
+                <StevenTableContainer>
+                    <StevenTable>
+                        <StevenTableBody>
                         {['favorite', 'dog', 'over', 'under', 'gotw'].map((type) => {
                             const pick = Array.isArray(selectedPicks)
                                 ? selectedPicks.find(obj => obj.type === type)
@@ -88,7 +97,8 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                     </StevenTableBody>
                 </StevenTable>
             </StevenTableContainer>
-        </div>
+            </Paper>
+        </Box>
     );
 };
 
