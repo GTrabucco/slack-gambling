@@ -634,6 +634,35 @@ app.get('/api/records', async (req, res) => {
     }
 });
 
+app.get('/api/records/all', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const docs = await db.collection('Team_Records').find({}).sort({ team: 1 }).toArray();
+        res.json(docs);
+    } catch (error) {
+        console.error('Error fetching all records:', error);
+        res.status(500).json({ error: 'Error fetching all records' });
+    }
+});
+
+app.put('/api/records/:team', adminLimiter, async (req, res) => {
+    try {
+        const team = decodeURIComponent(req.params.team);
+        const { record } = req.body;
+        if (!record) return res.status(400).json({ error: 'record is required' });
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Team_Records').updateOne(
+            { team },
+            { $set: { team, record, updatedAt: new Date() } },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating record:', error);
+        res.status(500).json({ error: 'Error updating record' });
+    }
+});
+
 app.get('/api/leaderboard', async (req, res) => {
     try {
         const db = client.db(DATABASE_NAME);
