@@ -324,6 +324,31 @@ app.get('/api/cron-logs', async (req, res) => {
     }
 });
 
+app.put('/api/cron-logs/:id/read', adminLimiter, async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const log = await db.collection('Cron_Logs').findOne({ _id: new ObjectId(req.params.id) });
+        if (!log) return res.status(404).json({ error: 'Log not found' });
+        await db.collection('Cron_Logs').updateOne(
+            { _id: new ObjectId(req.params.id) },
+            { $set: { read: !log.read } }
+        );
+        res.json({ read: !log.read });
+    } catch (error) {
+        res.status(500).json({ error: 'Error toggling log read status' });
+    }
+});
+
+app.get('/api/cron-logs/unread-errors/count', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const count = await db.collection('Cron_Logs').countDocuments({ status: 'error', read: { $ne: true } });
+        res.json({ count });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching unread error count' });
+    }
+});
+
 app.post('/api/refresh-job', async (req, res) => {
     try {
         const result = await refreshJob();
@@ -387,6 +412,16 @@ app.get('/api/get-reports', async (req, res) => {
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: 'Error fetching data from MongoDB' });
+    }
+});
+
+app.get('/api/reports/count', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const count = await db.collection('Reports').countDocuments();
+        res.json({ count });
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching report count' });
     }
 });
 

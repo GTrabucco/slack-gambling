@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppBar from "@mui/material/AppBar";
+import Badge from "@mui/material/Badge";
 import Toolbar from "@mui/material/Toolbar";
 import Drawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
@@ -28,6 +29,7 @@ import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
 import { ImStatsDots } from "react-icons/im";
 import { GiRunningNinja } from "react-icons/gi";
 import StevenButton from "../Common/StevenButton";
+import apiClient from "../../services/apiClient";
 import "./style.css";
 
 const ADMIN_PATHS = [
@@ -44,6 +46,19 @@ const StevenNavbar = () => {
     const location = useLocation();
 
     const isAdmin = user.email.toLowerCase() === "giulian.trabucco@gmail.com";
+    const [issueCount, setIssueCount] = useState(0);
+    const [unreadLogCount, setUnreadLogCount] = useState(0);
+
+    useEffect(() => {
+        if (!isAdmin) return;
+        Promise.all([
+            apiClient.get("/api/reports/count"),
+            apiClient.get("/api/cron-logs/unread-errors/count"),
+        ]).then(([issueRes, logRes]) => {
+            setIssueCount(issueRes.data?.count || 0);
+            setUnreadLogCount(logRes.data?.count || 0);
+        }).catch(() => {});
+    }, [isAdmin]);
 
     const handleNavigate = (path) => {
         navigate(path);
@@ -61,8 +76,8 @@ const StevenNavbar = () => {
 
     const adminLinks = [
         { path: "/calculatescoring", label: "Calculate Scoring", icon: <BsCalculator /> },
-        { path: "/viewReports", label: "Issues", icon: <BsCardChecklist /> },
-        { path: "/viewlogs", label: "Logs", icon: <BsTerminal /> },
+        { path: "/viewReports", label: "Issues", icon: <BsCardChecklist />, badge: issueCount },
+        { path: "/viewlogs", label: "Logs", icon: <BsTerminal />, badge: unreadLogCount },
         { path: "/managegames", label: "Manage Games", icon: <BsController /> },
         { path: "/managepicks", label: "Manage Picks", icon: <BsCardList /> },
         { path: "/manageaccounts", label: "Manage Accounts", icon: <BsPeopleFill /> },
@@ -112,7 +127,9 @@ const StevenNavbar = () => {
                         onClick={() => setDrawerOpen(true)}
                         edge="start"
                     >
-                        <BsList size={26} />
+                        <Badge badgeContent={isAdmin ? issueCount + unreadLogCount : 0} color="error" max={99}>
+                            <BsList size={26} />
+                        </Badge>
                     </IconButton>
                     <Box
                         component="a"
@@ -161,7 +178,9 @@ const StevenNavbar = () => {
                                         }}
                                     >
                                         <ListItemIcon sx={{ minWidth: 36, fontSize: 18, color: isAdminActive ? "#90caf9" : "inherit" }}>
-                                            <BsShieldLock />
+                                            <Badge badgeContent={issueCount + unreadLogCount} color="error" max={99}>
+                                                <BsShieldLock />
+                                            </Badge>
                                         </ListItemIcon>
                                         <ListItemText primary="Admin" primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 600, fontSize: 15, color: isAdminActive ? "#90caf9" : "inherit" }} />
                                         <Box sx={{ fontSize: 13, color: "text.secondary" }}>
@@ -176,7 +195,11 @@ const StevenNavbar = () => {
                                             return (
                                                 <ListItem key={link.path} disablePadding>
                                                     <ListItemButton onClick={() => handleNavigate(link.path)} selected={isActive} sx={{ pl: 4, ...navItemSx(isActive) }}>
-                                                        <ListItemIcon sx={{ minWidth: 36, fontSize: 16 }}>{link.icon}</ListItemIcon>
+                                                        <ListItemIcon sx={{ minWidth: 36, fontSize: 16 }}>
+                                                            <Badge badgeContent={link.badge || 0} color="error" max={99}>
+                                                                {link.icon}
+                                                            </Badge>
+                                                        </ListItemIcon>
                                                         <ListItemText primary={link.label} primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 500, fontSize: 14 }} />
                                                     </ListItemButton>
                                                 </ListItem>

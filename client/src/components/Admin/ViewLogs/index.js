@@ -3,8 +3,11 @@ import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
 import Chip from "@mui/material/Chip";
 import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
 import TablePagination from "@mui/material/TablePagination";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import { BsCheckCircle, BsCheckCircleFill } from "react-icons/bs";
 import StevenButton from "../../Common/StevenButton";
 import apiClient from "../../../services/apiClient";
 import {
@@ -42,6 +45,15 @@ const ViewLogs = () => {
 
     useEffect(() => { fetchAll(); }, []);
 
+    const markAsRead = async (id) => {
+        try {
+            const res = await apiClient.put(`/api/cron-logs/${id}/read`);
+            setLogs(prev => prev.map(l => l._id === id ? { ...l, read: res.data.read } : l));
+        } catch (e) {
+            setError("Error toggling log read status");
+        }
+    };
+
     return (
         <Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
@@ -60,23 +72,33 @@ const ViewLogs = () => {
                             <StevenTableCell>Job</StevenTableCell>
                             <StevenTableCell>Status</StevenTableCell>
                             <StevenTableCell>Message</StevenTableCell>
+                            <StevenTableCell></StevenTableCell>
                         </StevenTableRow>
                     </StevenTableHead>
                     <StevenTableBody>
                         {logs.length > 0 ? (
                             logs.map((log) => (
-                                <StevenTableRow key={log._id}>
+                                <StevenTableRow key={log._id} sx={log.status === 'error' && !log.read ? { bgcolor: "rgba(211,47,47,0.08)" } : {}}>
                                     <StevenTableCell>{new Date(log.timestamp).toLocaleString()}</StevenTableCell>
                                     <StevenTableCell>{log.jobName}</StevenTableCell>
                                     <StevenTableCell>
                                         <Chip label={log.status} color={log.status === 'success' ? 'success' : 'error'} size="small" />
                                     </StevenTableCell>
-                                    <StevenTableCell>{log.message}</StevenTableCell>
+                                    <StevenTableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", minWidth: 200 }}>{log.message}</StevenTableCell>
+                                    <StevenTableCell>
+                                        {log.status === 'error' && (
+                                            <Tooltip title={log.read ? "Mark as unread" : "Mark as read"}>
+                                                <IconButton size="small" onClick={() => markAsRead(log._id)} sx={{ color: log.read ? "success.main" : "inherit" }}>
+                                                    {log.read ? <BsCheckCircleFill /> : <BsCheckCircle />}
+                                                </IconButton>
+                                            </Tooltip>
+                                        )}
+                                    </StevenTableCell>
                                 </StevenTableRow>
                             ))
                         ) : (
                             <StevenTableRow>
-                                <StevenTableCell colSpan={4}>No cron logs available.</StevenTableCell>
+                                <StevenTableCell colSpan={5}>No cron logs available.</StevenTableCell>
                             </StevenTableRow>
                         )}
                     </StevenTableBody>
