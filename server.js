@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import cron from 'node-cron';
-import tuesdayJob, { fetchAndStoreTeamIds } from './tuesdayjobnew.js';
+import tuesdayJob, { fetchAndStoreTeamIds, fetchAndStoreRecords } from './tuesdayjobnew.js';
 import sundayReminder from './sundayremindernew.js';
 import refreshJob from './refreshjobnew.js';
 import twilio from 'twilio';
@@ -58,6 +58,11 @@ const connectDB = async () => {
         if (teamIdCount === 0) {
             console.log('Team_IDs collection empty — seeding...');
             await fetchAndStoreTeamIds(db);
+        }
+        const recordsCount = await db.collection('Team_Records').countDocuments();
+        if (recordsCount === 0) {
+            console.log('Team_Records collection empty — seeding...');
+            await fetchAndStoreRecords(db);
         }
     } catch (error) {
         console.error(error);

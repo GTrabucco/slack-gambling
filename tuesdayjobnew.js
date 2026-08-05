@@ -169,7 +169,7 @@ export async function fetchAndStoreTeamIds(db) {
   }
 }
 
-async function fetchAndStoreRecords(db) {
+export async function fetchAndStoreRecords(db) {
   try {
     const res = await axios.get("https://site.api.espn.com/apis/v2/sports/football/nfl/standings");
     const collection = db.collection('Team_Records');
