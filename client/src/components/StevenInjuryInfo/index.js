@@ -18,11 +18,24 @@ const STATUS_COLOR = {
     "IR": "error",
 };
 
+const STATUS_LABEL = {
+    "Questionable": "Quest",
+};
+
+const teamLogoSrc = (teamName) => {
+    if (!teamName) return null;
+    const last = teamName.trim().split(" ").pop();
+    return `/logos/${last}.png`;
+};
+
 const InjuryList = ({ teamName, injuries }) => (
     <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontWeight: 700, fontSize: 14, mb: 1, textAlign: "center" }}>
-            {teamName}
-        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1, mb: 1 }}>
+            <img src={teamLogoSrc(teamName)} alt="" width={28} height={28} style={{ objectFit: "contain" }} />
+            <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
+                {teamName}
+            </Typography>
+        </Box>
         {injuries.length === 0 ? (
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
                 No injuries reported
@@ -30,19 +43,19 @@ const InjuryList = ({ teamName, injuries }) => (
         ) : (
             injuries.map((inj, i) => (
                 <Box key={i} sx={{ py: 0.75, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                    <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
-                        {inj.name}
-                    </Typography>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 0.25 }}>
-                        <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
-                            {inj.position} · {inj.type}
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
+                            {inj.name} <Typography component="span" sx={{ fontSize: 11, color: "text.secondary", fontWeight: 400 }}>{inj.position}</Typography>
                         </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
                         <Chip
-                            label={inj.status}
+                            label={STATUS_LABEL[inj.status] || inj.status}
                             size="small"
                             color={STATUS_COLOR[inj.status] || "default"}
-                            sx={{ flexShrink: 0, fontSize: 11 }}
+                            sx={{ fontSize: 11 }}
                         />
+                        <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{inj.type}</Typography>
                     </Box>
                 </Box>
             ))

@@ -644,12 +644,13 @@ app.get('/api/injuries', async (req, res) => {
                     })
                 );
 
+                const STATUS_ORDER = { "IR": 0, "Out": 1, "Doubtful": 2, "Questionable": 3, "Probable": 4 };
                 const injuries = injured.map((inj, i) => ({
                     name: athletes[i]?.displayName ?? '—',
                     position: athletes[i]?.position?.abbreviation ?? '—',
                     status: inj.status ?? '—',
-                    type: inj.type?.description ?? '—',
-                }));
+                    type: inj.details?.type ?? '—',
+                })).sort((a, b) => (STATUS_ORDER[a.status] ?? 99) - (STATUS_ORDER[b.status] ?? 99));
 
                 await cache.updateOne(
                     { team: teamName },
