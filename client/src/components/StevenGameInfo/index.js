@@ -10,6 +10,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import StevenButton from "../Common/StevenButton";
 import gameService from "../../services/gameService";
+import apiClient from "../../services/apiClient";
 
 const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) => {
   const [weatherData, setWeatherData] = useState([]);
@@ -148,35 +149,22 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
       const localDate = new Date(new Date(gameDate).toLocaleString("en-US", { timeZone }));
       const formattedDate = localDate.toISOString().split("T")[0];
       const localHour = localDate.getHours();
-      const weatherRes = await axios.get("https://api.open-meteo.com/v1/forecast", {
+
+      const res = await apiClient.get('/api/weather', {
         params: {
-            latitude: cityLatitude,
-            longitude: cityLongitude,
-            hourly: "temperature_2m,precipitation_probability,windspeed_10m",
-            timezone: timeZone,
-            start_date: formattedDate,
-            end_date: formattedDate,
-            temperature_unit: "fahrenheit"
+          city,
+          date: formattedDate,
+          lat: cityLatitude,
+          lon: cityLongitude,
+          timezone: timeZone,
+          commenceTime: gameDate,
         },
       });
 
-      if (!weatherRes) return [];
-      const { time, temperature_2m, precipitation_probability, windspeed_10m } = weatherRes.data.hourly;
-      if (localHour < 0 || localHour > 23) {
-        throw new Error(`Invalid hour: ${localHour}`);
-      }
+      const allHours = res.data;
+      if (!allHours?.length) return [];
 
-      const block = [];
-      for (let i = localHour; i < Math.min(localHour + 4, 24); i++) {
-        block.push({
-          time: time[i],
-          temperature: temperature_2m[i],
-          precipitation: precipitation_probability[i],
-          wind: windspeed_10m[i]
-        });
-      }
-
-      return block;
+      return allHours.slice(localHour, Math.min(localHour + 4, 24));
     } catch (error) {
       console.error("Error fetching weather:", error);
       return [];

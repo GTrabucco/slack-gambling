@@ -677,6 +677,63 @@ app.get('/api/injuries', async (req, res) => {
     }
 });
 
+app.get('/api/weather', async (req, res) => {
+    try {
+        const { city, date, lat, lon, timezone, commenceTime } = req.query;
+        if (!city || !date || !lat || !lon || !timezone) {
+            return res.status(400).json({ error: 'city, date, lat, lon, and timezone are required' });
+        }
+
+        const db = client.db(DATABASE_NAME);
+        const cache = db.collection('Weather_Cache');
+        const cacheKey = `${city}__${date}`;
+
+        const computeTTL = () => {
+            if (!commenceTime) return 2 * 60 * 60 * 1000; // default 2h
+            const msUntilGame = new Date(commenceTime).getTime() - Date.now();
+            if (msUntilGame <= 24 * 60 * 60 * 1000) return 30 * 60 * 1000;        // game day: 30 min
+            if (msUntilGame <= 3 * 24 * 60 * 60 * 1000) return 2 * 60 * 60 * 1000; // within 3 days: 2h
+            return 6 * 60 * 60 * 1000;                                              // > 3 days: 6h
+        };
+        const CACHE_TTL_MS = computeTTL();
+
+        const cached = await cache.findOne({ key: cacheKey });
+        if (cached && (Date.now() - new Date(cached.cachedAt).getTime()) < CACHE_TTL_MS) {
+            return res.json(cached.data);
+        }
+
+        const url = new URL('https://api.open-meteo.com/v1/forecast');
+        url.searchParams.set('latitude', lat);
+        url.searchParams.set('longitude', lon);
+        url.searchParams.set('hourly', 'temperature_2m,precipitation_probability,windspeed_10m');
+        url.searchParams.set('timezone', timezone);
+        url.searchParams.set('start_date', date);
+        url.searchParams.set('end_date', date);
+        url.searchParams.set('temperature_unit', 'fahrenheit');
+
+        const weatherRes = await fetch(url.toString()).then(r => r.json());
+        const { time, temperature_2m, precipitation_probability, windspeed_10m } = weatherRes.hourly;
+
+        const data = time.map((t, i) => ({
+            time: t,
+            temperature: temperature_2m[i],
+            precipitation: precipitation_probability[i],
+            wind: windspeed_10m[i],
+        }));
+
+        await cache.updateOne(
+            { key: cacheKey },
+            { $set: { key: cacheKey, data, cachedAt: new Date() } },
+            { upsert: true }
+        );
+
+        res.json(data);
+    } catch (error) {
+        console.error('Error fetching weather:', error);
+        res.status(500).json({ error: 'Error fetching weather' });
+    }
+});
+
 app.get('/api/team-ids', async (req, res) => {
     try {
         const db = client.db(DATABASE_NAME);
