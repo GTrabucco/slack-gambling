@@ -11,30 +11,16 @@ const COLORS = [
     { bg: "transparent", border: "rgba(255,255,255,0.06)", text: "#666" },
 ];
 
-const getRankedTiers = (players) => {
-    const tiers = [];
-    for (const player of players) {
-        const last = tiers[tiers.length - 1];
-        if (last && last.score === player.score) {
-            last.players.push(player.displayName);
-        } else {
-            if (tiers.length === 3) break;
-            tiers.push({ score: player.score, players: [player.displayName] });
-        }
-    }
-    return tiers;
-};
-
 const TopLeaderboard = () => {
-    const [tiers, setTiers] = useState([]);
+    const [top3, setTop3] = useState([]);
 
     useEffect(() => {
         apiClient.get("/api/leaderboard")
-            .then(res => setTiers(getRankedTiers(res.data || [])))
+            .then(res => setTop3((res.data || []).slice(0, 3)))
             .catch(() => {});
     }, []);
 
-    if (tiers.length === 0) return null;
+    if (top3.length === 0) return null;
 
     return (
         <Box sx={{ maxWidth: 600, mx: "auto", pt: 2, pb: 1 }}>
@@ -44,7 +30,7 @@ const TopLeaderboard = () => {
                         Top 3 Leaderboard
                     </Typography>
                 </Box>
-                {tiers.map((tier, rank) => (
+                {top3.map((player, rank) => (
                     <Box
                         key={rank}
                         sx={{
@@ -53,7 +39,7 @@ const TopLeaderboard = () => {
                             px: 2,
                             py: rank === 0 ? 1.5 : 1,
                             background: COLORS[rank].bg,
-                            borderBottom: rank < tiers.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                            borderBottom: rank < top3.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
                         }}
                     >
                         <Typography sx={{
@@ -72,14 +58,14 @@ const TopLeaderboard = () => {
                             fontWeight: rank === 0 ? 700 : 500,
                             color: rank === 0 ? "#FFD700" : "text.primary",
                         }}>
-                            {tier.players.join(" & ")}
+                            {player.displayName}
                         </Typography>
                         <Typography sx={{
                             fontSize: rank === 0 ? 14 : 12,
                             fontWeight: 700,
                             color: COLORS[rank].text,
                         }}>
-                            {tier.score > 0 ? `+${tier.score}` : tier.score} pts
+                            {player.score > 0 ? `+${player.score}` : player.score} pts
                         </Typography>
                     </Box>
                 ))}

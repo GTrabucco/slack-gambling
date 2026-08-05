@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import cron from 'node-cron';
-import tuesdayJob from './tuesdayjobnew.js';
+import tuesdayJob, { fetchAndStoreTeamIds } from './tuesdayjobnew.js';
 import sundayReminder from './sundayremindernew.js';
 import refreshJob from './refreshjobnew.js';
 import twilio from 'twilio';
@@ -53,6 +53,12 @@ const connectDB = async () => {
     try {
         await client.connect();
         console.log('MongoDB connected');
+        const db = client.db(DATABASE_NAME);
+        const teamIdCount = await db.collection('Team_IDs').countDocuments();
+        if (teamIdCount === 0) {
+            console.log('Team_IDs collection empty — seeding...');
+            await fetchAndStoreTeamIds(db);
+        }
     } catch (error) {
         console.error(error);
     }
@@ -544,6 +550,85 @@ app.get('/api/get-weekly-picks', async (req, res) => {
     }
 });
 
+app.get('/api/injuries', async (req, res) => {
+    try {
+        const { home, away } = req.query;
+        if (!home || !away) return res.status(400).json({ error: 'home and away team names are required' });
+        const db = client.db(DATABASE_NAME);
+        const teamIds = await db.collection('Team_IDs').find({ team: { $in: [home, away] } }).toArray();
+        const idMap = {};
+        for (const t of teamIds) idMap[t.team] = t.espnId;
+
+        const fetchInjuries = async (teamName) => {
+            const espnId = idMap[teamName];
+            if (!espnId) return [];
+            try {
+                const json = await fetch(
+                    `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${espnId}/injuries`
+                ).then(r => r.json());
+                return (json?.injuries || []).map(i => ({
+                    name: i.athlete?.displayName ?? '—',
+                    position: i.athlete?.position?.abbreviation ?? '—',
+                    status: i.status ?? '—',
+                    type: i.details?.type ?? '—',
+                }));
+            } catch { return []; }
+        };
+
+        const [homeInjuries, awayInjuries] = await Promise.all([
+            fetchInjuries(home),
+            fetchInjuries(away),
+        ]);
+
+        res.json({ home: homeInjuries, away: awayInjuries });
+    } catch (error) {
+        console.error('Error fetching injuries:', error);
+        res.status(500).json({ error: 'Error fetching injuries' });
+    }
+});
+
+app.get('/api/team-ids', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const docs = await db.collection('Team_IDs').find({}).sort({ team: 1 }).toArray();
+        res.json(docs);
+    } catch (error) {
+        console.error('Error fetching team IDs:', error);
+        res.status(500).json({ error: 'Error fetching team IDs' });
+    }
+});
+
+app.put('/api/team-ids/:team', adminLimiter, async (req, res) => {
+    try {
+        const { team } = req.params;
+        const { espnId } = req.body;
+        if (!espnId) return res.status(400).json({ error: 'espnId is required' });
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Team_IDs').updateOne(
+            { team },
+            { $set: { espnId: String(espnId) } },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating team ID:', error);
+        res.status(500).json({ error: 'Error updating team ID' });
+    }
+});
+
+app.get('/api/records', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const docs = await db.collection('Team_Records').find({}).toArray();
+        const map = {};
+        for (const doc of docs) map[doc.team] = doc.record;
+        res.json(map);
+    } catch (error) {
+        console.error('Error fetching records:', error);
+        res.status(500).json({ error: 'Error fetching records' });
+    }
+});
+
 app.get('/api/leaderboard', async (req, res) => {
     try {
         const db = client.db(DATABASE_NAME);
@@ -552,10 +637,41 @@ app.get('/api/leaderboard', async (req, res) => {
         const filter = season ? { season } : {};
 
         const picks = await db.collection('Picks_History').find(filter).toArray();
+
         const userTotals = {};
+        const userGotwWins = {};
+        const userZeroWeeks = {};
+        const userPerfectWeeks = {};
+        const userWinningWeeks = {};
+        const perfectScore = parseInt(season) >= 2026 ? 5 : 4;
+        const worstScore = parseInt(season) >= 2026 ? -5 : -4;
+
+        // Group picks by user then by week to compute weekly stats
+        const byUserWeek = {};
         for (const pick of picks) {
             if (!userTotals[pick.username]) userTotals[pick.username] = 0;
             userTotals[pick.username] += pick.result || 0;
+
+            if (pick.type === 'gotw' && (pick.result || 0) > 0) {
+                userGotwWins[pick.username] = (userGotwWins[pick.username] || 0) + 1;
+            }
+
+            const key = `${pick.username}||${pick.week}`;
+            if (!byUserWeek[key]) byUserWeek[key] = 0;
+            byUserWeek[key] += pick.result || 0;
+        }
+
+        for (const [key, weekTotal] of Object.entries(byUserWeek)) {
+            const username = key.split('||')[0];
+            if (weekTotal === worstScore) {
+                userZeroWeeks[username] = (userZeroWeeks[username] || 0) + 1;
+            }
+            if (weekTotal === perfectScore) {
+                userPerfectWeeks[username] = (userPerfectWeeks[username] || 0) + 1;
+            }
+            if (weekTotal > 0) {
+                userWinningWeeks[username] = (userWinningWeeks[username] || 0) + 1;
+            }
         }
 
         const users = await db.collection('User_Details').find({}).project({ username: 1, displayName: 1 }).toArray();
@@ -563,8 +679,21 @@ app.get('/api/leaderboard', async (req, res) => {
         for (const u of users) displayMap[u.username] = u.displayName || u.username.split('@')[0];
 
         const sorted = Object.entries(userTotals)
-            .map(([username, score]) => ({ displayName: displayMap[username] || username.split('@')[0], score }))
-            .sort((a, b) => b.score - a.score);
+            .map(([username, score]) => ({
+                displayName: displayMap[username] || username.split('@')[0],
+                score,
+                gotwWins: userGotwWins[username] || 0,
+                zeroWeeks: userZeroWeeks[username] || 0,
+                perfectWeeks: userPerfectWeeks[username] || 0,
+                winningWeeks: userWinningWeeks[username] || 0,
+            }))
+            .sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                if (parseInt(season) >= 2026 && b.gotwWins !== a.gotwWins) return b.gotwWins - a.gotwWins;
+                if (a.zeroWeeks !== b.zeroWeeks) return a.zeroWeeks - b.zeroWeeks;
+                if (b.perfectWeeks !== a.perfectWeeks) return b.perfectWeeks - a.perfectWeeks;
+                return b.winningWeeks - a.winningWeeks;
+            });
 
         res.json(sorted);
     } catch (error) {

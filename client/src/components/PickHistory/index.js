@@ -132,7 +132,7 @@ const PickHistory = () => {
                             </StevenTableRow>
                             {groupedByWeek[week].map(item => (
                                 <StevenTableRow className="ph-row" key={item._id}>
-                                    <StevenTableCell className="ph2-cell">
+                                    <StevenTableCell className="ph2-cell" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>
                                         {item.result > 0 ? (
                                             <span style={{ color: "green" }}><b>{item.text}</b></span>
                                         ) : item.result < 0 ? (

@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Alert from "@mui/material/Alert";
 import FormControl from "@mui/material/FormControl";
 import FormLabel from "@mui/material/FormLabel";
+import Typography from "@mui/material/Typography";
 import MuiLink from "@mui/material/Link";
 import './style.css';
 import { useNavigate } from "react-router-dom";
@@ -19,13 +20,19 @@ import {
     StevenTableCell
 } from "../Common/StevenTable";
 
+const tieSameRank = (a, b, season) =>
+    a.resultSum === b.resultSum &&
+    (parseInt(season) < 2026 || a.gotwWins === b.gotwWins) &&
+    a.zeroWeeks === b.zeroWeeks &&
+    a.perfectWeeksCount === b.perfectWeeksCount &&
+    a.winningWeeks === b.winningWeeks;
+
 const Standings = () => {
     const [error, setError] = useState("");
     const [data, setData] = useState([]);
     const [perfectWeeks, setPerfectWeeks] = useState({});
     const [negFourWeeks, setNegFourWeeks] = useState({});
     const [positiveWeeks, setPositiveWeeks] = useState({});
-    const [negativeWeeks, setNegativeWeeks] = useState({});
     const [users, setUsers] = useState({});
     const [seasons, setSeasons] = useState(["2025"]);
     const [selectedSeason, setSelectedSeason] = useState("2025");
@@ -57,6 +64,8 @@ const Standings = () => {
                     const groupedByUser = Object.groupBy(picks, ({ username }) => username);
                     const newPerfectWeeks = {};
                     const newNegFourWeeks = {};
+                    const newPositiveWeeks = {};
+                    const newGotwWins = {};
                     const userTotals = {};
                     const userTimelapse = {};
 
@@ -78,28 +87,38 @@ const Standings = () => {
                             }
 
                             if (resultSum > 0) {
-                                positiveWeeks[username] = (positiveWeeks[username] || 0) + 1;
-                            } else if (resultSum < 0) {
-                                negativeWeeks[username] = (negativeWeeks[username] || 0) + 1;
+                                newPositiveWeeks[username] = (newPositiveWeeks[username] || 0) + 1;
+                            }
+                        });
+
+                        userPicks.forEach(pick => {
+                            if (pick.type === 'gotw' && (pick.result || 0) > 0) {
+                                newGotwWins[username] = (newGotwWins[username] || 0) + 1;
                             }
                         });
                     });
 
-                    let prevResultSum = null;
-                    let prevRank = 0;
+                    let rank = 0;
                     const standings = Object.entries(userTotals)
-                        .map(([username, resultSum]) => ({ username, resultSum }))
-                        .sort((a, b) => b.resultSum - a.resultSum)
+                        .map(([username, resultSum]) => ({
+                            username,
+                            resultSum,
+                            gotwWins: newGotwWins[username] || 0,
+                            zeroWeeks: newNegFourWeeks[username] || 0,
+                            perfectWeeksCount: newPerfectWeeks[username] || 0,
+                            winningWeeks: newPositiveWeeks[username] || 0,
+                        }))
+                        .sort((a, b) => {
+                            if (b.resultSum !== a.resultSum) return b.resultSum - a.resultSum;
+                            if (parseInt(selectedSeason) >= 2026 && b.gotwWins !== a.gotwWins) return b.gotwWins - a.gotwWins;
+                            if (a.zeroWeeks !== b.zeroWeeks) return a.zeroWeeks - b.zeroWeeks;
+                            if (b.perfectWeeksCount !== a.perfectWeeksCount) return b.perfectWeeksCount - a.perfectWeeksCount;
+                            return b.winningWeeks - a.winningWeeks;
+                        })
                         .map((item, index, arr) => {
-                            let rank;
-                            if (item.resultSum === prevResultSum) {
-                                rank = prevRank;
-                            } else {
+                            if (index === 0 || !tieSameRank(item, arr[index - 1], selectedSeason)) {
                                 rank = index + 1;
-                                prevResultSum = item.resultSum;
-                                prevRank = rank;
                             }
-
                             return { ...item, rank };
                         });
 
@@ -108,8 +127,7 @@ const Standings = () => {
                     setData(standings);
                     setPerfectWeeks(newPerfectWeeks);
                     setNegFourWeeks(newNegFourWeeks);
-                    setPositiveWeeks(positiveWeeks);
-                    setNegativeWeeks(negativeWeeks);
+                    setPositiveWeeks(newPositiveWeeks);
                 }
             } catch (error) {
                 console.log(error);
@@ -147,6 +165,9 @@ const Standings = () => {
                 </FormControl>
             </Box>
             {error && <Alert severity="danger" sx={{ mb: 2 }}>{error}</Alert>}
+            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+                Tiebreaker rules: {parseInt(selectedSeason) >= 2026 ? "GOTW record → " : ""}Fewest 0/{parseInt(selectedSeason) >= 2026 ? 5 : 4} weeks → Most {parseInt(selectedSeason) >= 2026 ? 5 : 4}/{parseInt(selectedSeason) >= 2026 ? 5 : 4} weeks → Most &gt;0 weeks
+            </Typography>
             <StevenTableContainer sx={{ overflowX: 'auto', overflowY: 'visible' }}>
                 <StevenTable stickyHeader>
                     <StevenTableHead>
@@ -159,62 +180,62 @@ const Standings = () => {
                         </StevenTableRow>
                     </StevenTableHead>
                     <StevenTableBody>
-                    {data
-                        .sort((a, b) => b.resultSum - a.resultSum)
-                        .map((item) => {
-                            if (item.rank < 4) {
-                                return (
-                                    <StevenTableRow key={item.username}>
-                                        <StevenTableCell>
-                                            {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" alt="Gold medal" /> : ""}
-                                            {item.rank === 2 ? <img className="medal" src="SilverMedal.svg" alt="Silver medal" /> : ""}
-                                            {item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" alt="Bronze medal" /> : ""}
-                                        </StevenTableCell>
-                                        <StevenTableCell>
-                                            <MuiLink
-                                                component="button"
-                                                underline="hover"
-                                                onClick={() => navigate(`/pickhistory?user=${item.username}`)}
-                                                sx={{ cursor: "pointer" }}
-                                            >
-                                                {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
-                                            </MuiLink>
-                                        </StevenTableCell>
-                                        <StevenTableCell> {item.resultSum}</StevenTableCell>
-                                        <StevenTableCell>{perfectWeeks[item.username]}</StevenTableCell>
-                                        <StevenTableCell>{negFourWeeks[item.username]}</StevenTableCell>
-                                    </StevenTableRow>
-                                );
-                            }
-                            return null;
-                        })}
-                    {data
-                        .sort((a, b) => b.resultSum - a.resultSum)
-                        .map((item) => {
-                            if (item.rank > 3) {
-                                return (
-                                    <StevenTableRow className="s-row" key={item.username}>
-                                        <StevenTableCell className={getPlace(item.rank)}>
-                                            {item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" /> : item.rank}
-                                        </StevenTableCell>
-                                        <StevenTableCell className="s1-cell">
-                                            <MuiLink
-                                                component="button"
-                                                underline="hover"
-                                                onClick={() => navigate(`/pickhistory?user=${item.username}`)}
-                                                sx={{ cursor: "pointer" }}
-                                            >
-                                                {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
-                                            </MuiLink>
-                                        </StevenTableCell>
-                                        <StevenTableCell className="s2-cell"> {item.resultSum}</StevenTableCell>
-                                        <StevenTableCell className="s2-cell">{perfectWeeks[item.username]}</StevenTableCell>
-                                        <StevenTableCell className="s2-cell">{negFourWeeks[item.username]}</StevenTableCell>
-                                    </StevenTableRow>
-                                );
-                            }
-                            return null;
-                        })}
+                        {data
+                            .sort((a, b) => b.resultSum - a.resultSum)
+                            .map((item) => {
+                                if (item.rank < 4) {
+                                    return (
+                                        <StevenTableRow key={item.username}>
+                                            <StevenTableCell>
+                                                {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" alt="Gold medal" /> : ""}
+                                                {item.rank === 2 ? <img className="medal" src="SilverMedal.svg" alt="Silver medal" /> : ""}
+                                                {item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" alt="Bronze medal" /> : ""}
+                                            </StevenTableCell>
+                                            <StevenTableCell>
+                                                <MuiLink
+                                                    component="button"
+                                                    underline="hover"
+                                                    onClick={() => navigate(`/pickhistory?user=${item.username}`)}
+                                                    sx={{ cursor: "pointer" }}
+                                                >
+                                                    {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
+                                                </MuiLink>
+                                            </StevenTableCell>
+                                            <StevenTableCell> {item.resultSum}</StevenTableCell>
+                                            <StevenTableCell>{perfectWeeks[item.username]}</StevenTableCell>
+                                            <StevenTableCell>{negFourWeeks[item.username]}</StevenTableCell>
+                                        </StevenTableRow>
+                                    );
+                                }
+                                return null;
+                            })}
+                        {data
+                            .sort((a, b) => b.resultSum - a.resultSum)
+                            .map((item) => {
+                                if (item.rank > 3) {
+                                    return (
+                                        <StevenTableRow className="s-row" key={item.username}>
+                                            <StevenTableCell className={getPlace(item.rank)}>
+                                                {item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" /> : item.rank}
+                                            </StevenTableCell>
+                                            <StevenTableCell className="s1-cell">
+                                                <MuiLink
+                                                    component="button"
+                                                    underline="hover"
+                                                    onClick={() => navigate(`/pickhistory?user=${item.username}`)}
+                                                    sx={{ cursor: "pointer" }}
+                                                >
+                                                    {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
+                                                </MuiLink>
+                                            </StevenTableCell>
+                                            <StevenTableCell className="s2-cell"> {item.resultSum}</StevenTableCell>
+                                            <StevenTableCell className="s2-cell">{perfectWeeks[item.username]}</StevenTableCell>
+                                            <StevenTableCell className="s2-cell">{negFourWeeks[item.username]}</StevenTableCell>
+                                        </StevenTableRow>
+                                    );
+                                }
+                                return null;
+                            })}
                     </StevenTableBody>
                 </StevenTable>
             </StevenTableContainer>

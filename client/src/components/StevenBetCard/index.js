@@ -47,8 +47,8 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                         My Picks
                     </Typography>
                 </Box>
-                <StevenTableContainer>
-                    <StevenTable>
+                <StevenTableContainer sx={{ overflowX: "visible" }}>
+                    <StevenTable sx={{ minWidth: 0, tableLayout: "fixed", width: "100%" }}>
                         <StevenTableBody>
                         {['favorite', 'dog', 'over', 'under', 'gotw'].map((type) => {
                             const pick = Array.isArray(selectedPicks)
@@ -62,13 +62,13 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                             }
                             return (
                                 <StevenTableRow key={type} sx={type === 'gotw' ? { "& td": { color: "#D4AF37", fontWeight: "bold" } } : {}}>
-                                    <StevenTableCell>
+                                    <StevenTableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", width: "30%" }}>
                                         <b>{type === 'gotw' ? 'Game of the Week' : type.charAt(0).toUpperCase() + type.slice(1)}</b>
                                     </StevenTableCell>
-                                    <StevenTableCell>
+                                    <StevenTableCell sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>
                                         {value}
                                     </StevenTableCell>
-                                    <StevenTableCell style={{ textAlign: 'center' }}>
+                                    <StevenTableCell sx={{ whiteSpace: "nowrap", width: 40, textAlign: "center" }}>
                                         {key && (
                                             <span
                                                 onClick={() => removePick(key, value)}

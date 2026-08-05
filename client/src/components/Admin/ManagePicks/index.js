@@ -260,6 +260,7 @@ const ManagePicks = () => {
                                                     label={pick.type === "gotw" ? "GOTW" : pick.type}
                                                     color={TYPE_COLOR[pick.type] || "default"}
                                                     size="small"
+                                                    sx={pick.type === "gotw" ? { bgcolor: "#D4AF37", color: "#000", fontWeight: 700 } : {}}
                                                 />
                                             </StevenTableCell>
                                             <StevenTableCell sx={{ fontSize: 11, fontFamily: "monospace", color: "text.secondary" }}>

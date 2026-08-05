@@ -20,6 +20,11 @@
   width: 30%;
 }
 
+.team-record {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .team-container {
   width: 300px;            
   height: 150px;           
@@ -95,6 +100,10 @@
   color: black;
 }
 
+.picked .team-record {
+  color: rgba(0, 0, 0, 0.45);
+}
+
 .picked:hover {
   background-color: #f0f0f0;
 }
@@ -132,6 +141,10 @@
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
   background-color: rgba(212, 175, 55, 0.25);
   border: 1.5px solid #D4AF37;
+}
+
+.gotw-picked .team-record {
+  color: rgba(212, 175, 55, 0.6);
   border-radius: 12px;
 }
 

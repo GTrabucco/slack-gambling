@@ -32,7 +32,7 @@ import "./style.css";
 
 const ADMIN_PATHS = [
     "/calculatescoring", "/viewReports", "/viewlogs",
-    "/managegames", "/managepicks", "/manageaccounts", "/jobrunner",
+    "/managegames", "/managepicks", "/manageaccounts", "/jobrunner", "/manageteamids",
 ];
 
 const StevenNavbar = () => {
@@ -66,6 +66,7 @@ const StevenNavbar = () => {
         { path: "/managegames", label: "Manage Games", icon: <BsController /> },
         { path: "/managepicks", label: "Manage Picks", icon: <BsCardList /> },
         { path: "/manageaccounts", label: "Manage Accounts", icon: <BsPeopleFill /> },
+        { path: "/manageteamids", label: "Team IDs", icon: <BsCardList /> },
         { path: "/jobrunner", label: "Job Runner", icon: <GiRunningNinja /> },
     ];
 

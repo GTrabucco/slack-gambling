@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 import { MongoClient } from "mongodb";
+import axios from "axios";
 import { getGames } from "./theoddsapinew.js";
 import { processPicks } from "./processpicksnew.js";
 import twilio from "twilio";
@@ -136,6 +137,7 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
     });
 
     await sendPicksBackup(picks, parseInt(week) - 1);
+    await fetchAndStoreRecords(client.db('SlackGambling'));
     const successMsg = `Tuesday job success for season ${season}, week ${week - 1}`;
     await logCronRun('Tuesday Job', 'success', successMsg);
     return successMsg;
@@ -145,6 +147,55 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
     throw error;
   } finally {
     await client.close();
+  }
+}
+
+export async function fetchAndStoreTeamIds(db) {
+  try {
+    const res = await axios.get("https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams?limit=32");
+    const teams = res.data.sports?.[0]?.leagues?.[0]?.teams || [];
+    const collection = db.collection('Team_IDs');
+    const ops = teams.map(({ team }) => ({
+      updateOne: {
+        filter: { team: team.displayName },
+        update: { $set: { team: team.displayName, espnId: team.id } },
+        upsert: true,
+      },
+    }));
+    if (ops.length > 0) await collection.bulkWrite(ops);
+    console.log(`Team IDs updated (${ops.length} teams).`);
+  } catch (err) {
+    console.error("Failed to fetch/store team IDs:", err);
+  }
+}
+
+async function fetchAndStoreRecords(db) {
+  try {
+    const res = await axios.get("https://site.api.espn.com/apis/v2/sports/football/nfl/standings");
+    const collection = db.collection('Team_Records');
+    const ops = [];
+    for (const conference of res.data.children || []) {
+      for (const entry of conference.standings?.entries || []) {
+        const team = entry.team?.displayName;
+        if (!team) continue;
+        const stat = (s) => entry.stats?.find(x => x.name === s)?.displayValue ?? "0";
+        const wins = stat("wins");
+        const losses = stat("losses");
+        const ties = stat("ties");
+        const record = ties !== "0" ? `${wins}-${losses}-${ties}` : `${wins}-${losses}`;
+        ops.push({
+          updateOne: {
+            filter: { team },
+            update: { $set: { team, record, updatedAt: new Date() } },
+            upsert: true,
+          },
+        });
+      }
+    }
+    if (ops.length > 0) await collection.bulkWrite(ops);
+    console.log(`Team records updated (${ops.length} teams).`);
+  } catch (err) {
+    console.error("Failed to fetch/store team records:", err);
   }
 }
 

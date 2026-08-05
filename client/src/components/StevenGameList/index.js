@@ -11,9 +11,11 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
 import StevenGameInfo from "../StevenGameInfo";
+import StevenInjuryInfo from "../StevenInjuryInfo";
 import StevenButton from "../Common/StevenButton";
 import gameService from "../../services/gameService";
 import pickService from "../../services/pickService";
+import apiClient from "../../services/apiClient";
 const StevenGameList = ({ tempPicks,
     setMessage,
     gameStarted,
@@ -29,6 +31,15 @@ const StevenGameList = ({ tempPicks,
     const [selectedGameId, setSelectedGameId] = useState()
     const [showStevenInfo, setShowStevenInfo] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
+    const [records, setRecords] = useState({})
+    const [injuryGame, setInjuryGame] = useState(null)
+
+    const fetchRecords = async () => {
+        try {
+            const res = await apiClient.get("/api/records");
+            setRecords(res.data || {});
+        } catch (_) {}
+    };
     useEffect(() => {
         const fetchGames = async () => {
             try {
@@ -41,6 +52,7 @@ const StevenGameList = ({ tempPicks,
 
         fetchGames();
         fetchPicks();
+        fetchRecords();
     }, [])
 
     const fetchPicks = async () => {
@@ -210,6 +222,12 @@ const StevenGameList = ({ tempPicks,
                 selectedGameId={selectedGameId}
                 setShowStevenInfo={setShowStevenInfo}
             />
+            <StevenInjuryInfo
+                open={!!injuryGame}
+                onClose={() => setInjuryGame(null)}
+                homeTeam={injuryGame?.home}
+                awayTeam={injuryGame?.away}
+            />
 
             {/* Confirmation Modal */}
             <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} maxWidth="xs" fullWidth>
@@ -341,16 +359,25 @@ const StevenGameList = ({ tempPicks,
                                         <Typography variant="body2" fontWeight="bold">
                                             {`${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
                                         </Typography>
-                                        <Typography
-                                            variant="body2"
-                                            onClick={() => {
-                                                setShowStevenInfo(true);
-                                                setSelectedGameId(game["gameId"]);
-                                            }}
-                                            sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
-                                        >
-                                            Weather Info
-                                        </Typography>
+                                        <Box sx={{ display: "flex", gap: 1.5 }}>
+                                            <Typography
+                                                variant="body2"
+                                                onClick={() => setInjuryGame({ home: home_team, away: away_team })}
+                                                sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
+                                            >
+                                                Injuries
+                                            </Typography>
+                                            <Typography
+                                                variant="body2"
+                                                onClick={() => {
+                                                    setShowStevenInfo(true);
+                                                    setSelectedGameId(game["gameId"]);
+                                                }}
+                                                sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
+                                            >
+                                                Weather
+                                            </Typography>
+                                        </Box>
                                     </Box>
                                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", textAlign: "center", width: "100%" }}>
                                         <div className={`team-container ${away_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
@@ -365,6 +392,7 @@ const StevenGameList = ({ tempPicks,
                                             )
                                         }>
                                             <img src={away_logo} alt={away_team} className="logo" />
+                                            <div className="team-record">{records[away_team] ?? ""}</div>
                                             <div><div className="team-name">{away_team}</div><b>{away_spread > 0 ? "+" + away_spread : away_spread}</b></div>
                                         </div>
                                         <div className={`team-container ${home_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
@@ -379,6 +407,7 @@ const StevenGameList = ({ tempPicks,
                                             )
                                         }>
                                             <img src={home_logo} alt={home_team} className="logo" />
+                                            <div className="team-record">{records[home_team] ?? ""}</div>
                                             <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
                                         </div>
                                         <div className="icon-text-container">
