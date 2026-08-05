@@ -50,14 +50,16 @@ const InjuryList = ({ teamName, injuries }) => (
     </Box>
 );
 
-const StevenInjuryInfo = ({ open, onClose, homeTeam, awayTeam }) => {
+const StevenInjuryInfo = ({ open, onClose, homeTeam, awayTeam, commenceTime }) => {
     const [loading, setLoading] = useState(false);
     const [injuries, setInjuries] = useState({ home: [], away: [] });
 
     useEffect(() => {
         if (!open || !homeTeam || !awayTeam) return;
         setLoading(true);
-        apiClient.get(`/api/injuries?home=${encodeURIComponent(homeTeam)}&away=${encodeURIComponent(awayTeam)}`)
+        const params = new URLSearchParams({ home: homeTeam, away: awayTeam });
+        if (commenceTime) params.set('commenceTime', commenceTime);
+        apiClient.get(`/api/injuries?${params.toString()}`)
             .then(res => setInjuries(res.data || { home: [], away: [] }))
             .catch(() => setInjuries({ home: [], away: [] }))
             .finally(() => setLoading(false));

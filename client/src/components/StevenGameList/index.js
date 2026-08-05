@@ -227,6 +227,7 @@ const StevenGameList = ({ tempPicks,
                 onClose={() => setInjuryGame(null)}
                 homeTeam={injuryGame?.home}
                 awayTeam={injuryGame?.away}
+                commenceTime={injuryGame?.commenceTime}
             />
 
             {/* Confirmation Modal */}
@@ -362,7 +363,7 @@ const StevenGameList = ({ tempPicks,
                                         <Box sx={{ display: "flex", gap: 1.5 }}>
                                             <Typography
                                                 variant="body2"
-                                                onClick={() => setInjuryGame({ home: home_team, away: away_team })}
+                                                onClick={() => setInjuryGame({ home: home_team, away: away_team, commenceTime })}
                                                 sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
                                             >
                                                 Injuries

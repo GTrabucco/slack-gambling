@@ -592,27 +592,76 @@ app.get('/api/get-weekly-picks', async (req, res) => {
 
 app.get('/api/injuries', async (req, res) => {
     try {
-        const { home, away } = req.query;
+        const { home, away, commenceTime } = req.query;
         if (!home || !away) return res.status(400).json({ error: 'home and away team names are required' });
         const db = client.db(DATABASE_NAME);
         const teamIds = await db.collection('Team_IDs').find({ team: { $in: [home, away] } }).toArray();
         const idMap = {};
         for (const t of teamIds) idMap[t.team] = t.espnId;
 
+        const computeTTL = () => {
+            if (!commenceTime) return 4 * 60 * 60 * 1000; // default 4h
+            const msUntilGame = new Date(commenceTime).getTime() - Date.now();
+            if (msUntilGame <= 24 * 60 * 60 * 1000) return 30 * 60 * 1000;       // game day: 30 min
+            if (msUntilGame <= 3 * 24 * 60 * 60 * 1000) return 2 * 60 * 60 * 1000; // within 3 days: 2h
+            return 6 * 60 * 60 * 1000;                                              // > 3 days: 6h
+        };
+        const CACHE_TTL_MS = computeTTL();
+        const INJURY_STATUSES = new Set(['Out', 'Doubtful', 'Questionable', 'Probable', 'IR', 'PUP', 'NFI', 'Suspended']);
+        const cache = db.collection('Injury_Cache');
+
         const fetchInjuries = async (teamName) => {
             const espnId = idMap[teamName];
             if (!espnId) return [];
+
+            // Check cache first
+            const cached = await cache.findOne({ team: teamName });
+            if (cached && (Date.now() - new Date(cached.cachedAt).getTime()) < CACHE_TTL_MS) {
+                return cached.injuries;
+            }
+
             try {
-                const json = await fetch(
-                    `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${espnId}/injuries`
+                const listJson = await fetch(
+                    `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/teams/${espnId}/injuries?limit=100`
                 ).then(r => r.json());
-                return (json?.injuries || []).map(i => ({
-                    name: i.athlete?.displayName ?? '—',
-                    position: i.athlete?.position?.abbreviation ?? '—',
-                    status: i.status ?? '—',
-                    type: i.details?.type ?? '—',
+
+                const refs = (listJson.items || []).map(i => i['$ref']).filter(Boolean);
+                if (refs.length === 0) {
+                    await cache.updateOne({ team: teamName }, { $set: { team: teamName, injuries: [], cachedAt: new Date() } }, { upsert: true });
+                    return [];
+                }
+
+                const details = await Promise.all(
+                    refs.map(ref => fetch(ref).then(r => r.json()).catch(() => null))
+                );
+
+                const injured = details.filter(d => d && INJURY_STATUSES.has(d.status));
+
+                const athletes = await Promise.all(
+                    injured.map(d => {
+                        const ref = d.athlete?.['$ref'];
+                        return ref ? fetch(ref).then(r => r.json()).catch(() => null) : Promise.resolve(null);
+                    })
+                );
+
+                const injuries = injured.map((inj, i) => ({
+                    name: athletes[i]?.displayName ?? '—',
+                    position: athletes[i]?.position?.abbreviation ?? '—',
+                    status: inj.status ?? '—',
+                    type: inj.type?.description ?? '—',
                 }));
-            } catch { return []; }
+
+                await cache.updateOne(
+                    { team: teamName },
+                    { $set: { team: teamName, injuries, cachedAt: new Date() } },
+                    { upsert: true }
+                );
+
+                return injuries;
+            } catch {
+                // On ESPN failure return stale cache if available
+                return cached?.injuries ?? [];
+            }
         };
 
         const [homeInjuries, awayInjuries] = await Promise.all([
