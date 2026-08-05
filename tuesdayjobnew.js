@@ -138,6 +138,11 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
 
     await sendPicksBackup(picks, parseInt(week) - 1);
     await fetchAndStoreRecords(client.db('SlackGambling'));
+
+    // Clear stale injury and weather caches for the new week
+    await db.collection('Injury_Cache').deleteMany({});
+    await db.collection('Weather_Cache').deleteMany({});
+
     const successMsg = `Tuesday job success for season ${season}, week ${week - 1}`;
     await logCronRun('Tuesday Job', 'success', successMsg);
     return successMsg;
