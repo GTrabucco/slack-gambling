@@ -677,6 +677,166 @@ app.get('/api/injuries', async (req, res) => {
     }
 });
 
+app.get('/api/depthchart', async (req, res) => {
+    try {
+        const { home, away, commenceTime } = req.query;
+        if (!home || !away) return res.status(400).json({ error: 'home and away team names are required' });
+        const db = client.db(DATABASE_NAME);
+
+        const teamIds = await db.collection('Team_IDs').find({ team: { $in: [home, away] } }).toArray();
+        const idMap = {};
+        for (const t of teamIds) idMap[t.team] = t.espnId;
+
+        const config = await db.collection('Config').findOne({ _id: 'current' });
+        const season = config?.season ?? 2026;
+
+        const computeTTL = () => {
+            if (!commenceTime) return 4 * 60 * 60 * 1000;
+            const msUntilGame = new Date(commenceTime).getTime() - Date.now();
+            if (msUntilGame <= 24 * 60 * 60 * 1000) return 30 * 60 * 1000;
+            if (msUntilGame <= 3 * 24 * 60 * 60 * 1000) return 2 * 60 * 60 * 1000;
+            return 6 * 60 * 60 * 1000;
+        };
+        const CACHE_TTL_MS = computeTTL();
+        const cache = db.collection('DepthChart_Cache');
+
+        const fetchDepthChart = async (teamName) => {
+            const espnId = idMap[teamName];
+            if (!espnId) return [];
+
+            const cached = await cache.findOne({ team: teamName });
+            if (cached && (Date.now() - new Date(cached.cachedAt).getTime()) < CACHE_TTL_MS) {
+                return cached.data;
+            }
+
+            try {
+                const dcJson = await fetch(
+                    `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${season}/teams/${espnId}/depthcharts`
+                ).then(r => r.json());
+
+                // Collect starter athlete refs grouped by formation
+                const formations = [];
+                for (const item of (dcJson.items || [])) {
+                    const positions = [];
+                    for (const [posKey, posData] of Object.entries(item.positions || {})) {
+                        const abbr = posData.position?.abbreviation ?? '—';
+                        if (posKey === 'wr') {
+                            // Group by slot, take ranks 1-3 per slot → all shown as WR
+                            const bySlot = {};
+                            for (const a of (posData.athletes || [])) {
+                                if (!a.athlete?.['$ref'] || a.rank > 3) continue;
+                                if (!bySlot[a.slot]) bySlot[a.slot] = [];
+                                bySlot[a.slot].push(a);
+                            }
+                            const slots = Object.keys(bySlot).map(Number).sort((a, b) => a - b);
+                            slots.forEach((slot) => {
+                                bySlot[slot].sort((a, b) => a.rank - b.rank).forEach(a => {
+                                    positions.push({
+                                        positionAbbr: 'WR',
+                                        athleteRef: a.athlete['$ref'],
+                                        rank: a.rank,
+                                    });
+                                });
+                            });
+                        } else {
+                            const starters = posData.athletes?.filter(a => a.rank <= 2 && a.athlete?.['$ref']) ?? [];
+                            starters.sort((a, b) => a.rank - b.rank).forEach(a => {
+                                positions.push({
+                                    positionAbbr: abbr,
+                                    athleteRef: a.athlete['$ref'],
+                                    rank: a.rank,
+                                });
+                            });
+                        }
+                    }
+                    // Normalize ESPN formation names to readable labels
+                    const rawName = (item.name || '').toLowerCase();
+                    let label;
+                    if (rawName.includes('special')) label = 'Special Teams';
+                    else if (rawName.match(/\d(wr|te|rb|hb)/i) || rawName.includes('offense') || rawName.includes('shotgun') || rawName.includes('pistol') || rawName.includes('i-form') || rawName.includes('wildcat')) label = 'Offense';
+                    else label = 'Defense';
+
+                    if (positions.length) formations.push({ name: label, positions });
+                }
+
+                // Batch-resolve unique athlete refs
+                const allRefs = [...new Set(formations.flatMap(f => f.positions.map(p => p.athleteRef)))];
+                const athleteMap = {};
+                await Promise.all(allRefs.map(async ref => {
+                    const a = await fetch(ref).then(r => r.json()).catch(() => null);
+                    if (a) athleteMap[ref] = a.displayName ?? a.fullName ?? '—';
+                }));
+
+                const data = formations.map(f => ({
+                    name: f.name,
+                    positions: f.positions.map(p => ({
+                        position: p.positionAbbr,
+                        player: athleteMap[p.athleteRef] ?? '—',
+                        rank: p.rank,
+                    })),
+                }));
+
+                // Merge formations with the same label, deduplicating by position+rank
+                const ORDER = { 'Offense': 0, 'Defense': 1, 'Special Teams': 2 };
+                const merged = [];
+                const seen = {};
+                for (const f of data) {
+                    if (!seen[f.name]) {
+                        seen[f.name] = { name: f.name, positions: [], posSet: new Set() };
+                        merged.push(seen[f.name]);
+                    }
+                    for (const p of f.positions) {
+                        const key = `${p.position}__${p.rank}`;
+                        if (!seen[f.name].posSet.has(key)) {
+                            seen[f.name].posSet.add(key);
+                            seen[f.name].positions.push(p);
+                        }
+                    }
+                }
+                const OFFENSE_POS_ORDER = ['QB','RB','HB','FB','WR','TE','LT','LG','C','RG','RT'];
+                const sortedData = merged
+                    .map(({ posSet, ...rest }) => {
+                        if (rest.name === 'Offense') {
+                            rest.positions = rest.positions.slice().sort((a, b) => {
+                                const ai = OFFENSE_POS_ORDER.indexOf(a.position);
+                                const bi = OFFENSE_POS_ORDER.indexOf(b.position);
+                                if (ai !== bi) return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+                                return a.rank - b.rank;
+                            });
+                        } else {
+                            // For defense/special teams, sort by position then rank
+                            rest.positions = rest.positions.slice().sort((a, b) =>
+                                a.position.localeCompare(b.position) || a.rank - b.rank
+                            );
+                        }
+                        return rest;
+                    })
+                    .sort((a, b) => (ORDER[a.name] ?? 99) - (ORDER[b.name] ?? 99));
+
+                await cache.updateOne(
+                    { team: teamName },
+                    { $set: { team: teamName, data: sortedData, cachedAt: new Date() } },
+                    { upsert: true }
+                );
+
+                return sortedData;
+            } catch {
+                return cached?.data ?? [];
+            }
+        };
+
+        const [homeData, awayData] = await Promise.all([
+            fetchDepthChart(home),
+            fetchDepthChart(away),
+        ]);
+
+        res.json({ home: homeData, away: awayData });
+    } catch (error) {
+        console.error('Error fetching depth chart:', error);
+        res.status(500).json({ error: 'Error fetching depth chart' });
+    }
+});
+
 app.get('/api/weather', async (req, res) => {
     try {
         const { city, date, lat, lon, timezone, commenceTime } = req.query;

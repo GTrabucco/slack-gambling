@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
@@ -8,14 +7,91 @@ import PageLoader from "../PageLoader";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Box from "@mui/material/Box";
+
 import StevenButton from "../Common/StevenButton";
 import gameService from "../../services/gameService";
 import apiClient from "../../services/apiClient";
 
-const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) => {
+const INJURY_ABBR = { "IR": "IR", "Out": "O", "Doubtful": "D", "Questionable": "Q", "Probable": "P" };
+const INJURY_COLOR = { "IR": "#d32f2f", "Out": "#d32f2f", "Doubtful": "#d32f2f", "Questionable": "#ed6c02", "Probable": "#2e7d32" };
+
+const teamLogoSrc = (teamName) => {
+  if (!teamName) return null;
+  const last = teamName.trim().split(" ").pop();
+  return `/logos/${last}.png`;
+};
+
+const DepthChartList = ({ teamName, formations, injuries }) => {
+  const injuryMap = {};
+  for (const inj of (injuries || [])) {
+    if (inj.name && INJURY_ABBR[inj.status]) injuryMap[inj.name] = inj.status;
+  }
+
+  return (
+  <Box sx={{ flex: 1, minWidth: 0 }}>
+    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1, mb: 1 }}>
+      <img src={teamLogoSrc(teamName)} alt="" width={28} height={28} style={{ objectFit: "contain" }} />
+      <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{teamName}</Typography>
+    </Box>
+    {!formations?.length ? (
+      <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center" }}>
+        No roster available
+      </Typography>
+    ) : (
+      formations.map((formation, fi) => (
+        <Box key={fi} sx={{ mb: 1.5 }}>
+          <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.secondary", textTransform: "uppercase", mb: 0.5, letterSpacing: 0.5 }}>
+            {formation.name}
+          </Typography>
+          {formation.positions.map((pos, pi) => {
+            const injStatus = injuryMap[pos.player];
+            const isBackup = pos.rank >= 2;
+            return (
+              <Box key={pi} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 0.4, borderBottom: "1px solid rgba(255,255,255,0.04)", opacity: isBackup ? 0.65 : 1 }}>
+                <Typography sx={{ fontSize: 12, color: "text.secondary", minWidth: 40 }}>{isBackup ? "" : pos.position}</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                  {injStatus && (
+                    <Box sx={{
+                      bgcolor: INJURY_COLOR[injStatus],
+                      color: "#fff",
+                      fontSize: 10,
+                      fontWeight: 700,
+                      borderRadius: "50%",
+                      width: 18,
+                      height: 18,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}>
+                      {INJURY_ABBR[injStatus]}
+                    </Box>
+                  )}
+                  <Typography sx={{ fontSize: isBackup ? 11 : 12, fontWeight: isBackup ? 400 : 500, textAlign: "right" }}>{pos.player}</Typography>
+                </Box>
+              </Box>
+            );
+          })}
+        </Box>
+      ))
+    )}
+  </Box>
+  );
+};
+
+const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, homeTeam, awayTeam }) => {
   const [weatherData, setWeatherData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+  const [injuryLoading, setInjuryLoading] = useState(false);
+  const [depthLoading, setDepthLoading] = useState(false);
+  const [injuries, setInjuries] = useState({ home: [], away: [] });
+  const [depthChart, setDepthChart] = useState({ home: [], away: [] });
   const [cityName, setCityName] = useState("");
+  const [tab, setTab] = useState(0);
+
   const handleShowStevenInfo = () => {
     setShowStevenInfo(false);
   };
@@ -23,14 +99,13 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
   const getGame = async () => {
     try {
       const response = await gameService.getGame(selectedGameId);
-
       const game = response.data?.[0];
       if (!game) throw new Error("Game not found");
-      await populate(game.home_team, game.commence_time);
+      await populate(game.home_team, game.away_team, game.commence_time);
     } catch (error) {
       console.error("Error fetching game:", error);
       setWeatherData([]);
-      setLoading(false);
+      setWeatherLoading(false);
     }
   };
 
@@ -171,61 +246,98 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo }) =
     }
   };
 
-  const populate = async (homeTeam, gameDate) => {
+  const populate = async (home, away, gameDate) => {
     try {
-      setLoading(true);
-      const city = getCityFromTeam(homeTeam);
-      setCityName(city)
-      const next4Hours = await getWeather(city, gameDate);
+      setWeatherLoading(true);
+      setInjuryLoading(true);
+      setDepthLoading(true);
+      const city = getCityFromTeam(home);
+      setCityName(city);
+      const [next4Hours, injuryRes, depthRes] = await Promise.all([
+        getWeather(city, gameDate),
+        apiClient.get(`/api/injuries?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}&commenceTime=${encodeURIComponent(gameDate)}`)
+          .then(r => r.data || { home: [], away: [] })
+          .catch(() => ({ home: [], away: [] })),
+        apiClient.get(`/api/depthchart?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}&commenceTime=${encodeURIComponent(gameDate)}`)
+          .then(r => r.data || { home: [], away: [] })
+          .catch(() => ({ home: [], away: [] })),
+      ]);
       setWeatherData(next4Hours);
+      setInjuries(injuryRes);
+      setDepthChart(depthRes);
     } catch (error) {
-      console.error("Error populating weather:", error);
+      console.error("Error populating game info:", error);
       setWeatherData([]);
+      setInjuries({ home: [], away: [] });
+      setDepthChart({ home: [], away: [] });
     } finally {
-      setLoading(false);
+      setWeatherLoading(false);
+      setInjuryLoading(false);
+      setDepthLoading(false);
     }
   };
 
   useEffect(() => {
-    if (showStevenInfo) getGame();
-    else {
+    if (showStevenInfo) {
+      setTab(0);
+      getGame();
+    } else {
       setWeatherData([]);
-      setLoading(true);
+      setInjuries({ home: [], away: [] });
+      setDepthChart({ home: [], away: [] });
+      setWeatherLoading(true);
     }
   }, [showStevenInfo, selectedGameId]);
 
   return (
     <Dialog open={showStevenInfo} onClose={handleShowStevenInfo} maxWidth="sm" fullWidth>
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth">
+        <Tab label="Weather" />
+        <Tab label="Roster" />
+      </Tabs>
       <DialogContent dividers>
-        {loading ? (
-          <PageLoader />
-        ) : weatherData.length ? (
-          <>
-            <Typography variant="body2" sx={{ mb: 1 }}>Note: time displayed in local time</Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>City: {cityName}</Typography>
-            <Grid container spacing={2}>
-              {weatherData.map((hour) => {
-                const [hh, mm] = hour.time.split("T")[1].split(":");
-                const hour12 = ((+hh + 11) % 12) + 1;
-                const ampm = +hh >= 12 ? "PM" : "AM";
-                const formattedTime = `${hour12}:${mm} ${ampm}`;
-                return (
-                  <Grid item xs={12} key={hour.time}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Typography variant="body2"><b>Time:</b> {formattedTime}</Typography>
-                        <Typography variant="body2"><b>Temp:</b> {hour.temperature}°F</Typography>
-                        <Typography variant="body2"><b>Wind:</b> {hour.wind} mph</Typography>
-                        <Typography variant="body2"><b>Precipitation:</b> {hour.precipitation}%</Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                );
-              })}
-            </Grid>
-          </>
-        ) : (
-          <Typography>No weather data available</Typography>
+        {tab === 0 && (
+          weatherLoading ? (
+            <PageLoader />
+          ) : weatherData.length ? (
+            <>
+              <Typography variant="body2" sx={{ mb: 1 }}>Note: time displayed in local time</Typography>
+              <Typography variant="body2" sx={{ mb: 2 }}>City: {cityName}</Typography>
+              <Grid container spacing={2}>
+                {weatherData.map((hour) => {
+                  const [hh, mm] = hour.time.split("T")[1].split(":");
+                  const hour12 = ((+hh + 11) % 12) + 1;
+                  const ampm = +hh >= 12 ? "PM" : "AM";
+                  const formattedTime = `${hour12}:${mm} ${ampm}`;
+                  return (
+                    <Grid item xs={12} key={hour.time}>
+                      <Card variant="outlined">
+                        <CardContent>
+                          <Typography variant="body2"><b>Time:</b> {formattedTime}</Typography>
+                          <Typography variant="body2"><b>Temp:</b> {hour.temperature}°F</Typography>
+                          <Typography variant="body2"><b>Wind:</b> {hour.wind} mph</Typography>
+                          <Typography variant="body2"><b>Precipitation:</b> {hour.precipitation}%</Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  );
+                })}
+              </Grid>
+            </>
+          ) : (
+            <Typography>No weather data available</Typography>
+          )
+        )}
+        {tab === 1 && (
+          depthLoading ? (
+            <PageLoader />
+          ) : (
+            <Box sx={{ display: "flex", gap: 3 }}>
+              <DepthChartList teamName={awayTeam} formations={depthChart.away} injuries={injuries.away} />
+              <Box sx={{ width: "1px", bgcolor: "rgba(255,255,255,0.08)", flexShrink: 0 }} />
+              <DepthChartList teamName={homeTeam} formations={depthChart.home} injuries={injuries.home} />
+            </Box>
+          )
         )}
       </DialogContent>
       <DialogActions>

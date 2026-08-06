@@ -11,7 +11,6 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
 import StevenGameInfo from "../StevenGameInfo";
-import StevenInjuryInfo from "../StevenInjuryInfo";
 import StevenButton from "../Common/StevenButton";
 import gameService from "../../services/gameService";
 import pickService from "../../services/pickService";
@@ -29,10 +28,10 @@ const StevenGameList = ({ tempPicks,
     setGames
 }) => {
     const [selectedGameId, setSelectedGameId] = useState()
+    const [selectedGame, setSelectedGame] = useState(null)
     const [showStevenInfo, setShowStevenInfo] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const [records, setRecords] = useState({})
-    const [injuryGame, setInjuryGame] = useState(null)
 
     const fetchRecords = async () => {
         try {
@@ -221,13 +220,8 @@ const StevenGameList = ({ tempPicks,
                 showStevenInfo={showStevenInfo}
                 selectedGameId={selectedGameId}
                 setShowStevenInfo={setShowStevenInfo}
-            />
-            <StevenInjuryInfo
-                open={!!injuryGame}
-                onClose={() => setInjuryGame(null)}
-                homeTeam={injuryGame?.home}
-                awayTeam={injuryGame?.away}
-                commenceTime={injuryGame?.commenceTime}
+                homeTeam={selectedGame?.home}
+                awayTeam={selectedGame?.away}
             />
 
             {/* Confirmation Modal */}
@@ -361,24 +355,18 @@ const StevenGameList = ({ tempPicks,
                                             {`${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
                                         </Typography>
                                         <Box sx={{ display: "flex", gap: 1.5 }}>
-                                            <Typography
-                                                variant="body2"
-                                                onClick={() => setInjuryGame({ home: home_team, away: away_team, commenceTime })}
-                                                sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
-                                            >
-                                                Injuries
-                                            </Typography>
-                                            <Typography
-                                                variant="body2"
-                                                onClick={() => {
-                                                    setShowStevenInfo(true);
-                                                    setSelectedGameId(game["gameId"]);
-                                                }}
-                                                sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
-                                            >
-                                                Weather
-                                            </Typography>
-                                        </Box>
+                                                            <Typography
+                                                                variant="body2"
+                                                                onClick={() => {
+                                                                    setShowStevenInfo(true);
+                                                                    setSelectedGameId(game["gameId"]);
+                                                                    setSelectedGame({ home: home_team, away: away_team });
+                                                                }}
+                                                                sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
+                                                            >
+                                                                Game Info
+                                                            </Typography>
+                                                        </Box>
                                     </Box>
                                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", textAlign: "center", width: "100%" }}>
                                         <div className={`team-container ${away_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
