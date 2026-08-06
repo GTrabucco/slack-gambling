@@ -24,6 +24,79 @@ const teamLogoSrc = (teamName) => {
   return `/logos/${last}.png`;
 };
 
+const rankColor = (rank) => {
+  if (!rank || rank < 1 || rank > 32) return 'rgba(255,255,255,0.3)';
+  const hue = Math.round((32 - rank) / 31 * 120);
+  return `hsl(${hue}, 65%, 42%)`;
+};
+
+const SECTIONS = ['Offense', 'Defense'];
+
+const StatsPanel = ({ awayTeam, homeTeam, awayStats, homeStats }) => {
+  const awayMap = {};
+  const homeMap = {};
+  for (const s of (awayStats || [])) awayMap[`${s.section}__${s.label}`] = s;
+  for (const s of (homeStats || [])) homeMap[`${s.section}__${s.label}`] = s;
+
+  const allKeys = [...new Set([...(awayStats || []), ...(homeStats || [])].map(s => `${s.section}__${s.label}`))];
+
+  return (
+    <Box>
+      <Box sx={{ display: "flex", mb: 1, px: 0.5 }}>
+        <Box sx={{ flex: 1 }} />
+        <Box sx={{ width: 80, textAlign: "center" }}>
+          <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.secondary" }}>{awayTeam?.split(" ").pop()}</Typography>
+        </Box>
+        <Box sx={{ width: 80, textAlign: "center" }}>
+          <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.secondary" }}>{homeTeam?.split(" ").pop()}</Typography>
+        </Box>
+      </Box>
+      {SECTIONS.map(section => {
+        const rows = allKeys.filter(k => k.startsWith(section + '__'));
+        if (!rows.length) return null;
+        return (
+          <Box key={section} sx={{ mb: 2 }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.5, mb: 0.5, px: 0.5 }}>
+              {section}
+            </Typography>
+            {rows.map(key => {
+              const label = key.split('__')[1];
+              const away = awayMap[key];
+              const home = homeMap[key];
+              return (
+                <Box key={key} sx={{ display: "flex", alignItems: "center", py: 0.5, borderBottom: "1px solid rgba(255,255,255,0.04)", px: 0.5 }}>
+                  <Typography sx={{ flex: 1, fontSize: 12, color: "text.secondary" }}>{label}</Typography>
+                  {[away, home].map((s, i) => (
+                    <Box key={i} sx={{ width: 80, display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5 }}>
+                      <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{s?.displayValue ?? '—'}</Typography>
+                      {s?.rank && (
+                        <Box sx={{
+                          bgcolor: rankColor(s.rank),
+                          color: "#fff",
+                          fontSize: 9,
+                          fontWeight: 700,
+                          borderRadius: "4px",
+                          px: 0.4,
+                          py: 0.1,
+                          minWidth: 18,
+                          textAlign: "center",
+                          lineHeight: "14px",
+                        }}>
+                          {s.rank}
+                        </Box>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
+              );
+            })}
+          </Box>
+        );
+      })}
+    </Box>
+  );
+};
+
 const DepthChartList = ({ teamName, formations, injuries }) => {
   const injuryMap = {};
   for (const inj of (injuries || [])) {
@@ -87,8 +160,10 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [injuryLoading, setInjuryLoading] = useState(false);
   const [depthLoading, setDepthLoading] = useState(false);
+  const [statsLoading, setStatsLoading] = useState(false);
   const [injuries, setInjuries] = useState({ home: [], away: [] });
   const [depthChart, setDepthChart] = useState({ home: [], away: [] });
+  const [teamStats, setTeamStats] = useState({ home: [], away: [] });
   const [cityName, setCityName] = useState("");
   const [tab, setTab] = useState(0);
 
@@ -251,9 +326,10 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       setWeatherLoading(true);
       setInjuryLoading(true);
       setDepthLoading(true);
+      setStatsLoading(true);
       const city = getCityFromTeam(home);
       setCityName(city);
-      const [next4Hours, injuryRes, depthRes] = await Promise.all([
+      const [next4Hours, injuryRes, depthRes, statsRes] = await Promise.all([
         getWeather(city, gameDate),
         apiClient.get(`/api/injuries?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}&commenceTime=${encodeURIComponent(gameDate)}`)
           .then(r => r.data || { home: [], away: [] })
@@ -261,10 +337,14 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
         apiClient.get(`/api/depthchart?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}&commenceTime=${encodeURIComponent(gameDate)}`)
           .then(r => r.data || { home: [], away: [] })
           .catch(() => ({ home: [], away: [] })),
+        apiClient.get(`/api/stats?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}`)
+          .then(r => r.data || { home: [], away: [] })
+          .catch(() => ({ home: [], away: [] })),
       ]);
       setWeatherData(next4Hours);
       setInjuries(injuryRes);
       setDepthChart(depthRes);
+      setTeamStats(statsRes);
     } catch (error) {
       console.error("Error populating game info:", error);
       setWeatherData([]);
@@ -274,6 +354,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       setWeatherLoading(false);
       setInjuryLoading(false);
       setDepthLoading(false);
+      setStatsLoading(false);
     }
   };
 
@@ -285,6 +366,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       setWeatherData([]);
       setInjuries({ home: [], away: [] });
       setDepthChart({ home: [], away: [] });
+      setTeamStats({ home: [], away: [] });
       setWeatherLoading(true);
     }
   }, [showStevenInfo, selectedGameId]);
@@ -294,6 +376,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth">
         <Tab label="Weather" />
         <Tab label="Roster" />
+        <Tab label="Stats" />
       </Tabs>
       <DialogContent dividers>
         {tab === 0 && (
@@ -337,6 +420,13 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
               <Box sx={{ width: "1px", bgcolor: "rgba(255,255,255,0.08)", flexShrink: 0 }} />
               <DepthChartList teamName={homeTeam} formations={depthChart.home} injuries={injuries.home} />
             </Box>
+          )
+        )}
+        {tab === 2 && (
+          statsLoading ? (
+            <PageLoader />
+          ) : (
+            <StatsPanel awayTeam={awayTeam} homeTeam={homeTeam} awayStats={teamStats.away} homeStats={teamStats.home} />
           )
         )}
       </DialogContent>

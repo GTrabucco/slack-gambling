@@ -677,6 +677,90 @@ app.get('/api/injuries', async (req, res) => {
     }
 });
 
+const STATS_WANTED = [
+    // section, label, category, statName
+    { section: 'Offense', label: 'Points/G',        cat: 'passing',               stat: 'totalPointsPerGame' },
+    { section: 'Offense', label: 'Total Yds/G',     cat: 'passing',               stat: 'netYardsPerGame' },
+    { section: 'Offense', label: 'Pass Yds/G',      cat: 'passing',               stat: 'netPassingYardsPerGame' },
+    { section: 'Offense', label: 'Rush Yds/G',      cat: 'rushing',               stat: 'rushingYardsPerGame' },
+    { section: 'Offense', label: 'Yds/Rush',        cat: 'rushing',               stat: 'yardsPerRushAttempt' },
+    { section: 'Offense', label: 'QB Rating',       cat: 'passing',               stat: 'QBRating' },
+    { section: 'Offense', label: 'Cmp %',           cat: 'passing',               stat: 'completionPct' },
+    { section: 'Offense', label: 'Yds/Attempt',     cat: 'passing',               stat: 'yardsPerPassAttempt' },
+    { section: 'Offense', label: 'Pass TDs',        cat: 'passing',               stat: 'passingTouchdowns' },
+    { section: 'Offense', label: 'Interceptions',   cat: 'passing',               stat: 'interceptions' },
+    { section: 'Offense', label: 'Sacks Allowed',   cat: 'passing',               stat: 'sacks' },
+    { section: 'Offense', label: 'Rush TDs',        cat: 'rushing',               stat: 'rushingTouchdowns' },
+    { section: 'Offense', label: 'Total TDs',       cat: 'passing',               stat: 'totalTouchdowns' },
+    { section: 'Defense', label: 'Sacks',           cat: 'defensive',             stat: 'sacks' },
+    { section: 'Defense', label: 'Interceptions',   cat: 'defensiveInterceptions',stat: 'interceptions' },
+    { section: 'Defense', label: 'Passes Def.',     cat: 'defensive',             stat: 'passesDefended' },
+    { section: 'Defense', label: 'TFL',             cat: 'defensive',             stat: 'tacklesForLoss' },
+    { section: 'Defense', label: 'Forced Fumbles',  cat: 'general',               stat: 'fumblesForced' },
+];
+
+app.get('/api/stats', async (req, res) => {
+    try {
+        const { home, away } = req.query;
+        if (!home || !away) return res.status(400).json({ error: 'home and away team names are required' });
+        const db = client.db(DATABASE_NAME);
+
+        const teamIds = await db.collection('Team_IDs').find({ team: { $in: [home, away] } }).toArray();
+        const idMap = {};
+        for (const t of teamIds) idMap[t.team] = t.espnId;
+
+        const config = await db.collection('Config').findOne({ _id: 'current' });
+        const season = config?.season ?? 2026;
+        const cache = db.collection('Stats_Cache');
+
+        const fetchStats = async (teamName) => {
+            const espnId = idMap[teamName];
+            if (!espnId) return [];
+
+            const cached = await cache.findOne({ team: teamName });
+            if (cached) return cached.data;
+
+            try {
+                const json = await fetch(
+                    `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${season}/types/2/teams/${espnId}/statistics`
+                ).then(r => r.json());
+
+                // Build flat map: category -> statName -> {displayValue, rank}
+                const statMap = {};
+                for (const cat of (json.splits?.categories || [])) {
+                    statMap[cat.name] = {};
+                    for (const s of (cat.stats || [])) {
+                        statMap[cat.name][s.name] = { displayValue: s.displayValue, rank: s.rank };
+                    }
+                }
+
+                const data = STATS_WANTED.map(w => ({
+                    section: w.section,
+                    label: w.label,
+                    displayValue: statMap[w.cat]?.[w.stat]?.displayValue ?? '—',
+                    rank: statMap[w.cat]?.[w.stat]?.rank ?? null,
+                }));
+
+                await cache.updateOne(
+                    { team: teamName },
+                    { $set: { team: teamName, data, cachedAt: new Date() } },
+                    { upsert: true }
+                );
+
+                return data;
+            } catch {
+                return cached?.data ?? [];
+            }
+        };
+
+        const [homeData, awayData] = await Promise.all([fetchStats(home), fetchStats(away)]);
+        res.json({ home: homeData, away: awayData });
+    } catch (error) {
+        console.error('Error fetching stats:', error);
+        res.status(500).json({ error: 'Error fetching stats' });
+    }
+});
+
 app.get('/api/depthchart', async (req, res) => {
     try {
         const { home, away, commenceTime } = req.query;
