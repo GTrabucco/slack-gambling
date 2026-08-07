@@ -103,6 +103,9 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
         await picksHistoryCollection.insertMany(toInsert, { session });
       }
 
+      // Send backup text BEFORE clearing picks — if it fails, abort the transaction
+      await sendPicksBackup(picks, parseInt(week));
+
       // Clear Picks for the new week
       await picksCollection.deleteMany({}, { session });
 
@@ -131,7 +134,6 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
       console.log(`Tuesday job completed for season ${season}, week ${week - 1}`);
     });
 
-    await sendPicksBackup(picks, parseInt(week) - 1);
     await fetchAndStoreRecords(client.db('SlackGambling'));
 
     // Clear stale injury, weather, depth chart, and stats caches for the new week
@@ -202,50 +204,46 @@ export async function fetchAndStoreRecords(db) {
 }
 
 async function sendPicksBackup(picks, week) {
-  try {
-    const twilioClient = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  const twilioClient = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-    const byUser = picks.reduce((acc, pick) => {
-      if (!acc[pick.username]) acc[pick.username] = {};
-      acc[pick.username][pick.type] = pick;
-      return acc;
-    }, {});
+  const byUser = picks.reduce((acc, pick) => {
+    if (!acc[pick.username]) acc[pick.username] = {};
+    acc[pick.username][pick.type] = pick;
+    return acc;
+  }, {});
 
-    const userEntries = Object.entries(byUser);
-    const chunkSize = 5;
-    const chunks = [];
-    for (let i = 0; i < userEntries.length; i += chunkSize) {
-      chunks.push(userEntries.slice(i, i + chunkSize));
-    }
-
-    for (let i = 0; i < chunks.length; i++) {
-      const lines = [`Wk${week} Picks (${i + 1}/${chunks.length}):`];
-      for (const [username, userPicks] of chunks[i]) {
-        const name = username.split("@")[0];
-        const parts = ['favorite', 'dog', 'over', 'under', 'gotw'].map(type => {
-          const pick = userPicks[type];
-          if (!pick) return `${type}-none`;
-          if (type === 'over' || type === 'under') {
-            const away = pick.awayTeam.split(" ").pop();
-            const home = pick.homeTeam.split(" ").pop();
-            return `${type}-${pick.value}(${away}@${home})`;
-          }
-          return `${type}-${pick.text}`;
-        });
-        lines.push(`${name}: ${parts.join(', ')}`);
-      }
-
-      await twilioClient.messages.create({
-        body: lines.join('\n'),
-        from: "+18334966404",
-        to: process.env.ADMIN_PHONE_NUMBER,
-      });
-    }
-
-    console.log(`Picks backup sent in ${chunks.length} messages.`);
-  } catch (err) {
-    console.error("Failed to send picks backup text:", err);
+  const userEntries = Object.entries(byUser);
+  const chunkSize = 5;
+  const chunks = [];
+  for (let i = 0; i < userEntries.length; i += chunkSize) {
+    chunks.push(userEntries.slice(i, i + chunkSize));
   }
+
+  for (let i = 0; i < chunks.length; i++) {
+    const lines = [`Wk${week} Picks (${i + 1}/${chunks.length}):`];
+    for (const [username, userPicks] of chunks[i]) {
+      const name = username.split("@")[0];
+      const parts = ['favorite', 'dog', 'over', 'under', 'gotw'].map(type => {
+        const pick = userPicks[type];
+        if (!pick) return `${type}-none`;
+        if (type === 'over' || type === 'under') {
+          const away = pick.awayTeam.split(" ").pop();
+          const home = pick.homeTeam.split(" ").pop();
+          return `${type}-${pick.value}(${away}@${home})`;
+        }
+        return `${type}-${pick.text}`;
+      });
+      lines.push(`${name}: ${parts.join(', ')}`);
+    }
+
+    await twilioClient.messages.create({
+      body: lines.join('\n'),
+      from: "+18334966404",
+      to: process.env.ADMIN_PHONE_NUMBER,
+    });
+  }
+
+  console.log(`Picks backup sent in ${chunks.length} messages.`);
 }
 
 export async function removeDuplicates(db) {

@@ -521,21 +521,18 @@ app.get('/api/reports/count', async (req, res) => {
 });
 
 app.post('/api/update-pick-history', async (req, res) => {
-    const { id, result } = req.body;
+    const { id, result, season } = req.body;
     try {
         const db = client.db(DATABASE_NAME);
-        const filter = { _id: new ObjectId(id) }
-        const updatePicksHistory = {
-            $set: {
-                result: parseInt(result, 10)
-            }
-        }
-
-        await db.collection('Picks_History').updateOne(filter, updatePicksHistory);
+        const update = {};
+        if (result !== undefined) update.result = parseInt(result, 10);
+        if (season !== undefined) update.season = season;
+        if (Object.keys(update).length === 0) return res.status(400).json({ error: 'No fields to update' });
+        await db.collection('Picks_History').updateOne({ _id: new ObjectId(id) }, { $set: update });
         res.json({ success: true });
     } catch (error) {
         console.log(error)
-        res.status(500).json({ error: 'Error logging in' });
+        res.status(500).json({ error: 'Error updating pick history' });
     }
 })
 
@@ -548,6 +545,34 @@ app.delete('/api/picks/:id', adminLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error deleting pick:', error);
         res.status(500).json({ error: 'Error deleting pick' });
+    }
+});
+
+app.post('/api/admin/picks-history', adminLimiter, async (req, res) => {
+    try {
+        const { username, gameId, homeTeam, awayTeam, type, value, text, season, week, result } = req.body;
+        if (!username || !type || !text) {
+            return res.status(400).json({ error: 'username, type, and text are required' });
+        }
+        const db = client.db(DATABASE_NAME);
+        const doc = {
+            username,
+            gameId: gameId || null,
+            homeTeam: homeTeam || null,
+            awayTeam: awayTeam || null,
+            type,
+            value: value !== undefined && value !== "" ? Number(value) : null,
+            text,
+            season: season !== undefined && season !== "" ? season : null,
+            week: week !== undefined && week !== "" ? Number(week) : null,
+            result: result !== undefined && result !== "" ? Number(result) : null,
+            createdAt: new Date(),
+        };
+        const inserted = await db.collection('Picks_History').insertOne(doc);
+        res.json({ success: true, id: inserted.insertedId });
+    } catch (error) {
+        console.error('Error creating picks history:', error);
+        res.status(500).json({ error: 'Error creating picks history' });
     }
 });
 

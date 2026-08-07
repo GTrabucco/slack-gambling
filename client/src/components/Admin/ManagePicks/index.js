@@ -17,6 +17,7 @@ import StevenButton from "../../Common/StevenButton";
 import pickService from "../../../services/pickService";
 import gameService from "../../../services/gameService";
 import userService from "../../../services/userService";
+import apiClient from "../../../services/apiClient";
 import {
     StevenTableContainer,
     StevenTable,
@@ -42,6 +43,7 @@ const ManagePicks = () => {
     const [picks, setPicks] = useState([]);
     const [games, setGames] = useState([]);
     const [users, setUsers] = useState([]);
+    const [seasons, setSeasons] = useState([]);
     const [form, setForm] = useState(EMPTY_FORM);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
@@ -49,14 +51,16 @@ const ManagePicks = () => {
 
     const fetchAll = async () => {
         try {
-            const [picksRes, gamesRes, usersRes] = await Promise.all([
+            const [picksRes, gamesRes, usersRes, seasonsRes] = await Promise.all([
                 pickService.getWeeklyPicks(null),
                 gameService.getGames(),
                 userService.getAllUsers(),
+                apiClient.get("/api/seasons"),
             ]);
             setPicks(picksRes.data || []);
             setGames(gamesRes.data || []);
             setUsers(usersRes.data || []);
+            setSeasons(seasonsRes.data || []);
         } catch (e) {
             setError("Error loading data");
         }
@@ -135,6 +139,26 @@ const ManagePicks = () => {
             fetchAll();
         } catch (e) {
             setError("Error deleting pick");
+        }
+    };
+
+    const handleResultChange = async (pick, newResult) => {
+        try {
+            await pickService.updatePickHistory(pick._id, newResult, undefined);
+            setSuccess(`Result updated for ${pick.text}`);
+            fetchAll();
+        } catch (e) {
+            setError("Error updating result");
+        }
+    };
+
+    const handleSeasonChange = async (pick, newSeason) => {
+        try {
+            await pickService.updatePickHistory(pick._id, undefined, newSeason);
+            setSuccess(`Season updated for ${pick.text}`);
+            fetchAll();
+        } catch (e) {
+            setError("Error updating season");
         }
     };
 
@@ -246,6 +270,8 @@ const ManagePicks = () => {
                                     <StevenTableCell>Game</StevenTableCell>
                                     <StevenTableCell>Text</StevenTableCell>
                                     <StevenTableCell>Value</StevenTableCell>
+                                    <StevenTableCell>Result</StevenTableCell>
+                                    <StevenTableCell>Season</StevenTableCell>
                                     <StevenTableCell>Created</StevenTableCell>
                                     <StevenTableCell>Delete</StevenTableCell>
                                 </StevenTableRow>
@@ -273,6 +299,38 @@ const ManagePicks = () => {
                                             </StevenTableCell>
                                             <StevenTableCell>{pick.text}</StevenTableCell>
                                             <StevenTableCell>{pick.value}</StevenTableCell>
+                                            <StevenTableCell>
+                                                <Select
+                                                    size="small"
+                                                    value={pick.result ?? ""}
+                                                    displayEmpty
+                                                    onChange={(e) => handleResultChange(pick, e.target.value)}
+                                                    sx={{
+                                                        fontSize: 12,
+                                                        minWidth: 90,
+                                                        color: pick.result === 1 ? "#a5d6a7" : pick.result === -1 ? "#ef9a9a" : pick.result === 0 ? "#ffe082" : "text.secondary",
+                                                    }}
+                                                >
+                                                    <MenuItem value=""><em>—</em></MenuItem>
+                                                    <MenuItem value={1} sx={{ color: "#a5d6a7" }}>Win (+1)</MenuItem>
+                                                    <MenuItem value={0} sx={{ color: "#ffe082" }}>Push (0)</MenuItem>
+                                                    <MenuItem value={-1} sx={{ color: "#ef9a9a" }}>Loss (−1)</MenuItem>
+                                                </Select>
+                                            </StevenTableCell>
+                                            <StevenTableCell>
+                                                <Select
+                                                    size="small"
+                                                    value={pick.season ? String(pick.season) : ""}
+                                                    displayEmpty
+                                                    onChange={(e) => handleSeasonChange(pick, e.target.value)}
+                                                    sx={{ fontSize: 12, minWidth: 90 }}
+                                                >
+                                                    <MenuItem value=""><em>—</em></MenuItem>
+                                                    {seasons.map(s => (
+                                                        <MenuItem key={s} value={String(s)}>{s}</MenuItem>
+                                                    ))}
+                                                </Select>
+                                            </StevenTableCell>
                                             <StevenTableCell>
                                                 {pick.createdAt ? new Date(pick.createdAt).toLocaleString() : "—"}
                                             </StevenTableCell>

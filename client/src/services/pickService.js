@@ -41,8 +41,11 @@ const pickService = {
         return apiClient.post("/api/admin/picks", pick);
     },
 
-    updatePickHistory: async (id, result) => {
-        return apiClient.post("/api/update-pick-history", { id, result });
+    updatePickHistory: async (id, result, season) => {
+        const body = { id };
+        if (result !== undefined) body.result = result;
+        if (season !== undefined) body.season = season;
+        return apiClient.post("/api/update-pick-history", body);
     },
 }
 
