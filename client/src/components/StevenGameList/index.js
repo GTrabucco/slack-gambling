@@ -211,7 +211,20 @@ const StevenGameList = ({ tempPicks,
         : null;
 
     // Build the ordered list: GOTW game first (as gotw), then all games in chronological order (GOTW game included as regular)
-    const sortedGames = [...games].sort((a, b) => new Date(a["commence_time"]) - new Date(b["commence_time"]));
+    // Games that have started AND the user has a pick on are floated to the top (after GOTW)
+    const pickedGameIds = new Set(tempPicks.map(p => p.gameId));
+    const sortedGames = [...games].sort((a, b) => {
+        const aStarted = gameStarted(a.commence_time);
+        const bStarted = gameStarted(b.commence_time);
+        const aPicked = pickedGameIds.has(a.gameId);
+        const bPicked = pickedGameIds.has(b.gameId);
+        // Float: started + picked comes first
+        const aPriority = aStarted && aPicked;
+        const bPriority = bStarted && bPicked;
+        if (aPriority && !bPriority) return -1;
+        if (!aPriority && bPriority) return 1;
+        return new Date(a["commence_time"]) - new Date(b["commence_time"]);
+    });
     const gotwGame = games.find(g => g["gameId"] === gotwGameId);
     const gameEntries = gotwGame
         ? [{ game: gotwGame, isGotw: true }, ...sortedGames.map(g => ({ game: g, isGotw: false }))]
