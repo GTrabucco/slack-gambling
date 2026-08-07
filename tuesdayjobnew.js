@@ -68,6 +68,7 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
       const usernames = users.map(u => u.username);
 
       // Step 3: Fill missing picks (skip week 1 — no penalty at start of season)
+      const blankPicks = [];
       if (parseInt(week) > 1) {
         for (const username of usernames) {
           const userPicks = picksByUser[username] || [];
@@ -88,7 +89,7 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
               createdAt: Date(),
               commence_time: null
             };
-            picksNoId.push(blankPick);
+            blankPicks.push(blankPick);
           }
         }
       }
@@ -97,10 +98,10 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
       const processedPicks = await processPicks(season, week, weekType, picksNoId);
 
       // Only insert picks not already copied to Picks_History by real-time scoring.
-      // Real-time scored picks have a scoredAt timestamp; blank/new picks do not.
       const toInsert = processedPicks.filter(p => p.result !== undefined && !p.scoredAt);
-      if (toInsert.length > 0) {
-        await picksHistoryCollection.insertMany(toInsert, { session });
+      const allToInsert = [...toInsert, ...blankPicks];
+      if (allToInsert.length > 0) {
+        await picksHistoryCollection.insertMany(allToInsert, { session });
       }
 
       // Send backup text BEFORE clearing picks — if it fails, abort the transaction
@@ -117,21 +118,21 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
       }
 
       // Load new games from ESPN API for the upcoming week
-      week = parseInt(week) + 1;
       let newGames = await getGames(season, weekType, week);
       newGames = newGames.map(game => ({ ...game, season, week }));
       if (newGames.length > 0) {
         await gamesCollection.insertMany(newGames, { session });
       }
 
-      // Persist incremented week back to Config
+      // Increment week and persist to Config
+      week = parseInt(week) + 1;
       await configCollection.updateOne(
         { _id: 'current' },
         { $set: { season, week, weekType } },
         { session, upsert: true }
       );
 
-      console.log(`Tuesday job completed for season ${season}, week ${week - 1}`);
+      console.log(`Tuesday job completed for season ${season}, week ${week - 1} → now week ${week}`);
     });
 
     await fetchAndStoreRecords(client.db('SlackGambling'));
@@ -142,7 +143,7 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
     await db.collection('DepthChart_Cache').deleteMany({});
     await db.collection('Stats_Cache').deleteMany({});
 
-    const successMsg = `Tuesday job success for season ${season}, week ${week - 1}`;
+    const successMsg = `Tuesday job success for season ${season}, week ${week}`;
     await logCronRun('Tuesday Job', 'success', successMsg);
     return successMsg;
   } catch (error) {

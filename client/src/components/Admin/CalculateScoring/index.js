@@ -10,7 +10,10 @@ import TablePagination from "@mui/material/TablePagination";
 import Alert from "@mui/material/Alert";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import StevenButton from "../../Common/StevenButton";
+import { BsTrash } from "react-icons/bs";
 import pickService from "../../../services/pickService";
 import apiClient from "../../../services/apiClient";
 import {
@@ -122,6 +125,17 @@ const CalculateScoring = () => {
         }
     };
 
+    const handleDelete = async (pick) => {
+        if (!window.confirm(`Delete "${pick.text}"?`)) return;
+        try {
+            await apiClient.delete(`/api/picks-history/${pick._id}`);
+            setPicks(prev => prev.filter(p => p._id !== pick._id));
+            setSuccess("Pick deleted");
+        } catch (e) {
+            setError("Error deleting pick");
+        }
+    };
+
     return (
         <Box sx={{ p: 2 }}>
             <Typography variant="h5" sx={{ mb: 2 }}>Calculate Scoring</Typography>
@@ -206,6 +220,7 @@ const CalculateScoring = () => {
                             <StevenTableCell>Bet</StevenTableCell>
                             <StevenTableCell>Result</StevenTableCell>
                             <StevenTableCell>Update Season</StevenTableCell>
+                            <StevenTableCell>Delete</StevenTableCell>
                         </StevenTableRow>
                     </StevenTableHead>
                     <StevenTableBody>
@@ -243,6 +258,13 @@ const CalculateScoring = () => {
                                             <MenuItem key={s} value={String(s)}>{s}</MenuItem>
                                         ))}
                                     </Select>
+                                </StevenTableCell>
+                                <StevenTableCell>
+                                    <Tooltip title="Delete pick">
+                                        <IconButton size="small" onClick={() => handleDelete(pick)}>
+                                            <BsTrash />
+                                        </IconButton>
+                                    </Tooltip>
                                 </StevenTableCell>
                             </StevenTableRow>
                         ))}

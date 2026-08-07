@@ -548,6 +548,18 @@ app.delete('/api/picks/:id', adminLimiter, async (req, res) => {
     }
 });
 
+app.delete('/api/picks-history/:id', adminLimiter, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Picks_History').deleteOne({ _id: new ObjectId(id) });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting pick history:', error);
+        res.status(500).json({ error: 'Error deleting pick history' });
+    }
+});
+
 app.post('/api/admin/picks-history', adminLimiter, async (req, res) => {
     try {
         const { username, gameId, homeTeam, awayTeam, type, value, text, season, week, result } = req.body;

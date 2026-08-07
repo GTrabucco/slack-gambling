@@ -33,6 +33,8 @@ const PickHistory = () => {
     const usernameDisplay = userParam ? userParam : user.name;
     const [message, setMessage] = useState("");
     const navigate = useNavigate();
+    const isOwnPage = !userParam;
+
     const disputePick = (description) => {
         navigate('/reportissue', { state: { description: `I want to dispute: ${description}` } });
     };
