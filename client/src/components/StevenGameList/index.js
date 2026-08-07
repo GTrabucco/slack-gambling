@@ -222,6 +222,9 @@ const StevenGameList = ({ tempPicks,
                 setShowStevenInfo={setShowStevenInfo}
                 homeTeam={selectedGame?.home}
                 awayTeam={selectedGame?.away}
+                homeSpread={selectedGame?.homeSpread}
+                awaySpread={selectedGame?.awaySpread}
+                over={selectedGame?.over}
             />
 
             {/* Confirmation Modal */}
@@ -360,7 +363,7 @@ const StevenGameList = ({ tempPicks,
                                                                 onClick={() => {
                                                                     setShowStevenInfo(true);
                                                                     setSelectedGameId(game["gameId"]);
-                                                                    setSelectedGame({ home: home_team, away: away_team });
+                                                                    setSelectedGame({ home: home_team, away: away_team, homeSpread: home_spread, awaySpread: away_spread, over });
                                                                 }}
                                                                 sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
                                                             >

@@ -155,7 +155,7 @@ const DepthChartList = ({ teamName, formations, injuries }) => {
   );
 };
 
-const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, homeTeam, awayTeam }) => {
+const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, homeTeam, awayTeam, homeSpread, awaySpread, over }) => {
   const [weatherData, setWeatherData] = useState([]);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [injuryLoading, setInjuryLoading] = useState(false);
@@ -373,6 +373,32 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
 
   return (
     <Dialog open={showStevenInfo} onClose={handleShowStevenInfo} maxWidth="sm" fullWidth>
+      {(awayTeam || homeTeam || over != null) && (
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1, px: 2, pt: 1.5, pb: 0.5, flexWrap: "wrap" }}>
+          {(() => {
+            const awayFav = awaySpread != null && homeSpread != null && +awaySpread < +homeSpread;
+            const homeFav = homeSpread != null && awaySpread != null && +homeSpread < +awaySpread;
+            const spreadStr = (val) => +val > 0 ? `+${val}` : `${val}`;
+            return (
+              <>
+                <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
+                  {awayTeam}{awayFav && awaySpread != null ? ` (${spreadStr(awaySpread)})` : ""}
+                </Typography>
+                <Typography sx={{ fontSize: 13, color: "text.secondary" }}>@</Typography>
+                <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
+                  {homeTeam}{homeFav && homeSpread != null ? ` (${spreadStr(homeSpread)})` : ""}
+                </Typography>
+                {over != null && (
+                  <>
+                    <Typography sx={{ fontSize: 13, color: "text.secondary" }}>·</Typography>
+                    <Typography sx={{ fontSize: 13, fontWeight: 600 }}>Total: {over}</Typography>
+                  </>
+                )}
+              </>
+            );
+          })()}
+        </Box>
+      )}
       <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth">
         <Tab label="Weather" />
         <Tab label="Roster" />
