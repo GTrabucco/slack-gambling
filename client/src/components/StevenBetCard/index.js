@@ -60,8 +60,20 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                                 value = pick.text;
                                 key = pick.gameId + "-" + type
                             }
+
+                            const result = pick?.result;
+                            const rowColor = result === 1
+                                ? { bg: "rgba(27,94,32,0.35)", text: "#a5d6a7" }
+                                : result === -1
+                                ? { bg: "rgba(127,0,0,0.35)", text: "#ef9a9a" }
+                                : result === 0
+                                ? { bg: "rgba(74,56,0,0.35)", text: "#ffe082" }
+                                : type === 'gotw'
+                                ? { bg: "transparent", text: "#D4AF37" }
+                                : { bg: "transparent", text: "inherit" };
+
                             return (
-                                <StevenTableRow key={type} sx={type === 'gotw' ? { "& td": { color: "#D4AF37", fontWeight: "bold" } } : {}}>
+                                <StevenTableRow key={type} sx={{ "& td": { color: rowColor.text, fontWeight: pick ? "bold" : "normal" }, bgcolor: rowColor.bg }}>
                                     <StevenTableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", width: "30%" }}>
                                         <b>{type === 'gotw' ? 'Game of the Week' : type.charAt(0).toUpperCase() + type.slice(1)}</b>
                                     </StevenTableCell>
@@ -74,7 +86,7 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                                                 onClick={() => removePick(key, value)}
                                                 style={{
                                                     cursor: 'pointer',
-                                                    color: type === 'gotw' ? '#D4AF37' : 'grey',
+                                                    color: rowColor.text,
                                                     display: 'inline-flex',
                                                     justifyContent: 'center',
                                                     alignItems: 'center',

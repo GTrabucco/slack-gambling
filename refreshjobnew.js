@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb";
-import { getGames } from "./theoddsapinew.js";
+import { getGames } from "./espnapi.js";
 import dotenv from "dotenv";
 import { logCronRun } from "./cronLogger.js";
 dotenv.config();
@@ -10,27 +10,24 @@ export default async function refreshJob() {
     await client.connect();
     const db = client.db("SlackGambling");
     const gamesCollection = db.collection("Games");
+    const configCollection = db.collection("Config");
 
-    const now = new Date();
+    const config = await configCollection.findOne({ _id: 'current' });
+    if (!config) {
+      console.log("Refresh job: no config found, skipping.");
+      return "No config found.";
+    }
+    const { season, week, weekType } = config;
 
-    // Only refresh games that haven't started yet
-    const upcomingGames = await gamesCollection
-      .find({ commence_time: { $gt: now.toISOString() } })
-      .toArray();
-
-    if (upcomingGames.length === 0) {
-      console.log("Refresh job: no upcoming games to refresh.");
-      return "No upcoming games to refresh.";
+    const freshGames = await getGames(season, weekType, week);
+    if (freshGames.length === 0) {
+      console.log("Refresh job: no games returned from ESPN.");
+      return "No games returned from ESPN.";
     }
 
-    const times = upcomingGames.map(g => new Date(g.commence_time));
-    const minTime = new Date(Math.min(...times));
-    const maxTime = new Date(Math.max(...times));
-    maxTime.setHours(23, 59, 59, 999);
-
-    const freshGames = await getGames(minTime, maxTime);
-
+    const now = new Date();
     let updatedCount = 0;
+
     for (const freshGame of freshGames) {
       const result = await gamesCollection.updateOne(
         { gameId: freshGame.gameId, commence_time: { $gt: now.toISOString() } },

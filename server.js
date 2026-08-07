@@ -8,6 +8,8 @@ import cron from 'node-cron';
 import tuesdayJob, { fetchAndStoreTeamIds, fetchAndStoreRecords } from './tuesdayjobnew.js';
 import sundayReminder from './sundayremindernew.js';
 import refreshJob from './refreshjobnew.js';
+import { getLiveScoreboard } from './espnapi.js';
+import { calculatePickResult } from './processpicksnew.js';
 import twilio from 'twilio';
 import RateLimit from 'express-rate-limit';
 
@@ -153,6 +155,99 @@ cron.schedule("0 8,12,15,18 * * 0", async () => {
 },
     { timezone: "America/New_York" }
 );
+
+// Real-time pick processing: every 5 min during NFL game windows
+// Thursday night (8pm–midnight), Sunday (1pm–midnight), Monday night (8pm–midnight)
+async function processLivePickResults() {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const config = await db.collection('Config').findOne({ _id: 'current' });
+        if (!config) return;
+        const { season, week } = config;
+
+        const scoreboard = await getLiveScoreboard();
+        const completedGames = scoreboard.games?.filter(g => g.is_completed) ?? [];
+        if (completedGames.length === 0) return;
+
+        const picksCollection = db.collection('Picks');
+        const picksHistoryCollection = db.collection('Picks_History');
+        const gamesCollection = db.collection('Games');
+
+        for (const game of completedGames) {
+            // Bridge ESPN competition ID → stored gameId via team names
+            const gameDoc = await gamesCollection.findOne({
+                home_team: game.home_team,
+                away_team: game.away_team,
+            });
+
+            if (!gameDoc) {
+                console.warn(`processLivePickResults: no game doc found for ${game.away_team} @ ${game.home_team}`);
+                continue;
+            }
+
+            const unscoredPicks = await picksCollection.find({
+                gameId: gameDoc.gameId,
+                result: { $exists: false },
+            }).toArray();
+            if (unscoredPicks.length === 0) continue;
+
+            for (const pick of unscoredPicks) {
+                try {
+                    const result = calculatePickResult(pick, {
+                        homeTeam: game.home_team,
+                        awayTeam: game.away_team,
+                        homeScore: game.home_score,
+                        awayScore: game.away_score,
+                    });
+
+                    await picksCollection.updateOne(
+                        { _id: pick._id },
+                        { $set: { result, scoredAt: new Date() } }
+                    );
+
+                    const { _id, ...pickWithoutId } = pick;
+                    await picksHistoryCollection.insertOne({
+                        ...pickWithoutId,
+                        result,
+                        week,
+                        season,
+                        scoredAt: new Date(),
+                    });
+                } catch (pickErr) {
+                    console.error(`Error scoring pick ${pick._id}:`, pickErr.message);
+                }
+            }
+            console.log(`Scored and copied ${unscoredPicks.length} pick(s) for ${game.away_team} @ ${game.home_team}`);
+        }
+    } catch (error) {
+        console.error('processLivePickResults error:', error.message);
+    }
+}
+
+cron.schedule("*/5 20-23 * * 4", processLivePickResults, { timezone: "America/New_York" }); // Thu night
+cron.schedule("*/5 13-23 * * 0", processLivePickResults, { timezone: "America/New_York" }); // Sunday
+cron.schedule("*/5 20-23 * * 1", processLivePickResults, { timezone: "America/New_York" }); // Mon night
+
+
+app.get('/api/live-scores', async (req, res) => {
+    try {
+        const scoreboard = await getLiveScoreboard();
+        res.json(scoreboard);
+    } catch (error) {
+        console.error('Error fetching live scoreboard:', error);
+        res.status(500).json({ error: 'Error fetching live scores' });
+    }
+});
+
+app.post('/api/process-live-picks', adminLimiter, async (req, res) => {
+    try {
+        await processLivePickResults();
+        res.json({ message: 'Live pick processing triggered successfully' });
+    } catch (error) {
+        console.error('Error processing live picks:', error);
+        res.status(500).json({ error: 'Error processing live picks', details: error.message });
+    }
+});
 
 app.get('/api/games', async (req, res) => {
     try {
@@ -1128,7 +1223,7 @@ app.get('/api/get-pick-history', async (req, res) => {
         const db = client.db(DATABASE_NAME);
 
         const filter = {};
-        if (season) filter.season = season;
+        if (season) filter.season = { $in: [season, parseInt(season)] };
         if (username) filter.username = username;
 
         const data = await db.collection('Picks_History').find(filter).toArray();
@@ -1136,6 +1231,17 @@ app.get('/api/get-pick-history', async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({ error: 'Error fetching data from MongoDB' });
+    }
+});
+
+app.get('/api/seasons', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const seasons = await db.collection('Picks_History').distinct('season');
+        const sorted = seasons.filter(Boolean).map(String).sort((a, b) => parseInt(b) - parseInt(a));
+        res.json(sorted);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching seasons' });
     }
 });
 

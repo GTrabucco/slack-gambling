@@ -1,7 +1,4 @@
-import axios from "axios";
-
-const BASE_BOXSCORE_URL = 'https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons';
-const BASE_SUMMARY_URL = 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary';
+import { getWeeklyResults } from './espnapi.js';
 
 function isValidInteger(value) {
   const num = Number(value);
@@ -14,49 +11,8 @@ function validateInputs(season, week, weekType) {
   }
 }
 
-function buildBoxscoresUrl(season, week, weekType) {
-  const url = new URL(`${BASE_BOXSCORE_URL}/${season}/types/${weekType}/weeks/${week}/events`);
-  url.searchParams.set('lang', 'en');
-  url.searchParams.set('region', 'us');
-  return url.toString();
-}
-
-export function extractEventIds(boxscoresResponse) {
-  const items = boxscoresResponse?.data?.items ?? [];
-  return items.map(item => {
-    const ref = item['$ref'];
-    return ref.split('/').pop().split('?')[0];
-  });
-}
-
-export async function fetchGameResults(eventIds) {
-  const results = [];
-
-  for (const id of eventIds) {
-    const response = await axios.get(`${BASE_SUMMARY_URL}?event=${id}`);
-    const competitors = response.data?.header?.competitions?.[0]?.competitors || [];
-
-    const game = {
-      homeTeam: '',
-      awayTeam: '',
-      homeScore: '',
-      awayScore: ''
-    };
-
-    for (const team of competitors) {
-      if (team.homeAway === 'home') {
-        game.homeTeam = team.team.displayName;
-        game.homeScore = team.score;
-      } else {
-        game.awayTeam = team.team.displayName;
-        game.awayScore = team.score;
-      }
-    }
-
-    results.push(game);
-  }
-
-  return results;
+export async function fetchGameResults(season, week, weekType) {
+  return getWeeklyResults(season, weekType, week);
 }
 
 export function calculatePickResult(pick, result) {
@@ -113,25 +69,22 @@ export async function processPicks(season, week, weekType, picks) {
   try {
     validateInputs(season, week, weekType);
 
-    const boxscoresUrl = buildBoxscoresUrl(season, week, weekType);
-    const boxscoresResponse = await axios.get(boxscoresUrl);
+    const gameResults = await fetchGameResults(season, week, weekType);
 
-    if (boxscoresResponse.status !== 200) {
-      throw new Error(`Failed to retrieve data: ${boxscoresResponse.status}`);
-    }
-
-    const eventIds = extractEventIds(boxscoresResponse);
-    const gameResults = await fetchGameResults(eventIds);
-    
     for (const pick of picks) {
-      if (pick.result !== undefined) continue; 
-      const result = gameResults.find(
-        res => res.homeTeam === pick.homeTeam && res.awayTeam === pick.awayTeam
+      if (pick.result !== undefined) continue;
+
+      // Match by gameId first (ESPN competition ID), then fall back to team names
+      const result = gameResults.find(res =>
+        (pick.gameId && res.gameId && String(pick.gameId) === String(res.gameId)) ||
+        (res.homeTeam === pick.homeTeam && res.awayTeam === pick.awayTeam)
       );
 
       if (!result) {
         throw new Error(`Game result not found for pick: ${JSON.stringify(pick)}`);
       }
+
+      if (!result.completed) continue;
 
       pick.result = calculatePickResult(pick, result);
     }

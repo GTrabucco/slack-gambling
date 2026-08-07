@@ -32,6 +32,19 @@ const StevenGameList = ({ tempPicks,
     const [showStevenInfo, setShowStevenInfo] = useState(false)
     const [showConfirm, setShowConfirm] = useState(false)
     const [records, setRecords] = useState({})
+    const [liveScores, setLiveScores] = useState({})
+
+    const fetchLiveScores = async () => {
+        try {
+            const res = await gameService.getLiveScores();
+            const scoreMap = {};
+            for (const game of (res.data?.games ?? [])) {
+                // Key by team names so it works regardless of gameId format
+                scoreMap[`${game.away_team}@${game.home_team}`] = game;
+            }
+            setLiveScores(scoreMap);
+        } catch (_) {}
+    };
 
     const fetchRecords = async () => {
         try {
@@ -52,6 +65,7 @@ const StevenGameList = ({ tempPicks,
         fetchGames();
         fetchPicks();
         fetchRecords();
+        fetchLiveScores();
     }, [])
 
     const fetchPicks = async () => {
@@ -324,6 +338,8 @@ const StevenGameList = ({ tempPicks,
                                 : null;
 
                             const dateObj = new Date(commenceTime);
+                            const liveScore = liveScores[`${away_team}@${home_team}`];
+                            const hasScore = liveScore && liveScore.state !== 'pre';
                             return (
                                 <Paper
                                     key={isGotw ? `gotw-${game["gameId"]}` : game["gameId"]}
@@ -355,7 +371,9 @@ const StevenGameList = ({ tempPicks,
                                     )}
                                     <Box sx={{ display: "flex", justifyContent: "space-between", px: 1.5, pt: 1.5 }}>
                                         <Typography variant="body2" fontWeight="bold">
-                                            {`${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
+                                            {hasScore
+                                                ? (liveScore.is_completed ? "Final" : liveScore.status_short_detail)
+                                                : `${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
                                         </Typography>
                                         <Box sx={{ display: "flex", gap: 1.5 }}>
                                                             <Typography
@@ -371,6 +389,19 @@ const StevenGameList = ({ tempPicks,
                                                             </Typography>
                                                         </Box>
                                     </Box>
+                                    {hasScore && (
+                                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3, py: 0.75 }}>
+                                            <Typography fontWeight="bold" sx={{ fontSize: "1.4rem", minWidth: 36, textAlign: "right" }}>
+                                                {liveScore.away_score}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
+                                                {away_team_name} · {home_team_name}
+                                            </Typography>
+                                            <Typography fontWeight="bold" sx={{ fontSize: "1.4rem", minWidth: 36, textAlign: "left" }}>
+                                                {liveScore.home_score}
+                                            </Typography>
+                                        </Box>
+                                    )}
                                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", textAlign: "center", width: "100%" }}>
                                         <div className={`team-container ${away_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
                                             updatePick(

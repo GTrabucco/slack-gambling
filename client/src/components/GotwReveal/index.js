@@ -53,17 +53,17 @@ const GotwReveal = ({ games, gameStarted }) => {
 
     const favoritePickers = allPicks
         .filter(p => p.type === "gotw" && !p.text.includes("Over") && !p.text.includes("Under") && p.text.includes(favoriteText.split(" ").pop()))
-        .map(p => displayName(p.username));
+        .map(p => ({ name: displayName(p.username), result: p.result }));
     const underdogPickers = allPicks
         .filter(p => p.type === "gotw" && !p.text.includes("Over") && !p.text.includes("Under") && p.text.includes(underdogText.split(" ").pop()))
-        .map(p => displayName(p.username));
+        .map(p => ({ name: displayName(p.username), result: p.result }));
 
     const overPickers = allPicks
         .filter(p => p.type === "gotw" && p.text.includes("Over"))
-        .map(p => displayName(p.username));
+        .map(p => ({ name: displayName(p.username), result: p.result }));
     const underPickers = allPicks
         .filter(p => p.type === "gotw" && p.text.includes("Under"))
-        .map(p => displayName(p.username));
+        .map(p => ({ name: displayName(p.username), result: p.result }));
 
     const hasSpread = favoritePickers.length > 0 || underdogPickers.length > 0;
     const hasTotal = overPickers.length > 0 || underPickers.length > 0;
@@ -74,29 +74,60 @@ const GotwReveal = ({ games, gameStarted }) => {
     const dogName = underdogText.split(" ").pop();
     const spread = Math.abs(activeGame.home_spread);
 
-    const SideColumn = ({ label, sublabel, pickers }) => (
-        <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 0.75, p: 2 }}>
-            <Typography variant="body2" fontWeight={600} sx={{ textAlign: "center" }}>
-                {label}
-            </Typography>
-            {sublabel && (
-                <Typography variant="caption" sx={{ color: "text.disabled", textAlign: "center" }}>
-                    {sublabel}
+    const resultColor = (result) => {
+        if (result === 1)  return { bg: "#1b5e20", color: "#a5d6a7" }; // win — dark green
+        if (result === -1) return { bg: "#7f0000", color: "#ef9a9a" }; // loss — dark red
+        if (result === 0)  return { bg: "#4a3800", color: "#ffe082" }; // push — dark gold
+        return { bg: "action.hover", color: "text.primary" };           // unscored
+    };
+
+    const SideColumn = ({ label, sublabel, pickers }) => {
+        const scored = pickers.filter(p => p.result !== undefined);
+        const wins   = scored.filter(p => p.result === 1).length;
+        const losses = scored.filter(p => p.result === -1).length;
+        const pushes = scored.filter(p => p.result === 0).length;
+        const isScored = scored.length > 0;
+
+        return (
+            <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 0.75, p: 2 }}>
+                <Typography variant="body2" fontWeight={600} sx={{ textAlign: "center" }}>
+                    {label}
                 </Typography>
-            )}
-            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, justifyContent: "center", mt: 0.5 }}>
-                {pickers.length > 0
-                    ? pickers.map(name => (
-                        <Chip key={name} label={name} size="small" sx={{ bgcolor: "action.hover", color: "text.primary", fontSize: "0.7rem" }} />
-                    ))
-                    : <Typography variant="caption" color="text.disabled">-</Typography>
-                }
+                {sublabel && (
+                    <Typography variant="caption" sx={{ color: "text.disabled", textAlign: "center" }}>
+                        {sublabel}
+                    </Typography>
+                )}
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, justifyContent: "center", mt: 0.5 }}>
+                    {pickers.length > 0
+                        ? pickers.map(({ name, result }) => {
+                            const { bg, color } = resultColor(result);
+                            return (
+                                <Chip
+                                    key={name}
+                                    label={name}
+                                    size="small"
+                                    sx={{ bgcolor: bg, color, fontSize: "0.7rem" }}
+                                />
+                            );
+                        })
+                        : <Typography variant="caption" color="text.disabled">-</Typography>
+                    }
+                </Box>
+                {isScored ? (
+                    <Typography variant="caption" sx={{ mt: 1, color: "text.secondary" }}>
+                        {wins > 0 && <span style={{ color: "#a5d6a7" }}>{wins}W </span>}
+                        {losses > 0 && <span style={{ color: "#ef9a9a" }}>{losses}L </span>}
+                        {pushes > 0 && <span style={{ color: "#ffe082" }}>{pushes}P</span>}
+                    </Typography>
+                ) : (
+                    <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
+                        {pickers.length} {pickers.length === 1 ? "pick" : "picks"}
+                    </Typography>
+                )}
             </Box>
-            <Typography variant="body2" sx={{ color: "text.secondary", mt: 1 }}>
-                {pickers.length} {pickers.length === 1 ? "pick" : "picks"}
-            </Typography>
-        </Box>
-    );
+        );
+    };
 
     const PickRow = ({ leftLabel, leftSub, leftPickers, rightLabel, rightSub, rightPickers }) => (
         <Box sx={{ display: "flex", alignItems: "stretch" }}>

@@ -86,6 +86,16 @@ const JobRunner = () => {
         }
     };
 
+    const processLivePicks = async () => {
+        if (!window.confirm("Score all picks for completed games now?")) return;
+        try {
+            const res = await jobService.runProcessLivePicks();
+            setResult(res.data.message);
+        } catch (error) {
+            setResult("Error: " + error.message);
+        }
+    };
+
     const isConfigValid = season.toString().trim() && week.toString().trim() && weekType.toString().trim();
 
     return (
@@ -147,6 +157,11 @@ const JobRunner = () => {
                     <Grid item xs={12} md={4}>
                         <StevenButton onClick={sundayReminderJob} fullWidth>
                             Run Sunday Reminder
+                        </StevenButton>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <StevenButton onClick={processLivePicks} fullWidth>
+                            Process Live Picks
                         </StevenButton>
                     </Grid>
                 </Grid>

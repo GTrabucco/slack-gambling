@@ -10,6 +10,7 @@ import './style.css';
 import { useNavigate } from "react-router-dom";
 import userService from "../../services/userService";
 import pickService from "../../services/pickService";
+import apiClient from "../../services/apiClient";
 import StevenSelect from "../Common/StevenSelect";
 import {
     StevenTableContainer,
@@ -34,15 +35,24 @@ const Standings = () => {
     const [negFourWeeks, setNegFourWeeks] = useState({});
     const [positiveWeeks, setPositiveWeeks] = useState({});
     const [users, setUsers] = useState({});
-    const [seasons, setSeasons] = useState(["2025"]);
-    const [selectedSeason, setSelectedSeason] = useState("2025");
+    const [seasons, setSeasons] = useState([]);
+    const [selectedSeason, setSelectedSeason] = useState("");
     const [lastPlaceRank, setLastPlaceRank] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const maxSeason = seasons.reduce((a, b) => (parseInt(a) > parseInt(b) ? a : b), "2025");
-        setSelectedSeason(maxSeason);
-    }, [seasons]);
+        const fetchSeasons = async () => {
+            try {
+                const res = await apiClient.get('/api/seasons');
+                const data = res.data || [];
+                setSeasons(data);
+                if (data.length > 0) {
+                    setSelectedSeason(data[0]);
+                }
+            } catch (_) {}
+        };
+        fetchSeasons();
+    }, []);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -57,6 +67,7 @@ const Standings = () => {
         };
 
         const fetchPickHistory = async () => {
+            if (!selectedSeason) return;
             try {
                 const response = await pickService.getPickHistory(null, selectedSeason);
                 if (response.data != null) {

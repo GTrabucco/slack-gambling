@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { MongoClient } from "mongodb";
 import axios from "axios";
-import { getGames } from "./theoddsapinew.js";
+import { getGames } from "./espnapi.js";
 import { processPicks } from "./processpicksnew.js";
 import twilio from "twilio";
 import { logCronRun } from "./cronLogger.js";
@@ -72,7 +72,7 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
         for (const username of usernames) {
           const userPicks = picksByUser[username] || [];
           const typesPicked = userPicks.map(p => p.type);
-          const allTypes = ['favorite', 'dog', 'over', 'under'];
+          const allTypes = ['favorite', 'dog', 'over', 'under', 'gotw'];
 
           const missingTypes = allTypes.filter(t => !typesPicked.includes(t));
 
@@ -93,13 +93,18 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
         }
       }
 
-      // Process picks (add results etc)
+      // Process picks (add results etc) — skips any pick that already has result set
       const processedPicks = await processPicks(season, week, weekType, picksNoId);
 
-      // Insert processed picks into Picks_History
-      if (processedPicks.length > 0) {
-        await picksHistoryCollection.insertMany(processedPicks, { session });
+      // Only insert picks not already copied to Picks_History by real-time scoring.
+      // Real-time scored picks have a scoredAt timestamp; blank/new picks do not.
+      const toInsert = processedPicks.filter(p => p.result !== undefined && !p.scoredAt);
+      if (toInsert.length > 0) {
+        await picksHistoryCollection.insertMany(toInsert, { session });
       }
+
+      // Clear Picks for the new week
+      await picksCollection.deleteMany({}, { session });
 
       // Backup Games to Games_History
       const games = await gamesCollection.find({}, { session }).toArray();
@@ -108,19 +113,9 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
         await gamesCollection.deleteMany({}, { session });
       }
 
-      // Load new games from TheOdds API — full week (Tue through Mon)
-      const now = new Date();
-      const currentDay = now.getDay();
-      const tuesday = new Date(now);
-      tuesday.setDate(now.getDate() - currentDay + 2);
-      tuesday.setHours(0, 0, 0, 0);
-      const monday = new Date(tuesday);
-      monday.setDate(tuesday.getDate() + 6);
-      monday.setHours(23, 59, 59, 999);
-      let newGames = await getGames(tuesday, monday);
-
-      // Add season and week to new games
+      // Load new games from ESPN API for the upcoming week
       week = parseInt(week) + 1;
+      let newGames = await getGames(season, weekType, week);
       newGames = newGames.map(game => ({ ...game, season, week }));
       if (newGames.length > 0) {
         await gamesCollection.insertMany(newGames, { session });
