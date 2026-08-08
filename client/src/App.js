@@ -16,6 +16,7 @@ import ManagePicks from "./components/Admin/ManagePicks";
 import ManageAccounts from "./components/Admin/ManageAccounts";
 import ManageTeamIDs from "./components/Admin/ManageTeamIDs";
 import ManageTeamRecords from "./components/Admin/ManageTeamRecords";
+import BroadcastText from "./components/Admin/BroadcastText";
 import PageLoader from "./components/PageLoader";
 import { AuthenticationGuard } from "./components/authentication-guard";
 import WeekPicks from "./components/WeekPicks";
@@ -75,6 +76,7 @@ function App() {
           <Route path="/manageaccounts" element={<AuthenticationGuard component={ManageAccounts} /> } />
           <Route path="/manageteamids" element={<AuthenticationGuard component={ManageTeamIDs} /> } />
           <Route path="/manageteamrecords" element={<AuthenticationGuard component={ManageTeamRecords} /> } />
+          <Route path="/broadcasttext" element={<AuthenticationGuard component={BroadcastText} /> } />
           <Route path="/jobrunner" element={<AuthenticationGuard component={JobRunner} /> } />
         </Route>
 

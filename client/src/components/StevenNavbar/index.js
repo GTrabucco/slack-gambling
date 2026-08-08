@@ -23,7 +23,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import {
     BsClockHistory, BsBug, BsCalculator, BsCardChecklist, BsList,
     BsPersonCircle, BsHouseDoor, BsTerminal, BsController, BsCardList,
-    BsPeopleFill, BsChevronDown, BsChevronRight, BsShieldLock
+    BsPeopleFill, BsChevronDown, BsChevronRight, BsShieldLock, BsMegaphone
 } from "react-icons/bs";
 import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
 import { ImStatsDots } from "react-icons/im";
@@ -35,6 +35,7 @@ import "./style.css";
 const ADMIN_PATHS = [
     "/calculatescoring", "/viewReports", "/viewlogs",
     "/managegames", "/managepicks", "/manageaccounts", "/jobrunner", "/manageteamids", "/manageteamrecords",
+    "/broadcasttext",
 ];
 
 const StevenNavbar = () => {
@@ -83,6 +84,7 @@ const StevenNavbar = () => {
         { path: "/manageaccounts", label: "Manage Accounts", icon: <BsPeopleFill /> },
         { path: "/manageteamids", label: "Team IDs", icon: <BsCardList /> },
         { path: "/manageteamrecords", label: "Team Records", icon: <BsCardList /> },
+        { path: "/broadcasttext", label: "Broadcast Text", icon: <BsMegaphone /> },
         { path: "/jobrunner", label: "Job Runner", icon: <GiRunningNinja /> },
     ];
 

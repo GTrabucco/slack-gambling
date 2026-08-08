@@ -523,6 +523,35 @@ app.post('/api/sunday-reminder-job', async (req, res) => {
     }
 });
 
+app.post('/api/broadcast', adminLimiter, async (req, res) => {
+    const { message, phoneNumbers } = req.body;
+    if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
+    if (!Array.isArray(phoneNumbers) || phoneNumbers.length === 0)
+        return res.status(400).json({ error: 'No recipients selected' });
+
+    const validNumbers = phoneNumbers.filter(n => typeof n === 'string' && n.trim());
+    if (validNumbers.length === 0)
+        return res.status(400).json({ error: 'No valid phone numbers provided' });
+
+    try {
+        const results = await Promise.allSettled(
+            validNumbers.map(n => twilioClient.messages.create({
+                body: message.trim(),
+                from: '+18334966404',
+                to: n.trim(),
+            }))
+        );
+
+        const sent = results.filter(r => r.status === 'fulfilled').length;
+        const failed = results.filter(r => r.status === 'rejected').length;
+        console.log(`Broadcast sent: ${sent} succeeded, ${failed} failed`);
+        res.json({ sent, failed });
+    } catch (error) {
+        console.error('Broadcast error:', error);
+        res.status(500).json({ error: 'Broadcast failed', details: error.message });
+    }
+});
+
 app.post('/api/report-issue', async (req, res) => {
     const { username, description } = req.body;
     const database = client.db(DATABASE_NAME);
