@@ -69,13 +69,20 @@ const StevenGameList = ({ tempPicks,
 
         // Refresh lines every 2 minutes (hits your own DB, not ESPN directly)
         const gamesInterval = setInterval(fetchGames, 2 * 60 * 1000);
-        // Refresh live scores every 60 seconds
-        const liveScoresInterval = setInterval(fetchLiveScores, 60 * 1000);
-        return () => {
-            clearInterval(gamesInterval);
-            clearInterval(liveScoresInterval);
-        };
+        return () => clearInterval(gamesInterval);
     }, [])
+
+    // Only poll live scores when games are actively in progress (started within last 4 hours)
+    useEffect(() => {
+        const anyInProgress = (games || []).some(g => {
+            const start = new Date(g.commence_time);
+            const now = new Date();
+            return start <= now && (now - start) < 4 * 60 * 60 * 1000;
+        });
+        if (!anyInProgress) return;
+        const liveScoresInterval = setInterval(fetchLiveScores, 60 * 1000);
+        return () => clearInterval(liveScoresInterval);
+    }, [games]);
 
     const fetchPicks = async () => {
         try {
