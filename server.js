@@ -124,6 +124,7 @@ cron.schedule("0 6 * * 2", async () => {
     console.log("Running automatic Tuesday job...");
     try {
         await tuesdayJob();
+        await scheduleLiveScoring();
     } catch (error) {
         console.error("Automatic Tuesday job failed:", error);
         await sendFailureAlert('Tuesday Job', error);
@@ -224,9 +225,67 @@ async function processLivePickResults() {
     }
 }
 
-cron.schedule("*/5 20-23 * * 4", processLivePickResults, { timezone: "America/New_York" }); // Thu night
-cron.schedule("*/5 13-23 * * 0", processLivePickResults, { timezone: "America/New_York" }); // Sunday
-cron.schedule("*/5 20-23 * * 1", processLivePickResults, { timezone: "America/New_York" }); // Mon night
+let liveScoringTimeout = null;
+let liveScoringInterval = null;
+
+async function scheduleLiveScoring() {
+    // Clear any existing schedule
+    if (liveScoringTimeout) { clearTimeout(liveScoringTimeout); liveScoringTimeout = null; }
+    if (liveScoringInterval) { clearInterval(liveScoringInterval); liveScoringInterval = null; }
+
+    try {
+        const db = client.db(DATABASE_NAME);
+        const earliest = await db.collection('Games').findOne({}, { sort: { commence_time: 1 } });
+        if (!earliest?.commence_time) {
+            console.log('scheduleLiveScoring: no games found, skipping.');
+            return;
+        }
+
+        const startAt = new Date(earliest.commence_time);
+        const delay = startAt - Date.now();
+
+        const hasUnscoredPicks = async () => {
+            const db = client.db(DATABASE_NAME);
+            const now = new Date().toISOString();
+            const startedGames = await db.collection('Games').find(
+                { commence_time: { $lt: now } },
+                { projection: { gameId: 1 } }
+            ).toArray();
+            if (startedGames.length === 0) return false;
+            const startedIds = startedGames.map(g => g.gameId);
+            const unscored = await db.collection('Picks').findOne({
+                gameId: { $in: startedIds },
+                result: { $exists: false },
+            });
+            return unscored !== null;
+        };
+
+        const tick = async () => {
+            await processLivePickResults();
+            if (!(await hasUnscoredPicks())) {
+                console.log('Live scoring interval stopped — all picks scored.');
+                clearInterval(liveScoringInterval);
+                liveScoringInterval = null;
+            }
+        };
+
+        const begin = () => {
+            console.log('Live scoring interval started.');
+            liveScoringInterval = setInterval(tick, 5 * 60 * 1000);
+            tick(); // run immediately when first game starts
+        };
+
+        if (delay <= 0) {
+            // First game already started
+            begin();
+        } else {
+            console.log(`scheduleLiveScoring: sleeping until ${startAt.toISOString()}`);
+            liveScoringTimeout = setTimeout(begin, delay);
+        }
+    } catch (error) {
+        console.error('scheduleLiveScoring error:', error.message);
+    }
+}
 
 
 app.get('/api/live-scores', async (req, res) => {
