@@ -68,8 +68,13 @@ const StevenGameList = ({ tempPicks,
         fetchLiveScores();
 
         // Refresh lines every 2 minutes (hits your own DB, not ESPN directly)
-        const interval = setInterval(fetchGames, 2 * 60 * 1000);
-        return () => clearInterval(interval);
+        const gamesInterval = setInterval(fetchGames, 2 * 60 * 1000);
+        // Refresh live scores every 60 seconds
+        const liveScoresInterval = setInterval(fetchLiveScores, 60 * 1000);
+        return () => {
+            clearInterval(gamesInterval);
+            clearInterval(liveScoresInterval);
+        };
     }, [])
 
     const fetchPicks = async () => {
