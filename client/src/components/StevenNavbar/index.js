@@ -132,9 +132,9 @@ const StevenNavbar = () => {
                         </Badge>
                     </IconButton>
                     <Box
-                        component="a"
-                        href="/"
-                        sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none", color: "inherit", flexGrow: 1 }}
+                        component="span"
+                        onClick={() => handleNavigate('/dashboard')}
+                        sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none", color: "inherit", flexGrow: 1, cursor: "pointer" }}
                     >
                         <img alt="" width="45" height="45" src="/stevenlogo.png" />
                         <Typography sx={{ fontWeight: 400, fontSize: 18 }}>Slack Gambling</Typography>
