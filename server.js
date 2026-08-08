@@ -73,9 +73,17 @@ const connectDB = async () => {
 
 connectDB();
 
-// Twilio alert helper for cron failures
+// Twilio alert helper for cron failures — max 1 text per job per hour
 const twilioClient = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+const failureAlertLastSent = {};
 async function sendFailureAlert(jobName, error) {
+    const now = Date.now();
+    const lastSent = failureAlertLastSent[jobName] || 0;
+    if (now - lastSent < 60 * 60 * 1000) {
+        console.warn(`Suppressing duplicate failure alert for "${jobName}" (cooldown active)`);
+        return;
+    }
+    failureAlertLastSent[jobName] = now;
     try {
         await twilioClient.messages.create({
             body: `🚨 ${jobName} failed: ${error.message}`,
@@ -133,8 +141,8 @@ cron.schedule("0 6 * * 2", async () => {
     { timezone: "America/New_York" }
 );
 
-// Refresh lines: Mon–Sat at 8am and 6pm ET
-cron.schedule("0 8,18 * * 1-6", async () => {
+// Refresh lines: Mon–Sat every 30 minutes ET
+cron.schedule("*/30 * * * 1-6", async () => {
     try {
         await refreshJob();
     } catch (error) {
@@ -145,8 +153,8 @@ cron.schedule("0 8,18 * * 1-6", async () => {
     { timezone: "America/New_York" }
 );
 
-// Refresh lines: Sunday at 8am, 12pm, 3pm, 6pm ET
-cron.schedule("0 8,12,15,18 * * 0", async () => {
+// Refresh lines: Sunday every 15 minutes ET
+cron.schedule("*/15 * * * 0", async () => {
     try {
         await refreshJob();
     } catch (error) {
