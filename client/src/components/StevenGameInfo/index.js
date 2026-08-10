@@ -155,15 +155,107 @@ const DepthChartList = ({ teamName, formations, injuries }) => {
   );
 };
 
+const ATS_TYPE_NAMES = {
+  atsOverall: "Overall ATS",
+  atsFavorite: "Favorite ATS",
+  atsUnderdog: "Underdog ATS",
+  atsHome: "Home ATS",
+  atsAway: "Away ATS",
+  atsHomeFavorite: "Home Fav ATS",
+  atsHomeUnderdog: "Home Dog ATS",
+  atsAwayFavorite: "Away Fav ATS",
+  atsAwayUnderdog: "Away Dog ATS",
+};
+
+const formatAts = (item) => {
+  if (!item) return "—";
+  const { wins, losses, pushes } = item;
+  return pushes ? `${wins}-${losses}-${pushes}` : `${wins}-${losses}`;
+};
+
+const getAtsKeys = (isFavorite, isHome) => {
+  const keys = ["atsOverall"];
+  if (isFavorite) {
+    keys.push("atsFavorite");
+    if (isHome) keys.push("atsHome", "atsHomeFavorite");
+    else keys.push("atsAway", "atsAwayFavorite");
+  } else {
+    keys.push("atsUnderdog");
+    if (isHome) keys.push("atsHome", "atsHomeUnderdog");
+    else keys.push("atsAway", "atsAwayUnderdog");
+  }
+  return keys;
+};
+
+const AtsPanel = ({ awayTeam, homeTeam, awayAts, homeAts, awaySpread, homeSpread }) => {
+  const homeFav = homeSpread != null && awaySpread != null && +homeSpread < +awaySpread;
+  const awayFav = awaySpread != null && homeSpread != null && +awaySpread < +homeSpread;
+  if (!homeAts?.length && !awayAts?.length) return null;
+
+  const buildMap = (items) => {
+    const m = {};
+    for (const item of (items || [])) m[item.type?.name] = item;
+    return m;
+  };
+  const awayMap = buildMap(awayAts);
+  const homeMap = buildMap(homeAts);
+  const awayKeys = getAtsKeys(awayFav, false);
+  const homeKeys = getAtsKeys(homeFav, true);
+
+  const rows = [...new Set([...awayKeys, ...homeKeys])];
+
+  return (
+    <Box sx={{ mb: 2 }}>
+      <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.secondary", textTransform: "uppercase", letterSpacing: 0.5, mb: 1, px: 0.5 }}>
+        Against the Spread
+      </Typography>
+      <Box sx={{ display: "flex", mb: 0.5, px: 0.5 }}>
+        <Box sx={{ flex: 1 }} />
+        <Box sx={{ width: 80, textAlign: "center" }}>
+          <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.secondary" }}>{awayTeam?.split(" ").pop()}</Typography>
+        </Box>
+        <Box sx={{ width: 80, textAlign: "center" }}>
+          <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.secondary" }}>{homeTeam?.split(" ").pop()}</Typography>
+        </Box>
+      </Box>
+      {rows.map(key => (
+        <Box key={key} sx={{ display: "flex", alignItems: "center", py: 0.5, borderBottom: "1px solid rgba(255,255,255,0.04)", px: 0.5 }}>
+          <Typography sx={{ flex: 1, fontSize: 12, color: "text.secondary" }}>{ATS_TYPE_NAMES[key] ?? key}</Typography>
+          <Box sx={{ width: 80, textAlign: "center" }}>
+            <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{awayKeys.includes(key) ? formatAts(awayMap[key]) : ""}</Typography>
+          </Box>
+          <Box sx={{ width: 80, textAlign: "center" }}>
+            <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{homeKeys.includes(key) ? formatAts(homeMap[key]) : ""}</Typography>
+          </Box>
+        </Box>
+      ))}
+      <Box sx={{ borderBottom: "1px solid rgba(255,255,255,0.10)", mt: 2 }} />
+    </Box>
+  );
+};
+
+const DUMMY_ATS = [
+  { wins: 8, losses: 6, pushes: 0, type: { id: "0", name: "atsOverall" } },
+  { wins: 7, losses: 4, pushes: 1, type: { id: "1", name: "atsFavorite" } },
+  { wins: 1, losses: 2, pushes: 0, type: { id: "2", name: "atsUnderdog" } },
+  { wins: 3, losses: 5, pushes: 0, type: { id: "3", name: "atsAway" } },
+  { wins: 5, losses: 1, pushes: 0, type: { id: "4", name: "atsHome" } },
+  { wins: 2, losses: 3, pushes: 0, type: { id: "5", name: "atsAwayFavorite" } },
+  { wins: 1, losses: 2, pushes: 0, type: { id: "6", name: "atsAwayUnderdog" } },
+  { wins: 5, losses: 1, pushes: 0, type: { id: "7", name: "atsHomeFavorite" } },
+];
+
 const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, homeTeam, awayTeam, homeSpread, awaySpread, over }) => {
   const [weatherData, setWeatherData] = useState([]);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [injuryLoading, setInjuryLoading] = useState(false);
   const [depthLoading, setDepthLoading] = useState(false);
   const [statsLoading, setStatsLoading] = useState(false);
+  const [atsLoading, setAtsLoading] = useState(false);
   const [injuries, setInjuries] = useState({ home: [], away: [] });
   const [depthChart, setDepthChart] = useState({ home: [], away: [] });
   const [teamStats, setTeamStats] = useState({ home: [], away: [] });
+  const [atsData, setAtsData] = useState({ home: DUMMY_ATS, away: DUMMY_ATS });
   const [cityName, setCityName] = useState("");
   const [tab, setTab] = useState(0);
 
@@ -327,9 +419,10 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       setInjuryLoading(true);
       setDepthLoading(true);
       setStatsLoading(true);
+      setAtsLoading(true);
       const city = getCityFromTeam(home);
       setCityName(city);
-      const [next4Hours, injuryRes, depthRes, statsRes] = await Promise.all([
+      const [next4Hours, injuryRes, depthRes, statsRes, atsRes] = await Promise.all([
         getWeather(city, gameDate),
         apiClient.get(`/api/injuries?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}&commenceTime=${encodeURIComponent(gameDate)}`)
           .then(r => r.data || { home: [], away: [] })
@@ -340,21 +433,27 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
         apiClient.get(`/api/stats?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}`)
           .then(r => r.data || { home: [], away: [] })
           .catch(() => ({ home: [], away: [] })),
+        apiClient.get(`/api/ats?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}&homeSpread=${encodeURIComponent(homeSpread ?? '')}&awaySpread=${encodeURIComponent(awaySpread ?? '')}`)
+          .then(r => r.data || { home: null, away: null })
+          .catch(() => ({ home: null, away: null })),
       ]);
       setWeatherData(next4Hours);
       setInjuries(injuryRes);
       setDepthChart(depthRes);
       setTeamStats(statsRes);
+      setAtsData(atsRes?.home?.length || atsRes?.away?.length ? atsRes : { home: DUMMY_ATS, away: DUMMY_ATS });
     } catch (error) {
       console.error("Error populating game info:", error);
       setWeatherData([]);
       setInjuries({ home: [], away: [] });
       setDepthChart({ home: [], away: [] });
+      setAtsData({ home: null, away: null });
     } finally {
       setWeatherLoading(false);
       setInjuryLoading(false);
       setDepthLoading(false);
       setStatsLoading(false);
+      setAtsLoading(false);
     }
   };
 
@@ -367,6 +466,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       setInjuries({ home: [], away: [] });
       setDepthChart({ home: [], away: [] });
       setTeamStats({ home: [], away: [] });
+      setAtsData({ home: DUMMY_ATS, away: DUMMY_ATS });
       setWeatherLoading(true);
     }
   }, [showStevenInfo, selectedGameId]);
@@ -401,7 +501,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       )}
       <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth">
         <Tab label="Weather" />
-        <Tab label="Roster" />
+        <Tab label="Depth Chart" />
         <Tab label="Stats" />
       </Tabs>
       <DialogContent dividers>
@@ -449,11 +549,21 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
           )
         )}
         {tab === 2 && (
-          statsLoading ? (
-            <PageLoader />
-          ) : (
-            <StatsPanel awayTeam={awayTeam} homeTeam={homeTeam} awayStats={teamStats.away} homeStats={teamStats.home} />
-          )
+          <>
+            {statsLoading ? <PageLoader /> : (
+              <>
+                <AtsPanel
+                  awayTeam={awayTeam}
+                  homeTeam={homeTeam}
+                  awayAts={atsData.away}
+                  homeAts={atsData.home}
+                  awaySpread={awaySpread}
+                  homeSpread={homeSpread}
+                />
+                <StatsPanel awayTeam={awayTeam} homeTeam={homeTeam} awayStats={teamStats.away} homeStats={teamStats.home} />
+              </>
+            )}
+          </>
         )}
       </DialogContent>
       <DialogActions>

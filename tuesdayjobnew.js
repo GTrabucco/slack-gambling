@@ -142,6 +142,7 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
     await db.collection('Weather_Cache').deleteMany({});
     await db.collection('DepthChart_Cache').deleteMany({});
     await db.collection('Stats_Cache').deleteMany({});
+    await db.collection('ATS_Cache').deleteMany({});
 
     const successMsg = `Tuesday job success for season ${season}, week ${week}`;
     await logCronRun('Tuesday Job', 'success', successMsg);

@@ -989,6 +989,52 @@ app.get('/api/stats', async (req, res) => {
     }
 });
 
+app.get('/api/ats', async (req, res) => {
+    try {
+        const { home, away, homeSpread, awaySpread } = req.query;
+        if (!home || !away) return res.status(400).json({ error: 'home and away team names are required' });
+        const db = client.db(DATABASE_NAME);
+
+        const teamIds = await db.collection('Team_IDs').find({ team: { $in: [home, away] } }).toArray();
+        const idMap = {};
+        for (const t of teamIds) idMap[t.team] = t.espnId;
+
+        const config = await db.collection('Config').findOne({ _id: 'current' });
+        const season = config?.season ?? 2026;
+        const cache = db.collection('ATS_Cache');
+
+        const fetchAts = async (teamName) => {
+            const espnId = idMap[teamName];
+            if (!espnId) return null;
+
+            const cached = await cache.findOne({ team: teamName });
+            if (cached) return cached.data;
+
+            try {
+                const json = await fetch(
+                    `https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/seasons/${season}/types/2/teams/${espnId}/ats`
+                ).then(r => r.json());
+
+                const data = json.items || [];
+                await cache.updateOne(
+                    { team: teamName },
+                    { $set: { team: teamName, data, cachedAt: new Date() } },
+                    { upsert: true }
+                );
+                return data;
+            } catch {
+                return cached?.data ?? null;
+            }
+        };
+
+        const [homeAts, awayAts] = await Promise.all([fetchAts(home), fetchAts(away)]);
+        res.json({ home: homeAts, away: awayAts });
+    } catch (error) {
+        console.error('Error fetching ATS:', error);
+        res.status(500).json({ error: 'Error fetching ATS' });
+    }
+});
+
 app.get('/api/depthchart', async (req, res) => {
     try {
         const { home, away, commenceTime } = req.query;
