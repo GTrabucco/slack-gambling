@@ -234,17 +234,6 @@ const AtsPanel = ({ awayTeam, homeTeam, awayAts, homeAts, awaySpread, homeSpread
   );
 };
 
-const DUMMY_ATS = [
-  { wins: 8, losses: 6, pushes: 0, type: { id: "0", name: "atsOverall" } },
-  { wins: 7, losses: 4, pushes: 1, type: { id: "1", name: "atsFavorite" } },
-  { wins: 1, losses: 2, pushes: 0, type: { id: "2", name: "atsUnderdog" } },
-  { wins: 3, losses: 5, pushes: 0, type: { id: "3", name: "atsAway" } },
-  { wins: 5, losses: 1, pushes: 0, type: { id: "4", name: "atsHome" } },
-  { wins: 2, losses: 3, pushes: 0, type: { id: "5", name: "atsAwayFavorite" } },
-  { wins: 1, losses: 2, pushes: 0, type: { id: "6", name: "atsAwayUnderdog" } },
-  { wins: 5, losses: 1, pushes: 0, type: { id: "7", name: "atsHomeFavorite" } },
-];
-
 const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, homeTeam, awayTeam, homeSpread, awaySpread, over }) => {
   const [weatherData, setWeatherData] = useState([]);
   const [weatherLoading, setWeatherLoading] = useState(true);
@@ -255,7 +244,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
   const [injuries, setInjuries] = useState({ home: [], away: [] });
   const [depthChart, setDepthChart] = useState({ home: [], away: [] });
   const [teamStats, setTeamStats] = useState({ home: [], away: [] });
-  const [atsData, setAtsData] = useState({ home: DUMMY_ATS, away: DUMMY_ATS });
+  const [atsData, setAtsData] = useState({ home: null, away: null });
   const [cityName, setCityName] = useState("");
   const [tab, setTab] = useState(0);
 
@@ -441,7 +430,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       setInjuries(injuryRes);
       setDepthChart(depthRes);
       setTeamStats(statsRes);
-      setAtsData(atsRes?.home?.length || atsRes?.away?.length ? atsRes : { home: DUMMY_ATS, away: DUMMY_ATS });
+      setAtsData(atsRes || { home: null, away: null });
     } catch (error) {
       console.error("Error populating game info:", error);
       setWeatherData([]);
@@ -466,7 +455,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       setInjuries({ home: [], away: [] });
       setDepthChart({ home: [], away: [] });
       setTeamStats({ home: [], away: [] });
-      setAtsData({ home: DUMMY_ATS, away: DUMMY_ATS });
+      setAtsData({ home: null, away: null });
       setWeatherLoading(true);
     }
   }, [showStevenInfo, selectedGameId]);

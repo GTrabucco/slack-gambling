@@ -16,13 +16,6 @@ import gameService from "../../services/gameService";
 import pickService from "../../services/pickService";
 import apiClient from "../../services/apiClient";
 
-const DUMMY_GAMES = [
-  { gameId: "dummy-1", home_team: "Kansas City Chiefs",   away_team: "Buffalo Bills",         home_spread: -3.5, away_spread: 3.5,  over: 54.5, under: 54.5, commence_time: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() },
-  { gameId: "dummy-2", home_team: "San Francisco 49ers",  away_team: "Dallas Cowboys",        home_spread: -6.5, away_spread: 6.5,  over: 48.5, under: 48.5, commence_time: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString() },
-  { gameId: "dummy-3", home_team: "Philadelphia Eagles",  away_team: "New York Giants",       home_spread: -7,   away_spread: 7,    over: 44,   under: 44,   commence_time: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() },
-  { gameId: "dummy-4", home_team: "Miami Dolphins",       away_team: "New England Patriots",  home_spread: -4,   away_spread: 4,    over: 46,   under: 46,   commence_time: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() },
-  { gameId: "dummy-5", home_team: "Green Bay Packers",    away_team: "Chicago Bears",         home_spread: -5.5, away_spread: 5.5,  over: 42.5, under: 42.5, commence_time: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() },
-];
 const StevenGameList = ({ tempPicks,
     setMessage,
     gameStarted,
@@ -234,7 +227,7 @@ const StevenGameList = ({ tempPicks,
         ? (games.find(g => g.isGotw)?.gameId ?? [...games].sort((a, b) => new Date(b["commence_time"]) - new Date(a["commence_time"]))[0]["gameId"])
         : null;
 
-    const displayGames = games.length > 0 ? games : DUMMY_GAMES;
+    const displayGames = games;
 
     // Build the ordered list: GOTW game first (as gotw), then all games in chronological order (GOTW game included as regular)
     // Games that have started AND the user has a pick on are floated to the top (after GOTW)
