@@ -344,10 +344,12 @@ const StevenGameList = ({ tempPicks,
                             let over = game["over"]
                             let under = game["under"]
                             let commenceTime = game["commence_time"]
-                            let favorite = +home_spread > +away_spread ? away_team + " " + away_spread : home_team + " " + home_spread
-                            let underdog = +home_spread > +away_spread ? home_team + " +" + home_spread : away_team + " +" + away_spread
-                            let favorite_spread = +home_spread > +away_spread ? +away_spread : +home_spread
-                            let underdog_spread = +home_spread > +away_spread ? +home_spread : +away_spread
+                            let home_spread_num = +home_spread
+                            let away_spread_num = +away_spread
+                            let favorite = home_spread_num > away_spread_num ? away_team + " " + away_spread_num : home_team + " " + home_spread_num
+                            let underdog = home_spread_num > away_spread_num ? home_team + " +" + home_spread_num : away_team + " +" + away_spread_num
+                            let favorite_spread = home_spread_num > away_spread_num ? away_spread_num : home_spread_num
+                            let underdog_spread = home_spread_num > away_spread_num ? home_spread_num : away_spread_num
 
                             const gameIdStr = game["gameId"];
                             const away_picked = Array.isArray(tempPicks)
@@ -440,30 +442,30 @@ const StevenGameList = ({ tempPicks,
                                                 game["gameId"],
                                                 home_team,
                                                 away_team,
-                                                isGotw ? "gotw" : (away_spread > 0 ? "dog" : "favorite"),
-                                                away_spread > 0 ? underdog_spread : favorite_spread,
-                                                away_spread > 0 ? underdog : favorite,
+                                                isGotw ? "gotw" : (away_spread_num > 0 ? "dog" : "favorite"),
+                                                away_spread_num > 0 ? underdog_spread : favorite_spread,
+                                                away_spread_num > 0 ? underdog : favorite,
                                                 commenceTime
                                             )
                                         }>
                                             <img src={away_logo} alt={away_team} className="logo" />
                                             <div className="team-record">{records[away_team] ?? ""}</div>
-                                            <div><div className="team-name">{away_team}</div><b>{away_spread > 0 ? "+" + away_spread : away_spread}</b></div>
+                                            <div><div className="team-name">{away_team}</div><b>{away_spread_num > 0 ? "+" + away_spread_num : away_spread_num}</b></div>
                                         </div>
                                         <div className={`team-container ${home_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
                                             updatePick(
                                                 game["gameId"],
                                                 home_team,
                                                 away_team,
-                                                isGotw ? "gotw" : (away_spread > 0 ? "favorite" : "dog"),
-                                                away_spread > 0 ? favorite_spread : underdog_spread,
-                                                away_spread > 0 ? favorite : underdog,
+                                                isGotw ? "gotw" : (away_spread_num > 0 ? "favorite" : "dog"),
+                                                away_spread_num > 0 ? favorite_spread : underdog_spread,
+                                                away_spread_num > 0 ? favorite : underdog,
                                                 commenceTime
                                             )
                                         }>
                                             <img src={home_logo} alt={home_team} className="logo" />
                                             <div className="team-record">{records[home_team] ?? ""}</div>
-                                            <div><div className="team-name">{home_team}</div><b>{home_spread > 0 ? "+" + home_spread : home_spread}</b></div>
+                                            <div><div className="team-name">{home_team}</div><b>{home_spread_num > 0 ? "+" + home_spread_num : home_spread_num}</b></div>
                                         </div>
                                         <div className="icon-text-container">
                                                 {(isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Over")) : over_picked) ? (
