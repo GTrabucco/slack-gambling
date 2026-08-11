@@ -656,6 +656,22 @@ app.delete('/api/picks-history/:id', adminLimiter, async (req, res) => {
     }
 });
 
+app.delete('/api/picks-history', adminLimiter, async (req, res) => {
+    try {
+        const { ids } = req.body;
+        if (!Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ error: 'ids array is required' });
+        }
+        const db = client.db(DATABASE_NAME);
+        const objectIds = ids.map(id => new ObjectId(id));
+        const result = await db.collection('Picks_History').deleteMany({ _id: { $in: objectIds } });
+        res.json({ success: true, deletedCount: result.deletedCount });
+    } catch (error) {
+        console.error('Error bulk deleting pick history:', error);
+        res.status(500).json({ error: 'Error bulk deleting pick history' });
+    }
+});
+
 app.post('/api/admin/picks-history', adminLimiter, async (req, res) => {
     try {
         const { username, gameId, homeTeam, awayTeam, type, value, text, season, week, result } = req.body;

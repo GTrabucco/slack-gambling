@@ -12,6 +12,7 @@ import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
+import Checkbox from "@mui/material/Checkbox";
 import StevenButton from "../../Common/StevenButton";
 import { BsTrash } from "react-icons/bs";
 import pickService from "../../../services/pickService";
@@ -37,6 +38,7 @@ const CalculateScoring = () => {
     const [rowsPerPage, setRowsPerPage] = useState(25);
     const [success, setSuccess] = useState("");
     const [error, setError] = useState("");
+    const [selectedIds, setSelectedIds] = useState(new Set());
     const [users, setUsers] = useState([]);
     const EMPTY_FORM = { username: "", gameId: "", homeTeam: "", awayTeam: "", type: "", value: "", text: "", season: "", week: "", result: "" };
     const [form, setForm] = useState(EMPTY_FORM);
@@ -64,6 +66,15 @@ const CalculateScoring = () => {
         };
         fetchData();
     }, []);
+
+    const refreshPicks = async () => {
+        try {
+            const picksRes = await pickService.getPickHistory("All", null);
+            if (picksRes.data) setPicks(picksRes.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+        } catch (e) {
+            console.error("Error refreshing picks:", e);
+        }
+    };
 
     const filteredPicks = useMemo(() => {
         setPage(0);
@@ -118,8 +129,7 @@ const CalculateScoring = () => {
             const res = await apiClient.post("/api/admin/picks-history", form);
             setSuccess("Pick history record created");
             setForm(EMPTY_FORM);
-            const picksRes = await pickService.getPickHistory("All", null);
-            if (picksRes.data) setPicks(picksRes.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
+            await refreshPicks();
         } catch (e) {
             setError("Error creating record");
         }
@@ -129,11 +139,48 @@ const CalculateScoring = () => {
         if (!window.confirm(`Delete "${pick.text}"?`)) return;
         try {
             await apiClient.delete(`/api/picks-history/${pick._id}`);
-            setPicks(prev => prev.filter(p => p._id !== pick._id));
+            await refreshPicks();
             setSuccess("Pick deleted");
         } catch (e) {
             setError("Error deleting pick");
         }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.size === 0) return;
+        if (!window.confirm(`Delete ${selectedIds.size} selected pick(s)?`)) return;
+        try {
+            await apiClient.delete("/api/picks-history", { data: { ids: Array.from(selectedIds) } });
+            setSelectedIds(new Set());
+            await refreshPicks();
+            setSuccess(`Deleted ${selectedIds.size} pick(s)`);
+        } catch (e) {
+            setError("Error bulk deleting picks");
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (paginatedPicks.every(p => selectedIds.has(p._id))) {
+            setSelectedIds(prev => {
+                const next = new Set(prev);
+                paginatedPicks.forEach(p => next.delete(p._id));
+                return next;
+            });
+        } else {
+            setSelectedIds(prev => {
+                const next = new Set(prev);
+                paginatedPicks.forEach(p => next.add(p._id));
+                return next;
+            });
+        }
+    };
+
+    const toggleSelect = (id) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            return next;
+        });
     };
 
     return (
@@ -201,18 +248,31 @@ const CalculateScoring = () => {
             <Divider sx={{ mb: 3 }} />
 
             {/* Filters */}
-            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2 }}>
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2, alignItems: "center" }}>
                 <TextField label="Date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} size="small" sx={{ width: 150 }} />
                 <TextField label="Season" value={seasonFilter} onChange={(e) => setSeasonFilter(e.target.value)} size="small" sx={{ width: 100 }} />
                 <TextField label="Week" value={weekFilter} onChange={(e) => setWeekFilter(e.target.value)} size="small" sx={{ width: 80 }} />
                 <TextField label="User" value={userFilter} onChange={(e) => setUserFilter(e.target.value)} size="small" sx={{ width: 200 }} />
                 <TextField label="Bet" value={betFilter} onChange={(e) => setBetFilter(e.target.value)} size="small" sx={{ width: 250 }} />
+                {selectedIds.size > 0 && (
+                    <StevenButton onClick={handleBulkDelete} sx={{ backgroundColor: "#b71c1c", "&:hover": { backgroundColor: "#7f0000" } }}>
+                        Delete Selected ({selectedIds.size})
+                    </StevenButton>
+                )}
             </Box>
 
             <StevenTableContainer>
                 <StevenTable>
                     <StevenTableHead>
                         <StevenTableRow>
+                            <StevenTableCell padding="checkbox">
+                                <Checkbox
+                                    size="small"
+                                    checked={paginatedPicks.length > 0 && paginatedPicks.every(p => selectedIds.has(p._id))}
+                                    indeterminate={paginatedPicks.some(p => selectedIds.has(p._id)) && !paginatedPicks.every(p => selectedIds.has(p._id))}
+                                    onChange={toggleSelectAll}
+                                />
+                            </StevenTableCell>
                             <StevenTableCell>Created At</StevenTableCell>
                             <StevenTableCell>Season</StevenTableCell>
                             <StevenTableCell>Week</StevenTableCell>
@@ -225,7 +285,10 @@ const CalculateScoring = () => {
                     </StevenTableHead>
                     <StevenTableBody>
                         {paginatedPicks.map((pick) => (
-                            <StevenTableRow key={pick._id}>
+                            <StevenTableRow key={pick._id} selected={selectedIds.has(pick._id)}>
+                                <StevenTableCell padding="checkbox">
+                                    <Checkbox size="small" checked={selectedIds.has(pick._id)} onChange={() => toggleSelect(pick._id)} />
+                                </StevenTableCell>
                                 <StevenTableCell>{new Date(pick.createdAt).toLocaleDateString(undefined, options)}</StevenTableCell>
                                 <StevenTableCell>{pick.season}</StevenTableCell>
                                 <StevenTableCell>{pick.week}</StevenTableCell>

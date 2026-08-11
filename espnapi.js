@@ -12,16 +12,19 @@ function extractDraftKingsOdds(competitionOdds = []) {
     if (odd.provider?.name !== 'DraftKings') continue;
 
     const ps = odd.pointSpread || {};
-    const homeClose = ps.home?.close;
-    const awayClose = ps.away?.close;
-    const ouClose = odd.overUnder?.close || odd.overUnder?.current;
-    const ouLine = ouClose?.line ?? null;
+    const homeClose = ps.home?.close ?? ps.home?.open;
+    const awayClose = ps.away?.close ?? ps.away?.open;
+
+    const total = odd.total || {};
+    const overLine = total.over?.close?.line ?? total.over?.open?.line ?? null;
+    const underLine = total.under?.close?.line ?? total.under?.open?.line ?? null;
+    const parseOULine = (line) => line !== null ? parseFloat(String(line).replace(/^[ou]/i, '')) || null : null;
 
     return {
       home_spread: homeClose?.line ?? null,
       away_spread: awayClose?.line ?? null,
-      over: ouLine,
-      under: ouLine,
+      over: parseOULine(overLine),
+      under: parseOULine(underLine),
     };
   }
   return { home_spread: null, away_spread: null, over: null, under: null };

@@ -183,14 +183,13 @@ const StevenGameList = ({ tempPicks,
 
         const oppositePick = tempPicks.find(pick =>
             pick.type === isOpposite(type) &&
-            (type === "over" || type === "under" ? true : pick.gameId === gameId)
+            pick.gameId === gameId
         )
         if (oppositePick) {
             setTempPicks(prevState => {
                 // Remove the opposite pick and upsert the new pick in one update
                 const withoutOpposite = prevState.filter(
-                    pick => !(pick.type === isOpposite(type) &&
-                        (type === "over" || type === "under" ? true : pick.gameId === gameId))
+                    pick => !(pick.type === isOpposite(type) && pick.gameId === gameId)
                 );
                 const existingIndex = withoutOpposite.findIndex(pick => pick.type === type);
                 if (existingIndex !== -1) {
