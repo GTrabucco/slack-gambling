@@ -27,10 +27,24 @@ export default async function refreshJob() {
 
     const now = new Date();
     let updatedCount = 0;
+    const changes = [];
 
     for (const freshGame of freshGames) {
-      const result = await gamesCollection.updateOne(
-        { gameId: freshGame.gameId, commence_time: { $gt: now.toISOString() } },
+      const existing = await gamesCollection.findOne({
+        gameId: freshGame.gameId,
+        commence_time: { $gt: now.toISOString() },
+      });
+      if (!existing) continue;
+
+      const diffs = [];
+      if (existing.home_spread !== freshGame.home_spread || existing.away_spread !== freshGame.away_spread)
+        diffs.push(`spread ${existing.away_spread}/${existing.home_spread}→${freshGame.away_spread}/${freshGame.home_spread}`);
+      if (existing.over !== freshGame.over)
+        diffs.push(`O/U ${existing.over}→${freshGame.over}`);
+      if (!diffs.length) continue;
+
+      await gamesCollection.updateOne(
+        { gameId: freshGame.gameId },
         {
           $set: {
             home_spread: freshGame.home_spread,
@@ -41,11 +55,13 @@ export default async function refreshJob() {
           },
         }
       );
-      if (result.matchedCount > 0) updatedCount++;
+      updatedCount++;
+      changes.push(`${freshGame.away_team}@${freshGame.home_team}: ${diffs.join(', ')}`);
     }
 
-    console.log(`Refresh job: updated lines for ${updatedCount} games.`);
-    const successMsg = `Refresh job success: updated ${updatedCount} games.`;
+    const changeDetail = changes.length ? `\n${changes.join('\n')}` : '';
+    console.log(`Refresh job: updated odds for ${updatedCount} games.${changeDetail}`);
+    const successMsg = `Refresh job success: updated odds for ${updatedCount} games.${changeDetail}`;
     await logCronRun('Refresh Job', 'success', successMsg);
     return successMsg;
   } catch (error) {
