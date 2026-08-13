@@ -324,7 +324,12 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       "Santa Clara": "America/Los_Angeles",
       "Seattle": "America/Los_Angeles",
       "Glendale": "America/Phoenix",
-      "Pittsburgh": "America/New_York"
+      "Pittsburgh": "America/New_York",
+      "Baltimore": "America/New_York",
+      "Cincinnati": "America/New_York",
+      "Cleveland": "America/New_York",
+      "Carolina": "America/New_York",
+      "Charlotte": "America/New_York"
     };
 
     return cityTimeZones[city] || "Unknown city";
@@ -335,7 +340,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
     "Atlanta":       { latitude: 33.7490, longitude: -84.3880 },
     "Baltimore":     { latitude: 39.2904, longitude: -76.6122 },
     "Orchard Park":  { latitude: 42.7738, longitude: -78.7869 },
-    "Carolina":      { latitude: 35.2251, longitude: -80.8526 },
+    "Charlotte":     { latitude: 35.2251, longitude: -80.8526 },
     "Chicago":       { latitude: 41.8781, longitude: -87.6298 },
     "Cincinnati":    { latitude: 39.1031, longitude: -84.5120 },
     "Cleveland":     { latitude: 41.4993, longitude: -81.6944 },
