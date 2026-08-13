@@ -30,6 +30,7 @@ import WeeklyCategoryOdds from "./components/AdvancedStats/WeeklyCategoryOdds";
 import BySpreadRange from "./components/AdvancedStats/BySpreadRange";
 import TotalsBands from "./components/AdvancedStats/TotalsBands";
 import PrimeTimeVsDay from "./components/AdvancedStats/PrimeTimeVsDay";
+import SharpReport from "./components/AdvancedStats/SharpReport";
 if (process.env.NODE_ENV === 'production') disableReactDevTools();
 
 function App() {
@@ -66,6 +67,7 @@ function App() {
         <Route path="/byspreadrange" element={<AuthenticationGuard component={BySpreadRange} /> } />
         <Route path="/totalsbands" element={<AuthenticationGuard component={TotalsBands} /> } />
         <Route path="/primetimevsday" element={<AuthenticationGuard component={PrimeTimeVsDay} /> } />
+        <Route path="/sharpreport" element={<AuthenticationGuard component={SharpReport} /> } />
 
         <Route element={<AdminRoute />}>
           <Route path="/calculatescoring" element={<AuthenticationGuard component={CalculateScoring} /> } />

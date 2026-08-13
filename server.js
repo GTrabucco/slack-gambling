@@ -1429,6 +1429,79 @@ app.get('/api/get-pick-history', async (req, res) => {
     }
 });
 
+app.get('/api/sharp-report', async (req, res) => {
+    try {
+        const { season } = req.query;
+        const db = client.db(DATABASE_NAME);
+
+        const pickFilter = { result: { $exists: true } };
+        if (season) pickFilter.season = { $in: [season, parseInt(season)] };
+
+        const [picks, games, users] = await Promise.all([
+            db.collection('Picks_History').find(pickFilter).toArray(),
+            db.collection('Games').find({}).toArray(),
+            db.collection('User_Details').find({}).toArray(),
+        ]);
+
+        const gameMap = {};
+        for (const g of games) gameMap[String(g.gameId)] = g;
+
+        const userMap = {};
+        for (const u of users) userMap[u.username] = u.displayName || u.username.split('@')[0];
+
+        const sharpPicks = [];
+
+        for (const pick of picks) {
+            const game = gameMap[String(pick.gameId)];
+            if (!game) continue;
+
+            const pickValue = parseFloat(pick.value);
+            if (isNaN(pickValue)) continue;
+
+            let closingLine = null;
+            let clv = null;
+
+            if (pick.type === 'favorite' || pick.type === 'dog') {
+                // Determine which side was picked from the text (team name is everything before the last token)
+                const pickedTeam = pick.text.trim().split(' ').slice(0, -1).join(' ');
+                const isHome = pickedTeam === pick.homeTeam;
+                closingLine = isHome ? game.home_spread : game.away_spread;
+                if (closingLine == null) continue;
+                clv = parseFloat((pickValue - closingLine).toFixed(1));
+            } else if (pick.type === 'over') {
+                closingLine = game.over;
+                if (closingLine == null) continue;
+                clv = parseFloat((closingLine - pickValue).toFixed(1));
+            } else if (pick.type === 'under') {
+                closingLine = game.under ?? game.over;
+                if (closingLine == null) continue;
+                clv = parseFloat((pickValue - closingLine).toFixed(1));
+            } else {
+                continue;
+            }
+
+            if (clv < 3) continue;
+
+            sharpPicks.push({
+                week: pick.week,
+                season: pick.season,
+                displayName: userMap[pick.username] ?? pick.username.split('@')[0],
+                text: pick.text,
+                pickValue,
+                closingLine,
+                clv,
+                type: pick.type,
+            });
+        }
+
+        sharpPicks.sort((a, b) => b.clv - a.clv);
+        res.json(sharpPicks);
+    } catch (error) {
+        console.error('Error fetching sharp report:', error);
+        res.status(500).json({ error: 'Error fetching sharp report' });
+    }
+});
+
 app.get('/api/seasons', async (req, res) => {
     try {
         const db = client.db(DATABASE_NAME);

@@ -1,6 +1,12 @@
 import apiClient from "./apiClient";
 
 const pickService = {
+    getSharpReport: async (season) => {
+        const params = {};
+        if (season && season !== 'All') params.season = season;
+        return apiClient.get('/api/sharp-report', { params });
+    },
+
     getPickHistory: async (username, season) => {
         const params = {};
 
