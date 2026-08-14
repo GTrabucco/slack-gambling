@@ -71,7 +71,7 @@ const connectDB = async () => {
     }
 }
 
-connectDB();
+connectDB().then(() => scheduleLiveScoring());
 
 // Twilio alert helper for cron failures — max 1 text per job per hour
 const twilioClient = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
@@ -243,13 +243,50 @@ async function scheduleLiveScoring() {
 
     try {
         const db = client.db(DATABASE_NAME);
-        const earliest = await db.collection('Games').findOne({}, { sort: { commence_time: 1 } });
-        if (!earliest?.commence_time) {
-            console.log('scheduleLiveScoring: no games found, skipping.');
+        const now = new Date().toISOString();
+
+        // Find the next game that hasn't started yet (future games only)
+        const nextGame = await db.collection('Games').findOne(
+            { commence_time: { $gt: now } },
+            { sort: { commence_time: 1 } }
+        );
+
+        // Also check if there are any started games with unscored picks right now
+        const startedGames = await db.collection('Games').find(
+            { commence_time: { $lte: now } },
+            { projection: { gameId: 1 } }
+        ).toArray();
+        const startedIds = startedGames.map(g => g.gameId);
+        const hasUnscoredStarted = startedIds.length > 0 && await db.collection('Picks').findOne({
+            gameId: { $in: startedIds },
+            result: { $exists: false },
+        }) !== null;
+
+        if (hasUnscoredStarted) {
+            // Games already started with unscored picks — begin immediately
+            const begin = () => {
+                console.log('Live scoring interval started (catch-up for already-started games).');
+                liveScoringInterval = setInterval(async () => {
+                    await processLivePickResults();
+                    if (!(await hasUnscoredPicks())) {
+                        console.log('Live scoring interval stopped — all picks for started games scored. Rescheduling for next game.');
+                        clearInterval(liveScoringInterval);
+                        liveScoringInterval = null;
+                        await scheduleLiveScoring();
+                    }
+                }, 5 * 60 * 1000);
+                processLivePickResults();
+            };
+            begin();
             return;
         }
 
-        const startAt = new Date(earliest.commence_time);
+        if (!nextGame?.commence_time) {
+            console.log('scheduleLiveScoring: no upcoming games found, skipping.');
+            return;
+        }
+
+        const startAt = new Date(nextGame.commence_time);
         const delay = startAt - Date.now();
 
         const hasUnscoredPicks = async () => {
@@ -271,9 +308,11 @@ async function scheduleLiveScoring() {
         const tick = async () => {
             await processLivePickResults();
             if (!(await hasUnscoredPicks())) {
-                console.log('Live scoring interval stopped — all picks scored.');
+                console.log('Live scoring interval stopped — all picks for started games scored. Rescheduling for next game.');
                 clearInterval(liveScoringInterval);
                 liveScoringInterval = null;
+                // Reschedule for the next game that hasn't started yet
+                await scheduleLiveScoring();
             }
         };
 
@@ -284,7 +323,7 @@ async function scheduleLiveScoring() {
         };
 
         if (delay <= 0) {
-            // First game already started
+            // First game already started (or starting now)
             begin();
         } else {
             console.log(`scheduleLiveScoring: sleeping until ${startAt.toISOString()}`);
