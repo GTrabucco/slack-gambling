@@ -28,6 +28,7 @@ export default async function refreshJob() {
     const now = new Date();
     let updatedCount = 0;
     const changes = [];
+    const movementDocs = [];
 
     for (const freshGame of freshGames) {
       const existing = await gamesCollection.findOne({
@@ -37,10 +38,32 @@ export default async function refreshJob() {
       if (!existing) continue;
 
       const diffs = [];
-      if (existing.home_spread !== freshGame.home_spread || existing.away_spread !== freshGame.away_spread)
+      if (existing.home_spread !== freshGame.home_spread || existing.away_spread !== freshGame.away_spread) {
         diffs.push(`spread ${existing.away_spread}/${existing.home_spread}→${freshGame.away_spread}/${freshGame.home_spread}`);
-      if (existing.over !== freshGame.over)
+        movementDocs.push({
+          gameId: freshGame.gameId,
+          homeTeam: freshGame.home_team,
+          awayTeam: freshGame.away_team,
+          commenceTime: freshGame.commence_time,
+          type: 'spread',
+          from: { home: existing.home_spread, away: existing.away_spread },
+          to: { home: freshGame.home_spread, away: freshGame.away_spread },
+          timestamp: now,
+        });
+      }
+      if (existing.over !== freshGame.over) {
         diffs.push(`O/U ${existing.over}→${freshGame.over}`);
+        movementDocs.push({
+          gameId: freshGame.gameId,
+          homeTeam: freshGame.home_team,
+          awayTeam: freshGame.away_team,
+          commenceTime: freshGame.commence_time,
+          type: 'total',
+          from: existing.over,
+          to: freshGame.over,
+          timestamp: now,
+        });
+      }
       if (!diffs.length) continue;
 
       await gamesCollection.updateOne(
@@ -60,6 +83,9 @@ export default async function refreshJob() {
     }
 
     const changeDetail = changes.length ? `\n${changes.join('\n')}` : '';
+    if (movementDocs.length > 0) {
+      await db.collection('Line_Movements').insertMany(movementDocs);
+    }
     console.log(`Refresh job: updated odds for ${updatedCount} games.${changeDetail}`);
     const successMsg = `Refresh job success: updated odds for ${updatedCount} games.${changeDetail}`;
     await logCronRun('Refresh Job', 'success', successMsg);

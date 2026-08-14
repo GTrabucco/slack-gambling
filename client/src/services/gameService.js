@@ -9,6 +9,10 @@ const gameService = {
     return apiClient.get("/api/live-scores");
   },
 
+  getLineMovements: async (gameId) => {
+    return apiClient.get("/api/line-movements", { params: gameId ? { gameId } : {} });
+  },
+
   getGamesHistory: async () => {
     return apiClient.get("/api/games-history");
   },

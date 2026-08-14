@@ -392,6 +392,22 @@ app.get('/api/games', async (req, res) => {
     }
 });
 
+app.get('/api/line-movements', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+        const filter = req.query.gameId ? { gameId: req.query.gameId } : {};
+        const data = await db.collection('Line_Movements')
+            .find(filter)
+            .sort({ timestamp: -1 })
+            .limit(limit)
+            .toArray();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching line movements' });
+    }
+});
+
 app.post('/api/games', adminLimiter, async (req, res) => {
     try {
         const { gameId, commence_time, home_team, away_team, home_spread, away_spread, over, under, season, week } = req.body;

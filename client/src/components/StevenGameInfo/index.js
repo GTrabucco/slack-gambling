@@ -10,6 +10,7 @@ import DialogActions from "@mui/material/DialogActions";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
 
 import StevenButton from "../Common/StevenButton";
 import gameService from "../../services/gameService";
@@ -234,6 +235,112 @@ const AtsPanel = ({ awayTeam, homeTeam, awayAts, homeAts, awaySpread, homeSpread
   );
 };
 
+const formatMovementTime = (ts) =>
+  new Date(ts).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
+
+const formatSpread = (val) => { const n = parseFloat(val); return n > 0 ? `+${n}` : `${n}`; };
+
+const LineFeed = ({ movements, loading, homeSpread, awaySpread, over }) => {
+  if (loading) return <PageLoader />;
+  if (!movements.length) return (
+    <Typography sx={{ color: "text.secondary", textAlign: "center", pt: 4, fontSize: 13 }}>
+      No line movements recorded for this game yet.
+    </Typography>
+  );
+
+  // Build sorted columns (unique timestamps, oldest → newest, plus "Now" at end)
+  const sorted = [...movements].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  const colKeys = sorted.map(m => String(m.timestamp));
+  const colKeysUniq = [...new Set(colKeys)];
+
+  // For each column timestamp, what were the values?
+  // We need to track running state per category
+  const ROWS = [
+    { key: "favSpread", label: "Fav Spread" },
+    { key: "dogSpread", label: "Dog Spread" },
+    { key: "over",      label: "Over" },
+    { key: "under",     label: "Under" },
+  ];
+
+  // Build a map: colKey → { favSpread, dogSpread, over, under } with only changed values
+  const cellMap = {};
+  for (const col of colKeysUniq) cellMap[col] = {};
+
+  for (const mov of sorted) {
+    const col = String(mov.timestamp);
+    if (mov.type === "spread") {
+      const homeN = parseFloat(mov.to.home);
+      const awayN = parseFloat(mov.to.away);
+      const favIsHome = homeN < awayN;
+      cellMap[col].favSpread = formatSpread(favIsHome ? homeN : awayN);
+      cellMap[col].dogSpread = formatSpread(favIsHome ? awayN : homeN);
+    } else if (mov.type === "total") {
+      cellMap[col].over = String(mov.to);
+      cellMap[col].under = String(mov.to);
+    }
+  }
+
+  // Current live values
+  const homeN = parseFloat(homeSpread);
+  const awayN = parseFloat(awaySpread);
+  const favIsHome = homeN < awayN;
+  const nowCol = {
+    favSpread: formatSpread(favIsHome ? homeN : awayN),
+    dogSpread: formatSpread(favIsHome ? awayN : homeN),
+    over: over != null ? String(over) : null,
+    under: over != null ? String(over) : null,
+  };
+
+  const allCols = [...colKeysUniq, "now"];
+
+  const COL_W = 90;
+
+  return (
+    <Box sx={{ overflowX: "auto" }}>
+      <Box sx={{ minWidth: (allCols.length + 1) * COL_W }}>
+        {/* Header row */}
+        <Box sx={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.1)", pb: 0.5, mb: 0.5 }}>
+          <Box sx={{ width: COL_W, flexShrink: 0 }} />
+          {colKeysUniq.map(col => (
+            <Box key={col} sx={{ width: COL_W, flexShrink: 0, textAlign: "center" }}>
+              <Typography sx={{ fontSize: 10, color: "text.disabled", lineHeight: 1.3 }}>
+                {formatMovementTime(col)}
+              </Typography>
+            </Box>
+          ))}
+          <Box sx={{ width: COL_W, flexShrink: 0, textAlign: "center" }}>
+            <Typography sx={{ fontSize: 10, fontWeight: 700, color: "text.secondary" }}>Now</Typography>
+          </Box>
+        </Box>
+
+        {/* Data rows */}
+        {ROWS.map(({ key, label }) => (
+          <Box key={key} sx={{ display: "flex", alignItems: "center", py: 0.75, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <Box sx={{ width: COL_W, flexShrink: 0 }}>
+              <Typography sx={{ fontSize: 12, color: "text.secondary", fontWeight: 600 }}>{label}</Typography>
+            </Box>
+            {colKeysUniq.map(col => {
+              const val = cellMap[col][key];
+              return (
+                <Box key={col} sx={{ width: COL_W, flexShrink: 0, textAlign: "center" }}>
+                  <Typography sx={{ fontSize: 13, color: val ? "text.primary" : "text.disabled" }}>
+                    {val ?? "—"}
+                  </Typography>
+                </Box>
+              );
+            })}
+            <Box sx={{ width: COL_W, flexShrink: 0, textAlign: "center" }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
+                {nowCol[key] ?? "—"}
+              </Typography>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
 const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, homeTeam, awayTeam, homeSpread, awaySpread, over }) => {
   const [weatherData, setWeatherData] = useState([]);
   const [weatherLoading, setWeatherLoading] = useState(true);
@@ -247,6 +354,8 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
   const [atsData, setAtsData] = useState({ home: null, away: null });
   const [cityName, setCityName] = useState("");
   const [tab, setTab] = useState(0);
+  const [lineMovements, setLineMovements] = useState([]);
+  const [lineMovementsLoading, setLineMovementsLoading] = useState(false);
 
   const handleShowStevenInfo = () => {
     setShowStevenInfo(false);
@@ -455,6 +564,11 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
     if (showStevenInfo) {
       setTab(0);
       getGame();
+      setLineMovementsLoading(true);
+      gameService.getLineMovements(selectedGameId)
+        .then(r => setLineMovements(r.data || []))
+        .catch(() => setLineMovements([]))
+        .finally(() => setLineMovementsLoading(false));
     } else {
       setWeatherData([]);
       setInjuries({ home: [], away: [] });
@@ -462,6 +576,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       setTeamStats({ home: [], away: [] });
       setAtsData({ home: null, away: null });
       setWeatherLoading(true);
+      setLineMovements([]);
     }
   }, [showStevenInfo, selectedGameId]);
 
@@ -497,6 +612,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
         <Tab label="Weather" />
         <Tab label="Depth Chart" />
         <Tab label="Stats" />
+        <Tab label="Lines" />
       </Tabs>
       <DialogContent dividers>
         {tab === 0 && (
@@ -558,6 +674,9 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
               </>
             )}
           </>
+        )}
+        {tab === 3 && (
+          <LineFeed movements={lineMovements} loading={lineMovementsLoading} homeSpread={homeSpread} awaySpread={awaySpread} over={over} />
         )}
       </DialogContent>
       <DialogActions>
