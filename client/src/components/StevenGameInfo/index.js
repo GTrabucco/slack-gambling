@@ -608,11 +608,11 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
           })()}
         </Box>
       )}
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth">
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="scrollable" scrollButtons="auto" allowScrollButtonsMobile>
         <Tab label="Weather" />
         <Tab label="Depth Chart" />
-        <Tab label="Stats" />
         <Tab label="Lines" />
+        <Tab label="Stats" />
       </Tabs>
       <DialogContent dividers>
         {tab === 0 && (
@@ -651,14 +651,17 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
           depthLoading ? (
             <PageLoader />
           ) : (
-            <Box sx={{ display: "flex", gap: 3 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
               <DepthChartList teamName={awayTeam} formations={depthChart.away} injuries={injuries.away} />
-              <Box sx={{ width: "1px", bgcolor: "rgba(255,255,255,0.08)", flexShrink: 0 }} />
+              <Box sx={{ height: "1px", bgcolor: "rgba(255,255,255,0.08)" }} />
               <DepthChartList teamName={homeTeam} formations={depthChart.home} injuries={injuries.home} />
             </Box>
           )
         )}
         {tab === 2 && (
+          <LineFeed movements={lineMovements} loading={lineMovementsLoading} homeSpread={homeSpread} awaySpread={awaySpread} over={over} />
+        )}
+        {tab === 3 && (
           <>
             {statsLoading ? <PageLoader /> : (
               <>
@@ -674,9 +677,6 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
               </>
             )}
           </>
-        )}
-        {tab === 3 && (
-          <LineFeed movements={lineMovements} loading={lineMovementsLoading} homeSpread={homeSpread} awaySpread={awaySpread} over={over} />
         )}
       </DialogContent>
       <DialogActions>
