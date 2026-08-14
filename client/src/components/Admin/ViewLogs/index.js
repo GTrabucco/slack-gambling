@@ -78,11 +78,16 @@ const ViewLogs = () => {
                     <StevenTableBody>
                         {logs.length > 0 ? (
                             logs.map((log) => (
-                                <StevenTableRow key={log._id} sx={log.status === 'error' && !log.read ? { bgcolor: "rgba(211,47,47,0.08)" } : {}}>
+                                <StevenTableRow key={log._id} sx={log.status === 'error' && !log.read ? { bgcolor: "rgba(211,47,47,0.08)" } : log.status === 'warn' || log.status === 'partial' ? { bgcolor: "rgba(237,108,2,0.08)" } : {}}>
                                     <StevenTableCell>{new Date(log.timestamp).toLocaleString()}</StevenTableCell>
                                     <StevenTableCell>{log.jobName}</StevenTableCell>
                                     <StevenTableCell>
-                                        <Chip label={log.status} color={log.status === 'success' ? 'success' : 'error'} size="small" />
+                                        <Chip label={log.status} color={
+                                            log.status === 'success' ? 'success' :
+                                            log.status === 'info' ? 'default' :
+                                            log.status === 'warn' || log.status === 'partial' ? 'warning' :
+                                            'error'
+                                        } size="small" />
                                     </StevenTableCell>
                                     <StevenTableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", minWidth: 200 }}>{log.message}</StevenTableCell>
                                     <StevenTableCell>

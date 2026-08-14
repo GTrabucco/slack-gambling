@@ -213,3 +213,128 @@
   transform: translateY(1px);
 }
 
+/* Result-colored team buttons */
+.pick-win {
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
+  background-color: rgba(27, 94, 32, 0.55);
+  border: 1.5px solid #a5d6a7;
+  border-radius: 12px;
+  color: #a5d6a7;
+}
+
+.pick-win .team-record {
+  color: rgba(165, 214, 167, 0.6);
+}
+
+.pick-win:hover {
+  background-color: rgba(27, 94, 32, 0.7);
+}
+
+.pick-loss {
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
+  background-color: rgba(127, 0, 0, 0.55);
+  border: 1.5px solid #ef9a9a;
+  border-radius: 12px;
+  color: #ef9a9a;
+}
+
+.pick-loss .team-record {
+  color: rgba(239, 154, 154, 0.6);
+}
+
+.pick-loss:hover {
+  background-color: rgba(127, 0, 0, 0.7);
+}
+
+.pick-push {
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
+  background-color: rgba(74, 56, 0, 0.55);
+  border: 1.5px solid #ffe082;
+  border-radius: 12px;
+  color: #ffe082;
+}
+
+.pick-push .team-record {
+  color: rgba(255, 224, 130, 0.6);
+}
+
+.pick-push:hover {
+  background-color: rgba(74, 56, 0, 0.7);
+}
+
+/* Result-colored total (over/under) buttons */
+.total-win {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  background-color: rgba(27, 94, 32, 0.55);
+  border: 1.5px solid #a5d6a7;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.total-win h2 {
+  color: #a5d6a7;
+  padding: 0;
+  margin: 0;
+}
+
+.total-win:hover {
+  background-color: rgba(27, 94, 32, 0.7);
+  transform: translateY(-2px);
+}
+
+.total-loss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  background-color: rgba(127, 0, 0, 0.55);
+  border: 1.5px solid #ef9a9a;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.total-loss h2 {
+  color: #ef9a9a;
+  padding: 0;
+  margin: 0;
+}
+
+.total-loss:hover {
+  background-color: rgba(127, 0, 0, 0.7);
+  transform: translateY(-2px);
+}
+
+.total-push {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  background-color: rgba(74, 56, 0, 0.55);
+  border: 1.5px solid #ffe082;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.total-push h2 {
+  color: #ffe082;
+  padding: 0;
+  margin: 0;
+}
+
+.total-push:hover {
+  background-color: rgba(74, 56, 0, 0.7);
+  transform: translateY(-2px);
+}
+

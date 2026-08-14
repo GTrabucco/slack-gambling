@@ -10,6 +10,7 @@ import sundayReminder from './sundayremindernew.js';
 import refreshJob from './refreshjobnew.js';
 import { getLiveScoreboard } from './espnapi.js';
 import { calculatePickResult } from './processpicksnew.js';
+import { logCronRun } from './cronLogger.js';
 import twilio from 'twilio';
 import RateLimit from 'express-rate-limit';
 
@@ -190,7 +191,9 @@ async function processLivePickResults() {
             });
 
             if (!gameDoc) {
-                console.warn(`processLivePickResults: no game doc found for ${game.away_team} @ ${game.home_team}`);
+                const msg = `no game doc found for ${game.away_team} @ ${game.home_team}`;
+                console.warn(`processLivePickResults: ${msg}`);
+                await logCronRun('processLivePickResults', 'warn', msg);
                 continue;
             }
 
@@ -200,6 +203,8 @@ async function processLivePickResults() {
             }).toArray();
             if (unscoredPicks.length === 0) continue;
 
+            let scored = 0;
+            let failed = 0;
             for (const pick of unscoredPicks) {
                 try {
                     const result = calculatePickResult(pick, {
@@ -222,14 +227,22 @@ async function processLivePickResults() {
                         season,
                         scoredAt: new Date(),
                     });
+                    scored++;
                 } catch (pickErr) {
-                    console.error(`Error scoring pick ${pick._id}:`, pickErr.message);
+                    failed++;
+                    const msg = `Error scoring pick ${pick._id} (${pick.username} ${pick.type}): ${pickErr.message}`;
+                    console.error(msg);
+                    await logCronRun('processLivePickResults', 'error', msg);
                 }
             }
-            console.log(`Scored and copied ${unscoredPicks.length} pick(s) for ${game.away_team} @ ${game.home_team}`);
+            const summary = `Scored ${scored}/${unscoredPicks.length} pick(s) for ${game.away_team} @ ${game.home_team}${failed > 0 ? ` (${failed} failed)` : ''}`;
+            console.log(summary);
+            await logCronRun('processLivePickResults', failed > 0 ? 'partial' : 'success', summary);
         }
     } catch (error) {
-        console.error('processLivePickResults error:', error.message);
+        const msg = `processLivePickResults error: ${error.message}`;
+        console.error(msg);
+        await logCronRun('processLivePickResults', 'error', msg);
     }
 }
 
@@ -264,12 +277,16 @@ async function scheduleLiveScoring() {
 
         if (hasUnscoredStarted) {
             // Games already started with unscored picks — begin immediately
-            const begin = () => {
-                console.log('Live scoring interval started (catch-up for already-started games).');
+            const begin = async () => {
+                const msg = 'Live scoring interval started (catch-up for already-started games).';
+                console.log(msg);
+                await logCronRun('scheduleLiveScoring', 'info', msg);
                 liveScoringInterval = setInterval(async () => {
                     await processLivePickResults();
                     if (!(await hasUnscoredPicks())) {
-                        console.log('Live scoring interval stopped — all picks for started games scored. Rescheduling for next game.');
+                        const doneMsg = 'Live scoring interval stopped — all picks for started games scored. Rescheduling for next game.';
+                        console.log(doneMsg);
+                        await logCronRun('scheduleLiveScoring', 'info', doneMsg);
                         clearInterval(liveScoringInterval);
                         liveScoringInterval = null;
                         await scheduleLiveScoring();
@@ -282,7 +299,9 @@ async function scheduleLiveScoring() {
         }
 
         if (!nextGame?.commence_time) {
-            console.log('scheduleLiveScoring: no upcoming games found, skipping.');
+            const msg = 'scheduleLiveScoring: no upcoming games found, skipping.';
+            console.log(msg);
+            await logCronRun('scheduleLiveScoring', 'info', msg);
             return;
         }
 
@@ -308,7 +327,9 @@ async function scheduleLiveScoring() {
         const tick = async () => {
             await processLivePickResults();
             if (!(await hasUnscoredPicks())) {
-                console.log('Live scoring interval stopped — all picks for started games scored. Rescheduling for next game.');
+                const doneMsg = 'Live scoring interval stopped — all picks for started games scored. Rescheduling for next game.';
+                console.log(doneMsg);
+                await logCronRun('scheduleLiveScoring', 'info', doneMsg);
                 clearInterval(liveScoringInterval);
                 liveScoringInterval = null;
                 // Reschedule for the next game that hasn't started yet
@@ -316,8 +337,10 @@ async function scheduleLiveScoring() {
             }
         };
 
-        const begin = () => {
-            console.log('Live scoring interval started.');
+        const begin = async () => {
+            const msg = `Live scoring interval started for games at ${startAt.toISOString()}.`;
+            console.log(msg);
+            await logCronRun('scheduleLiveScoring', 'info', msg);
             liveScoringInterval = setInterval(tick, 5 * 60 * 1000);
             tick(); // run immediately when first game starts
         };
@@ -326,11 +349,15 @@ async function scheduleLiveScoring() {
             // First game already started (or starting now)
             begin();
         } else {
-            console.log(`scheduleLiveScoring: sleeping until ${startAt.toISOString()}`);
+            const sleepMsg = `scheduleLiveScoring: sleeping until ${startAt.toISOString()}`;
+            console.log(sleepMsg);
+            await logCronRun('scheduleLiveScoring', 'info', sleepMsg);
             liveScoringTimeout = setTimeout(begin, delay);
         }
     } catch (error) {
-        console.error('scheduleLiveScoring error:', error.message);
+        const msg = `scheduleLiveScoring error: ${error.message}`;
+        console.error(msg);
+        await logCronRun('scheduleLiveScoring', 'error', msg);
     }
 }
 

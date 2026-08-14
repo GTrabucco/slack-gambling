@@ -373,6 +373,37 @@ const StevenGameList = ({ tempPicks,
                             const dateObj = new Date(commenceTime);
                             const liveScore = liveScores[`${away_team}@${home_team}`];
                             const hasScore = liveScore && liveScore.state !== 'pre';
+                            const isCompleted = liveScore?.is_completed ?? false;
+
+                            const getTeamPickClass = (pick) => {
+                                if (!pick) return "";
+                                if (isCompleted) {
+                                    if (pick.result === 1) return "pick-win";
+                                    if (pick.result === -1) return "pick-loss";
+                                    if (pick.result === 0) return "pick-push";
+                                }
+                                return isGotw ? "gotw-picked" : "picked";
+                            };
+
+                            const getTotalPickClass = (pick) => {
+                                if (!pick) return null;
+                                if (isCompleted) {
+                                    if (pick.result === 1) return "total-win";
+                                    if (pick.result === -1) return "total-loss";
+                                    if (pick.result === 0) return "total-push";
+                                }
+                                return isGotw ? "gotw-total-picked" : "total-picked";
+                            };
+
+                            const awayPickClass = getTeamPickClass(away_picked);
+                            const homePickClass = getTeamPickClass(home_picked);
+
+                            const gotwOver = isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Over")) : null;
+                            const gotwUnder = isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Under")) : null;
+                            const overPickForClass = isGotw ? gotwOver : over_picked;
+                            const underPickForClass = isGotw ? gotwUnder : under_picked;
+                            const overPickClass = getTotalPickClass(overPickForClass);
+                            const underPickClass = getTotalPickClass(underPickForClass);
                             return (
                                 <Paper
                                     key={isGotw ? `gotw-${game["gameId"]}` : game["gameId"]}
@@ -436,7 +467,7 @@ const StevenGameList = ({ tempPicks,
                                         </Box>
                                     )}
                                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", textAlign: "center", width: "100%" }}>
-                                        <div className={`team-container ${away_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
+                                        <div className={`team-container ${awayPickClass}`} onClick={() =>
                                             updatePick(
                                                 game["gameId"],
                                                 home_team,
@@ -451,7 +482,7 @@ const StevenGameList = ({ tempPicks,
                                             <div className="team-record">{records[away_team] ?? ""}</div>
                                             <div><div className="team-name">{away_team}</div><b>{away_spread_num > 0 ? "+" + away_spread_num : away_spread_num}</b></div>
                                         </div>
-                                        <div className={`team-container ${home_picked ? (isGotw ? "gotw-picked" : "picked") : ""}`} onClick={() =>
+                                        <div className={`team-container ${homePickClass}`} onClick={() =>
                                             updatePick(
                                                 game["gameId"],
                                                 home_team,
@@ -467,8 +498,8 @@ const StevenGameList = ({ tempPicks,
                                             <div><div className="team-name">{home_team}</div><b>{home_spread_num > 0 ? "+" + home_spread_num : home_spread_num}</b></div>
                                         </div>
                                         <div className="icon-text-container">
-                                                {(isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Over")) : over_picked) ? (
-                                                    <span className={isGotw ? "gotw-total-picked" : "total-picked"}>
+                                                {overPickClass ? (
+                                                    <span className={overPickClass}>
                                                         <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
                                                             updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
                                                         }></h2>
@@ -479,8 +510,8 @@ const StevenGameList = ({ tempPicks,
                                                     }></h2>
                                                 )}
                                                 <div className="over-text"><b>{over}</b></div>
-                                                {(isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Under")) : under_picked) ? (
-                                                    <span className={isGotw ? "gotw-total-picked" : "total-picked"}>
+                                                {underPickClass ? (
+                                                    <span className={underPickClass}>
                                                         <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
                                                             updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
                                                         }></h2>
