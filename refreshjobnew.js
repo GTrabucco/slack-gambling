@@ -17,7 +17,8 @@ export default async function refreshJob() {
       console.log("Refresh job: no config found, skipping.");
       return "No config found.";
     }
-    const { season, week, weekType } = config;
+    const { season, weekType } = config;
+    const week = parseInt(config.week) - 1;
 
     const freshGames = await getGames(season, weekType, week);
     if (freshGames.length === 0) {
