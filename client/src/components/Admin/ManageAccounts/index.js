@@ -147,6 +147,7 @@ const ManageAccounts = () => {
             <Divider sx={{ mb: 3 }} />
 
             {/* Users Table */}
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>{users.length} account{users.length !== 1 ? 's' : ''}</Typography>
             <StevenTableContainer>
                 <StevenTable>
                     <StevenTableHead>
