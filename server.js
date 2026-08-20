@@ -173,7 +173,8 @@ async function processLivePickResults() {
         const db = client.db(DATABASE_NAME);
         const config = await db.collection('Config').findOne({ _id: 'current' });
         if (!config) return;
-        const { season, week } = config;
+        const { season } = config;
+        const week = parseInt(config.week) - 1;
 
         const scoreboard = await getLiveScoreboard();
         const completedGames = scoreboard.games?.filter(g => g.is_completed) ?? [];
