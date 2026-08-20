@@ -1522,7 +1522,7 @@ app.get('/api/sharp-report', async (req, res) => {
 
         const [picks, games, users] = await Promise.all([
             db.collection('Picks_History').find(pickFilter).toArray(),
-            db.collection('Games').find({}).toArray(),
+            db.collection('Games_History').find({}).toArray(),
             db.collection('User_Details').find({}).toArray(),
         ]);
 
