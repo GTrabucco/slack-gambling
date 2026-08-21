@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
+import { FaCrown } from "react-icons/fa";
 import apiClient from "../../services/apiClient";
 
 const RANKS = ["#1", "#2", "#3"];
@@ -57,16 +58,28 @@ const TopLeaderboard = () => {
                             fontSize: rank === 0 ? 15 : 13,
                             fontWeight: rank === 0 ? 700 : 500,
                             color: rank === 0 ? "#FFD700" : "text.primary",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
                         }}>
                             {player.displayName}
+                            {rank === 0 && <FaCrown style={{ fontSize: 14, color: "#D4AF37", flexShrink: 0 }} />}
                         </Typography>
-                        <Typography sx={{
-                            fontSize: rank === 0 ? 14 : 12,
-                            fontWeight: 700,
-                            color: COLORS[rank].text,
-                        }}>
-                            {player.score > 0 ? `+${player.score}` : player.score} pts
-                        </Typography>
+                        <Box sx={{ textAlign: "right" }}>
+                            {player.record && (
+                                <Typography sx={{ fontSize: rank === 0 ? 11 : 10, color: "text.disabled", lineHeight: 1.2 }}>
+                                    {player.record.wins}-{player.record.losses}{player.record.pushes ? `-${player.record.pushes}` : ""}
+                                </Typography>
+                            )}
+                            <Typography sx={{
+                                fontSize: rank === 0 ? 14 : 12,
+                                fontWeight: 700,
+                                color: COLORS[rank].text,
+                                lineHeight: 1.2,
+                            }}>
+                                {player.score > 0 ? `+${player.score}` : player.score} pts
+                            </Typography>
+                        </Box>
                     </Box>
                 ))}
             </Paper>

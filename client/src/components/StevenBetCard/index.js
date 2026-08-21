@@ -49,7 +49,7 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                 </Box>
                 <StevenTableContainer sx={{ overflowX: "visible" }}>
                     <StevenTable sx={{ minWidth: 0, tableLayout: "fixed", width: "100%" }}>
-                        <StevenTableBody>
+                        <StevenTableBody sx={{ "& .MuiTableRow-root:nth-of-type(odd)": { backgroundColor: "transparent" } }}>
                         {['favorite', 'dog', 'over', 'under', 'gotw'].map((type) => {
                             const pick = Array.isArray(selectedPicks)
                                 ? selectedPicks.find(obj => obj.type === type)

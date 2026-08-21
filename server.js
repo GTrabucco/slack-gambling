@@ -1436,6 +1436,7 @@ app.get('/api/leaderboard', async (req, res) => {
         const userZeroWeeks = {};
         const userPerfectWeeks = {};
         const userWinningWeeks = {};
+        const userRecord = {};
         const perfectScore = parseInt(season) >= 2026 ? 5 : 4;
         const worstScore = parseInt(season) >= 2026 ? -5 : -4;
 
@@ -1444,6 +1445,13 @@ app.get('/api/leaderboard', async (req, res) => {
         for (const pick of picks) {
             if (!userTotals[pick.username]) userTotals[pick.username] = 0;
             userTotals[pick.username] += pick.result || 0;
+
+            if (pick.result === 1 || pick.result === -1 || pick.result === 0) {
+                if (!userRecord[pick.username]) userRecord[pick.username] = { wins: 0, losses: 0, pushes: 0 };
+                if (pick.result === 1) userRecord[pick.username].wins++;
+                else if (pick.result === -1) userRecord[pick.username].losses++;
+                else userRecord[pick.username].pushes++;
+            }
 
             if (pick.type === 'gotw' && (pick.result || 0) > 0) {
                 userGotwWins[pick.username] = (userGotwWins[pick.username] || 0) + 1;
@@ -1475,6 +1483,7 @@ app.get('/api/leaderboard', async (req, res) => {
             .map(([username, score]) => ({
                 displayName: displayMap[username] || username.split('@')[0],
                 score,
+                record: userRecord[username] || { wins: 0, losses: 0, pushes: 0 },
                 gotwWins: userGotwWins[username] || 0,
                 zeroWeeks: userZeroWeeks[username] || 0,
                 perfectWeeks: userPerfectWeeks[username] || 0,
