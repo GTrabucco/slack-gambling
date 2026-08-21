@@ -453,19 +453,47 @@ const StevenGameList = ({ tempPicks,
                                                             </Typography>
                                                         </Box>
                                     </Box>
-                                    {hasScore && (
-                                        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3, py: 0.75 }}>
-                                            <Typography fontWeight="bold" sx={{ fontSize: "1.4rem", minWidth: 36, textAlign: "right" }}>
-                                                {liveScore.away_score}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.7rem" }}>
-                                                {away_team_name} · {home_team_name}
-                                            </Typography>
-                                            <Typography fontWeight="bold" sx={{ fontSize: "1.4rem", minWidth: 36, textAlign: "left" }}>
-                                                {liveScore.home_score}
-                                            </Typography>
-                                        </Box>
-                                    )}
+                                    {hasScore && (() => {
+                                        const awayLs = liveScore.away_linescores || [];
+                                        const homeLs = liveScore.home_linescores || [];
+                                        const maxPeriod = Math.max(4, ...[...awayLs, ...homeLs].map(q => q.period));
+                                        const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
+                                        const colLabel = (p) => p <= 4 ? `Q${p}` : `OT${p - 4}`;
+                                        const getVal = (ls, p) => { const q = ls.find(x => x.period === p); return q ? q.displayValue : '-'; };
+                                        const cellSx = { fontSize: "0.7rem", textAlign: "center", px: 0.75, py: 0.25, minWidth: 28 };
+                                        const headerSx = { ...cellSx, color: "text.secondary", fontWeight: 600 };
+                                        const totalSx = { ...cellSx, fontWeight: 700, fontSize: "0.8rem", borderLeft: "1px solid rgba(255,255,255,0.12)" };
+                                        const nameSx = { fontSize: "0.7rem", fontWeight: 600, textAlign: "left", pr: 1, minWidth: 32 };
+                                        return (
+                                            <Box sx={{ overflowX: "auto", px: 1.5, pt: 1.5, pb: 0.5 }}>
+                                                <Box component="table" sx={{ width: "100%", borderCollapse: "collapse" }}>
+                                                    <Box component="thead">
+                                                        <Box component="tr">
+                                                            <Box component="th" sx={nameSx} />
+                                                            {periods.map(p => (
+                                                                <Box component="th" key={p} sx={headerSx}>{colLabel(p)}</Box>
+                                                            ))}
+                                                            <Box component="th" sx={{ ...headerSx, borderLeft: "1px solid rgba(255,255,255,0.12)", fontWeight: 700 }}>T</Box>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box component="tbody">
+                                                        {[
+                                                            { label: away_team_name, ls: awayLs, total: liveScore.away_score },
+                                                            { label: home_team_name, ls: homeLs, total: liveScore.home_score },
+                                                        ].map(({ label, ls, total }) => (
+                                                            <Box component="tr" key={label}>
+                                                                <Box component="td" sx={nameSx}>{label}</Box>
+                                                                {periods.map(p => (
+                                                                    <Box component="td" key={p} sx={cellSx}>{getVal(ls, p)}</Box>
+                                                                ))}
+                                                                <Box component="td" sx={totalSx}>{total ?? '-'}</Box>
+                                                            </Box>
+                                                        ))}
+                                                    </Box>
+                                                </Box>
+                                            </Box>
+                                        );
+                                    })()}
                                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", textAlign: "center", width: "100%" }}>
                                         <div className={`team-container ${awayPickClass}`} onClick={() =>
                                             updatePick(

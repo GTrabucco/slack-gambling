@@ -57,13 +57,17 @@ function parseScoreboardEvents(events, oddsMap = {}) {
     if (!comp) continue;
 
     let homeTeam = '', awayTeam = '', homeScore = null, awayScore = null;
+    let homeLinescores = [], awayLinescores = [];
     for (const c of (comp.competitors || [])) {
+      const ls = (c.linescores || []).map(q => ({ period: q.period, value: q.value ?? 0, displayValue: q.displayValue ?? '0' }));
       if (c.homeAway === 'home') {
         homeTeam = c.team?.displayName ?? '';
         homeScore = c.score ?? null;
+        homeLinescores = ls;
       } else {
         awayTeam = c.team?.displayName ?? '';
         awayScore = c.score ?? null;
+        awayLinescores = ls;
       }
     }
 
@@ -77,6 +81,8 @@ function parseScoreboardEvents(events, oddsMap = {}) {
       away_team: awayTeam,
       home_score: homeScore,
       away_score: awayScore,
+      home_linescores: homeLinescores,
+      away_linescores: awayLinescores,
       home_spread: odds.home_spread,
       away_spread: odds.away_spread,
       over: odds.over,

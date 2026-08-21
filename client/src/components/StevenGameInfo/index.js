@@ -235,12 +235,33 @@ const AtsPanel = ({ awayTeam, homeTeam, awayAts, homeAts, awaySpread, homeSpread
   );
 };
 
-const formatMovementTime = (ts) =>
-  new Date(ts).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
+const formatMovementTime = (ts) => {
+  const d = new Date(ts);
+  const day = d.toLocaleString("en-US", { weekday: "short" });
+  const time = d.toLocaleString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+  return `${day} ${time}`;
+};
 
 const formatSpread = (val) => { const n = parseFloat(val); return n > 0 ? `+${n}` : `${n}`; };
 
+const movDir = (from, to) => {
+  const f = parseFloat(from), t = parseFloat(to);
+  if (isNaN(f) || isNaN(t) || f === t) return null;
+  return t > f ? 1 : -1;
+};
+
+const DirArrow = ({ dir, color }) => {
+  if (!dir) return null;
+  return (
+    <Typography component="span" sx={{ fontSize: 11, ml: 0.5, color, lineHeight: 1 }}>
+      {dir > 0 ? '▲' : '▼'}
+    </Typography>
+  );
+};
+
 const LineFeed = ({ movements, loading, homeSpread, awaySpread, over }) => {
+  const [logOpen, setLogOpen] = useState(false);
+
   if (loading) return <PageLoader />;
   if (!movements.length) return (
     <Typography sx={{ color: "text.secondary", textAlign: "center", pt: 4, fontSize: 13 }}>
@@ -248,95 +269,123 @@ const LineFeed = ({ movements, loading, homeSpread, awaySpread, over }) => {
     </Typography>
   );
 
-  // Build sorted columns (unique timestamps, oldest → newest, plus "Now" at end)
   const sorted = [...movements].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-  const colKeys = sorted.map(m => String(m.timestamp));
-  const colKeysUniq = [...new Set(colKeys)];
 
-  // For each column timestamp, what were the values?
-  // We need to track running state per category
-  const ROWS = [
-    { key: "favSpread", label: "Fav Spread" },
-    { key: "dogSpread", label: "Dog Spread" },
-    { key: "over",      label: "Over" },
-    { key: "under",     label: "Under" },
-  ];
-
-  // Build a map: colKey → { favSpread, dogSpread, over, under } with only changed values
-  const cellMap = {};
-  for (const col of colKeysUniq) cellMap[col] = {};
-
+  // Opening lines from first movement's `from` values
+  const openingCol = {};
   for (const mov of sorted) {
-    const col = String(mov.timestamp);
-    if (mov.type === "spread") {
-      const homeN = parseFloat(mov.to.home);
-      const awayN = parseFloat(mov.to.away);
-      const favIsHome = homeN < awayN;
-      cellMap[col].favSpread = formatSpread(favIsHome ? homeN : awayN);
-      cellMap[col].dogSpread = formatSpread(favIsHome ? awayN : homeN);
-    } else if (mov.type === "total") {
-      cellMap[col].over = String(mov.to);
-      cellMap[col].under = String(mov.to);
+    if (mov.type === "spread" && openingCol.favSpread === undefined) {
+      const homeN = parseFloat(mov.from?.home);
+      const awayN = parseFloat(mov.from?.away);
+      if (!isNaN(homeN) && !isNaN(awayN)) {
+        const favIsHomeOpen = homeN < awayN;
+        openingCol.favSpread = formatSpread(favIsHomeOpen ? homeN : awayN);
+        openingCol.dogSpread = formatSpread(favIsHomeOpen ? awayN : homeN);
+      }
+    }
+    if (mov.type === "total" && openingCol.over === undefined) {
+      openingCol.over = mov.from != null ? String(mov.from) : null;
     }
   }
 
-  // Current live values
+  // Current values
   const homeN = parseFloat(homeSpread);
   const awayN = parseFloat(awaySpread);
   const favIsHome = homeN < awayN;
   const nowCol = {
-    favSpread: formatSpread(favIsHome ? homeN : awayN),
-    dogSpread: formatSpread(favIsHome ? awayN : homeN),
+    favSpread: !isNaN(homeN) && !isNaN(awayN) ? formatSpread(favIsHome ? homeN : awayN) : null,
+    dogSpread: !isNaN(homeN) && !isNaN(awayN) ? formatSpread(favIsHome ? awayN : homeN) : null,
     over: over != null ? String(over) : null,
-    under: over != null ? String(over) : null,
   };
 
-  const allCols = [...colKeysUniq, "now"];
+  const ROWS = [
+    { key: "favSpread", label: "Fav Spread" },
+    { key: "dogSpread", label: "Dog Spread" },
+    { key: "over",      label: "Over/Under" },
+  ];
 
-  const COL_W = 90;
+  // Build change log entries
+  const logEntries = sorted.map(mov => {
+    if (mov.type === "spread") {
+      const toHomeN = parseFloat(mov.to?.home);
+      const toAwayN = parseFloat(mov.to?.away);
+      const favIsHomeTo = toHomeN < toAwayN;
+      const favTo = formatSpread(favIsHomeTo ? toHomeN : toAwayN);
+      const dogTo = formatSpread(favIsHomeTo ? toAwayN : toHomeN);
+      const fromHomeN = parseFloat(mov.from?.home);
+      const fromAwayN = parseFloat(mov.from?.away);
+      const favIsHomeFrom = fromHomeN < fromAwayN;
+      const favFrom = !isNaN(fromHomeN) ? formatSpread(favIsHomeFrom ? fromHomeN : fromAwayN) : null;
+      const dogFrom = !isNaN(fromHomeN) ? formatSpread(favIsHomeFrom ? fromAwayN : fromHomeN) : null;
+      return { ts: mov.timestamp, label: "Spread", from: favFrom ? `Fav ${favFrom} / Dog ${dogFrom}` : null, to: `Fav ${favTo} / Dog ${dogTo}`, dir: movDir(favFrom, favTo) };
+    } else {
+      return { ts: mov.timestamp, label: "Total", from: mov.from != null ? String(mov.from) : null, to: String(mov.to), dir: movDir(mov.from, mov.to) };
+    }
+  });
 
   return (
-    <Box sx={{ overflowX: "auto" }}>
-      <Box sx={{ minWidth: (allCols.length + 1) * COL_W }}>
-        {/* Header row */}
-        <Box sx={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.1)", pb: 0.5, mb: 0.5 }}>
-          <Box sx={{ width: COL_W, flexShrink: 0 }} />
-          {colKeysUniq.map(col => (
-            <Box key={col} sx={{ width: COL_W, flexShrink: 0, textAlign: "center" }}>
-              <Typography sx={{ fontSize: 10, color: "text.disabled", lineHeight: 1.3 }}>
-                {formatMovementTime(col)}
+    <Box>
+      {/* Summary: Opening → Now */}
+      <Box sx={{ mb: 2 }}>
+        <Box sx={{ display: "flex", mb: 1 }}>
+          <Box sx={{ flex: 1 }} />
+          <Box sx={{ width: 90, textAlign: "center" }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.secondary" }}>Opening</Typography>
+          </Box>
+          <Box sx={{ width: 90, textAlign: "center" }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.secondary" }}>Now</Typography>
+          </Box>
+        </Box>
+        {ROWS.map(({ key, label }) => {
+          const open = openingCol[key];
+          const now = nowCol[key];
+          const dir = movDir(open, now);
+          const arrowColor = key === "favSpread" ? (dir < 0 ? "#4caf50" : "#f44336") : (dir > 0 ? "#4caf50" : "#f44336");
+          return (
+            <Box key={key} sx={{ display: "flex", alignItems: "center", py: 0.75, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ fontSize: 13, color: "text.secondary" }}>{label}</Typography>
+              </Box>
+              <Box sx={{ width: 90, textAlign: "center" }}>
+                <Typography sx={{ fontSize: 13 }}>{open ?? "—"}</Typography>
+              </Box>
+              <Box sx={{ width: 90, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 700 }}>{now ?? "—"}</Typography>
+                {dir && <DirArrow dir={dir} color={arrowColor} />}
+              </Box>
+            </Box>
+          );
+        })}
+      </Box>
+
+      {/* Collapsible change log */}
+      <Box
+        onClick={() => setLogOpen(o => !o)}
+        sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", py: 0.5, userSelect: "none" }}
+      >
+        <Typography sx={{ fontSize: 12, color: "text.secondary", fontWeight: 600 }}>
+          Change Log ({logEntries.length})
+        </Typography>
+        <Typography sx={{ fontSize: 11, color: "text.disabled" }}>{logOpen ? "▲ Hide" : "▼ Show"}</Typography>
+      </Box>
+
+      {logOpen && (
+        <Box sx={{ mt: 0.5 }}>
+          {logEntries.map((entry, i) => (
+            <Box key={i} sx={{ display: "flex", alignItems: "flex-start", py: 0.6, borderBottom: "1px solid rgba(255,255,255,0.04)", gap: 1 }}>
+              <Typography sx={{ fontSize: 11, color: "text.disabled", minWidth: 80, flexShrink: 0 }}>
+                {formatMovementTime(entry.ts)}
+              </Typography>
+              <Typography sx={{ fontSize: 11, color: "text.secondary", minWidth: 44, flexShrink: 0 }}>{entry.label}</Typography>
+              <Typography sx={{ fontSize: 11, flex: 1 }}>
+                {entry.from ? <Typography component="span" sx={{ color: "text.disabled", fontSize: 11 }}>{entry.from} → </Typography> : null}
+                <Typography component="span" sx={{ fontWeight: 600, fontSize: 11 }}>{entry.to}</Typography>
+                {entry.dir && <DirArrow dir={entry.dir} color={entry.dir > 0 ? "#4caf50" : "#f44336"} />}
               </Typography>
             </Box>
           ))}
-          <Box sx={{ width: COL_W, flexShrink: 0, textAlign: "center" }}>
-            <Typography sx={{ fontSize: 10, fontWeight: 700, color: "text.secondary" }}>Now</Typography>
-          </Box>
         </Box>
-
-        {/* Data rows */}
-        {ROWS.map(({ key, label }) => (
-          <Box key={key} sx={{ display: "flex", alignItems: "center", py: 0.75, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-            <Box sx={{ width: COL_W, flexShrink: 0 }}>
-              <Typography sx={{ fontSize: 12, color: "text.secondary", fontWeight: 600 }}>{label}</Typography>
-            </Box>
-            {colKeysUniq.map(col => {
-              const val = cellMap[col][key];
-              return (
-                <Box key={col} sx={{ width: COL_W, flexShrink: 0, textAlign: "center" }}>
-                  <Typography sx={{ fontSize: 13, color: val ? "text.primary" : "text.disabled" }}>
-                    {val ?? "—"}
-                  </Typography>
-                </Box>
-              );
-            })}
-            <Box sx={{ width: COL_W, flexShrink: 0, textAlign: "center" }}>
-              <Typography sx={{ fontSize: 13, fontWeight: 700 }}>
-                {nowCol[key] ?? "—"}
-              </Typography>
-            </Box>
-          </Box>
-        ))}
-      </Box>
+      )}
     </Box>
   );
 };
