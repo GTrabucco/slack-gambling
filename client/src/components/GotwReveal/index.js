@@ -53,17 +53,17 @@ const GotwReveal = ({ games, gameStarted }) => {
 
     const favoritePickers = allPicks
         .filter(p => p.type === "gotw" && !p.text.includes("Over") && !p.text.includes("Under") && p.text.includes(favoriteText.split(" ").pop()))
-        .map(p => ({ name: displayName(p.username), result: p.result }));
+        .map(p => ({ name: displayName(p.username), result: p.result, value: p.value != null ? (parseFloat(p.value) > 0 ? `+${p.value}` : `${p.value}`) : null }));
     const underdogPickers = allPicks
         .filter(p => p.type === "gotw" && !p.text.includes("Over") && !p.text.includes("Under") && p.text.includes(underdogText.split(" ").pop()))
-        .map(p => ({ name: displayName(p.username), result: p.result }));
+        .map(p => ({ name: displayName(p.username), result: p.result, value: p.value != null ? (parseFloat(p.value) > 0 ? `+${p.value}` : `${p.value}`) : null }));
 
     const overPickers = allPicks
         .filter(p => p.type === "gotw" && p.text.includes("Over"))
-        .map(p => ({ name: displayName(p.username), result: p.result }));
+        .map(p => ({ name: displayName(p.username), result: p.result, value: p.value != null ? `o${p.value}` : null }));
     const underPickers = allPicks
         .filter(p => p.type === "gotw" && p.text.includes("Under"))
-        .map(p => ({ name: displayName(p.username), result: p.result }));
+        .map(p => ({ name: displayName(p.username), result: p.result, value: p.value != null ? `u${p.value}` : null }));
 
     const hasSpread = favoritePickers.length > 0 || underdogPickers.length > 0;
     const hasTotal = overPickers.length > 0 || underPickers.length > 0;
@@ -81,7 +81,7 @@ const GotwReveal = ({ games, gameStarted }) => {
         return { bg: "action.hover", color: "text.primary" };           // unscored
     };
 
-    const SideColumn = ({ label, sublabel, pickers }) => {
+    const SideColumn = ({ label, pickers }) => {
         const scored = pickers.filter(p => p.result !== undefined);
         const wins   = scored.filter(p => p.result === 1).length;
         const losses = scored.filter(p => p.result === -1).length;
@@ -93,19 +93,14 @@ const GotwReveal = ({ games, gameStarted }) => {
                 <Typography variant="body2" fontWeight={600} sx={{ textAlign: "center" }}>
                     {label}
                 </Typography>
-                {sublabel && (
-                    <Typography variant="caption" sx={{ color: "text.disabled", textAlign: "center" }}>
-                        {sublabel}
-                    </Typography>
-                )}
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, justifyContent: "center", mt: 0.5 }}>
                     {pickers.length > 0
-                        ? pickers.map(({ name, result }) => {
+                        ? pickers.map(({ name, result, value }) => {
                             const { bg, color } = resultColor(result);
                             return (
                                 <Chip
                                     key={name}
-                                    label={name}
+                                    label={value ? `${name} ${value}` : name}
                                     size="small"
                                     sx={{ bgcolor: bg, color, fontSize: "0.7rem" }}
                                 />
@@ -129,11 +124,11 @@ const GotwReveal = ({ games, gameStarted }) => {
         );
     };
 
-    const PickRow = ({ leftLabel, leftSub, leftPickers, rightLabel, rightSub, rightPickers }) => (
+    const PickRow = ({ leftLabel, leftPickers, rightLabel, rightPickers }) => (
         <Box sx={{ display: "flex", alignItems: "stretch" }}>
-            <SideColumn label={leftLabel} sublabel={leftSub} pickers={leftPickers} />
+            <SideColumn label={leftLabel} pickers={leftPickers} />
             <Divider orientation="vertical" flexItem />
-            <SideColumn label={rightLabel} sublabel={rightSub} pickers={rightPickers} />
+            <SideColumn label={rightLabel} pickers={rightPickers} />
         </Box>
     );
 
@@ -162,10 +157,8 @@ const GotwReveal = ({ games, gameStarted }) => {
                 {hasSpread && (
                     <PickRow
                         leftLabel={favName}
-                        leftSub={`-${spread}`}
                         leftPickers={favoritePickers}
                         rightLabel={dogName}
-                        rightSub={`+${spread}`}
                         rightPickers={underdogPickers}
                     />
                 )}
@@ -175,10 +168,8 @@ const GotwReveal = ({ games, gameStarted }) => {
                 {hasTotal && (
                     <PickRow
                         leftLabel="Over"
-                        leftSub={`${activeGame.over}`}
                         leftPickers={overPickers}
                         rightLabel="Under"
-                        rightSub={`${activeGame.over}`}
                         rightPickers={underPickers}
                     />
                 )}
