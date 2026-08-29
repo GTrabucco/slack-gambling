@@ -166,9 +166,31 @@ cron.schedule("*/15 * * * 0", async () => {
     { timezone: "America/New_York" }
 );
 
+// Shared live scoreboard cache — all clients share one ESPN fetch, refreshed every 45s
+let scoreboardCache = null;
+let scoreboardCacheAt = 0;
+const SCOREBOARD_CACHE_TTL = 45 * 1000;
+
+async function getCachedScoreboard() {
+    if (scoreboardCache && Date.now() - scoreboardCacheAt < SCOREBOARD_CACHE_TTL) {
+        return scoreboardCache;
+    }
+    scoreboardCache = await getLiveScoreboard();
+    scoreboardCacheAt = Date.now();
+    return scoreboardCache;
+}
+
+// Concurrency guard — prevent overlapping processLivePickResults runs
+let livePicksRunning = false;
+
 // Real-time pick processing: every 5 min during NFL game windows
 // Thursday night (8pm–midnight), Sunday (1pm–midnight), Monday night (8pm–midnight)
 async function processLivePickResults() {
+    if (livePicksRunning) {
+        console.log('processLivePickResults: skipping — previous run still in progress');
+        return;
+    }
+    livePicksRunning = true;
     try {
         const db = client.db(DATABASE_NAME);
         const config = await db.collection('Config').findOne({ _id: 'current' });
@@ -176,7 +198,7 @@ async function processLivePickResults() {
         const { season } = config;
         const week = parseInt(config.week) - 1;
 
-        const scoreboard = await getLiveScoreboard();
+        const scoreboard = await getCachedScoreboard();
         const completedGames = scoreboard.games?.filter(g => g.is_completed) ?? [];
         if (completedGames.length === 0) return;
 
@@ -244,6 +266,8 @@ async function processLivePickResults() {
         const msg = `processLivePickResults error: ${error.message}`;
         console.error(msg);
         await logCronRun('processLivePickResults', 'error', msg);
+    } finally {
+        livePicksRunning = false;
     }
 }
 
