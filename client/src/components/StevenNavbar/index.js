@@ -23,7 +23,8 @@ import { useAuth0 } from "@auth0/auth0-react";
 import {
     BsClockHistory, BsBug, BsCalculator, BsCardChecklist, BsList,
     BsPersonCircle, BsHouseDoor, BsTerminal, BsController, BsCardList,
-    BsPeopleFill, BsChevronDown, BsChevronRight, BsShieldLock, BsMegaphone
+    BsPeopleFill, BsChevronDown, BsChevronRight, BsShieldLock, BsMegaphone,
+    BsToggles
 } from "react-icons/bs";
 import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
 import { ImStatsDots } from "react-icons/im";
@@ -35,7 +36,7 @@ import "./style.css";
 const ADMIN_PATHS = [
     "/calculatescoring", "/viewReports", "/viewlogs",
     "/managegames", "/managepicks", "/manageaccounts", "/jobrunner", "/manageteamids", "/manageteamrecords",
-    "/broadcasttext",
+    "/broadcasttext", "/managecronjobs",
 ];
 
 const StevenNavbar = () => {
@@ -86,6 +87,7 @@ const StevenNavbar = () => {
         { path: "/manageteamrecords", label: "Team Records", icon: <BsCardList /> },
         { path: "/broadcasttext", label: "Broadcast Text", icon: <BsMegaphone /> },
         { path: "/jobrunner", label: "Job Runner", icon: <GiRunningNinja /> },
+        { path: "/managecronjobs", label: "Manage Cron Jobs", icon: <BsToggles /> },
     ];
 
     const isAdminActive = ADMIN_PATHS.includes(location.pathname);

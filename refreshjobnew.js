@@ -18,7 +18,9 @@ export default async function refreshJob() {
       return "No config found.";
     }
     const { season, weekType } = config;
-    const week = parseInt(config.week) - 1;
+    // Config.week is kept in sync with the currently loaded Games by tuesdayjobnew.js
+    // (which saves config.week to match whatever week it just loaded games for).
+    const week = parseInt(config.week);
 
     const freshGames = await getGames(season, weekType, week);
     if (freshGames.length === 0) {

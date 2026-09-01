@@ -35,6 +35,14 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
       ({ season, week, weekType } = config);
     }
 
+    // If no games are currently loaded, this run is seeding the very first week of a
+    // season/restart rather than closing out a week that was actually played. In that
+    // case the games we're about to load below ARE week `week` itself — there's no
+    // prior week to advance past — so Config.week must end up saved as `week`, not
+    // `week + 1`, or it permanently drifts one week ahead of the games that get loaded.
+    const existingGamesCount = await gamesCollection.estimatedDocumentCount();
+    const isSeeding = existingGamesCount === 0;
+
     let picks = [];
     await session.withTransaction(async () => {
       // Add week fields to all picks
@@ -117,22 +125,28 @@ export default async function tuesdayJob(seasonParam, weekParam, weekTypeParam) 
         await gamesCollection.deleteMany({}, { session });
       }
 
-      // Load new games from ESPN API for the upcoming week
-      let newGames = await getGames(season, weekType, week);
-      newGames = newGames.map(game => ({ ...game, season, week }));
+      // Load new games from ESPN API. When seeding (no games were previously loaded)
+      // we load `week` itself; otherwise we advance to the week after the one we just
+      // processed above.
+      const loadWeek = isSeeding ? parseInt(week) : parseInt(week) + 1;
+      let newGames = await getGames(season, weekType, loadWeek);
+      newGames = newGames.map(game => ({ ...game, season, week: loadWeek }));
       if (newGames.length > 0) {
         await gamesCollection.insertMany(newGames, { session });
       }
 
-      // Increment week and persist to Config
-      week = parseInt(week) + 1;
+      // Persist Config so it always matches the week actually just loaded above.
+      const previousWeek = week;
+      week = loadWeek;
       await configCollection.updateOne(
         { _id: 'current' },
         { $set: { season, week, weekType } },
         { session, upsert: true }
       );
 
-      console.log(`Tuesday job completed for season ${season}, week ${week - 1} → now week ${week}`);
+      console.log(isSeeding
+        ? `Tuesday job seeded season ${season}, week ${week}`
+        : `Tuesday job completed for season ${season}, week ${previousWeek} → now week ${week}`);
     });
 
     await fetchAndStoreRecords(client.db('SlackGambling'));

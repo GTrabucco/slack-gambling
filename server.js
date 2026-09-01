@@ -115,7 +115,32 @@ createIndexes();
 const submitLimiter = RateLimit({ windowMs: 15 * 60 * 1000, max: 60 });
 const adminLimiter = RateLimit({ windowMs: 15 * 60 * 1000, max: 20 });
 
+// Toggleable cron jobs — admins can enable/disable these from the UI without redeploying.
+// Each entry's `enabled` flag is looked up in the Cron_Settings collection before the job runs.
+const CRON_JOB_DEFINITIONS = [
+    { jobKey: 'sundayReminder', label: 'Sunday Reminder', schedule: 'Sundays 9:00am ET' },
+    { jobKey: 'tuesdayJob', label: 'Tuesday Job', schedule: 'Tuesdays 6:00am ET' },
+    { jobKey: 'refreshJobWeekday', label: 'Refresh Job (Mon-Sat)', schedule: 'Every 30 min, Mon-Sat' },
+    { jobKey: 'refreshJobSunday', label: 'Refresh Job (Sunday)', schedule: 'Every 15 min, Sunday' },
+];
+
+async function isCronJobEnabled(jobKey) {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const setting = await db.collection('Cron_Settings').findOne({ jobKey });
+        // Default to enabled if no setting has been saved yet.
+        return setting ? setting.enabled !== false : true;
+    } catch (e) {
+        console.error(`Failed to check cron job enabled state for "${jobKey}":`, e);
+        return true;
+    }
+}
+
 cron.schedule("0 9 * * 0", async () => {
+    if (!(await isCronJobEnabled('sundayReminder'))) {
+        console.log("Sunday Reminder is disabled, skipping.");
+        return;
+    }
     try {
         const result = await sundayReminder();
     } catch (error) {
@@ -130,6 +155,10 @@ cron.schedule("0 9 * * 0", async () => {
 
 // Tuesday 6am ET: process last week's picks and load full week of games
 cron.schedule("0 6 * * 2", async () => {
+    if (!(await isCronJobEnabled('tuesdayJob'))) {
+        console.log("Tuesday Job is disabled, skipping.");
+        return;
+    }
     console.log("Running automatic Tuesday job...");
     try {
         await tuesdayJob();
@@ -144,6 +173,10 @@ cron.schedule("0 6 * * 2", async () => {
 
 // Refresh lines: Mon–Sat every 30 minutes ET
 cron.schedule("*/30 * * * 1-6", async () => {
+    if (!(await isCronJobEnabled('refreshJobWeekday'))) {
+        console.log("Refresh Job (Mon-Sat) is disabled, skipping.");
+        return;
+    }
     try {
         await refreshJob();
     } catch (error) {
@@ -156,6 +189,10 @@ cron.schedule("*/30 * * * 1-6", async () => {
 
 // Refresh lines: Sunday every 15 minutes ET
 cron.schedule("*/15 * * * 0", async () => {
+    if (!(await isCronJobEnabled('refreshJobSunday'))) {
+        console.log("Refresh Job (Sunday) is disabled, skipping.");
+        return;
+    }
     try {
         await refreshJob();
     } catch (error) {
@@ -196,7 +233,8 @@ async function processLivePickResults() {
         const config = await db.collection('Config').findOne({ _id: 'current' });
         if (!config) return;
         const { season } = config;
-        const week = parseInt(config.week) - 1;
+        // Config.week is kept in sync with the currently loaded Games by tuesdayjobnew.js.
+        const week = parseInt(config.week);
 
         const scoreboard = await getCachedScoreboard();
         const completedGames = scoreboard.games?.filter(g => g.is_completed) ?? [];
@@ -615,6 +653,41 @@ app.get('/api/cron-logs/unread-errors/count', async (req, res) => {
         res.json({ count });
     } catch (error) {
         res.status(500).json({ error: 'Error fetching unread error count' });
+    }
+});
+
+// Returns the toggle state for every schedulable cron job, defaulting unsaved jobs to enabled.
+app.get('/api/cron-jobs', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const settings = await db.collection('Cron_Settings').find({}).toArray();
+        const settingsByKey = Object.fromEntries(settings.map((s) => [s.jobKey, s]));
+        const jobs = CRON_JOB_DEFINITIONS.map((def) => ({
+            ...def,
+            enabled: settingsByKey[def.jobKey] ? settingsByKey[def.jobKey].enabled !== false : true,
+        }));
+        res.json(jobs);
+    } catch (error) {
+        res.status(500).json({ error: 'Error fetching cron job settings' });
+    }
+});
+
+app.put('/api/cron-jobs/:jobKey', adminLimiter, async (req, res) => {
+    try {
+        const { jobKey } = req.params;
+        const { enabled } = req.body;
+        if (!CRON_JOB_DEFINITIONS.some((def) => def.jobKey === jobKey)) {
+            return res.status(404).json({ error: 'Unknown cron job' });
+        }
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Cron_Settings').updateOne(
+            { jobKey },
+            { $set: { jobKey, enabled: !!enabled, updatedAt: new Date() } },
+            { upsert: true }
+        );
+        res.json({ jobKey, enabled: !!enabled });
+    } catch (error) {
+        res.status(500).json({ error: 'Error updating cron job setting' });
     }
 });
 

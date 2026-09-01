@@ -21,6 +21,7 @@ import PageLoader from "./components/PageLoader";
 import { AuthenticationGuard } from "./components/authentication-guard";
 import WeekPicks from "./components/WeekPicks";
 import JobRunner from "./components/Admin/JobRunner";
+import ManageCronJobs from "./components/Admin/ManageCronJobs";
 import AdvancedStats from "./components/AdvancedStats";
 import Statistics from "./components/AdvancedStats/Statistics";
 import TeamsBet from "./components/AdvancedStats/TeamsBet";
@@ -80,6 +81,7 @@ function App() {
           <Route path="/manageteamrecords" element={<AuthenticationGuard component={ManageTeamRecords} /> } />
           <Route path="/broadcasttext" element={<AuthenticationGuard component={BroadcastText} /> } />
           <Route path="/jobrunner" element={<AuthenticationGuard component={JobRunner} /> } />
+          <Route path="/managecronjobs" element={<AuthenticationGuard component={ManageCronJobs} /> } />
         </Route>
 
         <Route path="*" element={<Navigate to="/" />} />
