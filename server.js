@@ -16,6 +16,17 @@ import RateLimit from 'express-rate-limit';
 
 dotenv.config();
 
+// Safety net: without these, any single unhandled error (e.g. a rejected
+// promise from one request) crashes the entire Node process — taking the
+// site down for every concurrent user, not just the one who hit it. Log
+// and keep the server alive instead of exiting.
+process.on('uncaughtException', (error) => {
+    console.error('Uncaught exception:', error);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled promise rejection:', reason);
+});
+
 const app = express();
 
 const __filename = fileURLToPath(import.meta.url);
