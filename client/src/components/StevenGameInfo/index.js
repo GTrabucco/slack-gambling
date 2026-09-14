@@ -259,7 +259,7 @@ const DirArrow = ({ dir, color }) => {
   );
 };
 
-const LineFeed = ({ movements, loading, homeSpread, awaySpread, over }) => {
+const LineFeed = ({ movements, loading, homeSpread, awaySpread, over, homeTeam, awayTeam }) => {
   const [logOpen, setLogOpen] = useState(false);
 
   if (loading) return <PageLoader />;
@@ -271,17 +271,15 @@ const LineFeed = ({ movements, loading, homeSpread, awaySpread, over }) => {
 
   const sorted = [...movements].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-  // Opening lines from first movement's `from` values
+  // Opening lines from first movement's `from` values (tracked per team, not per favorite/dog,
+  // since the favorite can flip teams over time)
   const openingCol = {};
   for (const mov of sorted) {
-    if (mov.type === "spread" && openingCol.favSpread === undefined) {
+    if (mov.type === "spread" && openingCol.homeSpread === undefined) {
       const homeN = parseFloat(mov.from?.home);
       const awayN = parseFloat(mov.from?.away);
-      if (!isNaN(homeN) && !isNaN(awayN)) {
-        const favIsHomeOpen = homeN < awayN;
-        openingCol.favSpread = formatSpread(favIsHomeOpen ? homeN : awayN);
-        openingCol.dogSpread = formatSpread(favIsHomeOpen ? awayN : homeN);
-      }
+      if (!isNaN(homeN)) openingCol.homeSpread = formatSpread(homeN);
+      if (!isNaN(awayN)) openingCol.awaySpread = formatSpread(awayN);
     }
     if (mov.type === "total" && openingCol.over === undefined) {
       openingCol.over = mov.from != null ? String(mov.from) : null;
@@ -291,17 +289,16 @@ const LineFeed = ({ movements, loading, homeSpread, awaySpread, over }) => {
   // Current values
   const homeN = parseFloat(homeSpread);
   const awayN = parseFloat(awaySpread);
-  const favIsHome = homeN < awayN;
   const nowCol = {
-    favSpread: !isNaN(homeN) && !isNaN(awayN) ? formatSpread(favIsHome ? homeN : awayN) : null,
-    dogSpread: !isNaN(homeN) && !isNaN(awayN) ? formatSpread(favIsHome ? awayN : homeN) : null,
+    homeSpread: !isNaN(homeN) ? formatSpread(homeN) : null,
+    awaySpread: !isNaN(awayN) ? formatSpread(awayN) : null,
     over: over != null ? String(over) : null,
   };
 
   const ROWS = [
-    { key: "favSpread", label: "Fav Spread" },
-    { key: "dogSpread", label: "Dog Spread" },
-    { key: "over",      label: "Over/Under" },
+    { key: "homeSpread", label: homeTeam ? `${homeTeam} Spread` : "Home Spread" },
+    { key: "awaySpread", label: awayTeam ? `${awayTeam} Spread` : "Away Spread" },
+    { key: "over",       label: "Over/Under" },
   ];
 
   // Build change log entries
@@ -309,15 +306,21 @@ const LineFeed = ({ movements, loading, homeSpread, awaySpread, over }) => {
     if (mov.type === "spread") {
       const toHomeN = parseFloat(mov.to?.home);
       const toAwayN = parseFloat(mov.to?.away);
-      const favIsHomeTo = toHomeN < toAwayN;
-      const favTo = formatSpread(favIsHomeTo ? toHomeN : toAwayN);
-      const dogTo = formatSpread(favIsHomeTo ? toAwayN : toHomeN);
+      const homeTo = formatSpread(toHomeN);
+      const awayTo = formatSpread(toAwayN);
       const fromHomeN = parseFloat(mov.from?.home);
       const fromAwayN = parseFloat(mov.from?.away);
-      const favIsHomeFrom = fromHomeN < fromAwayN;
-      const favFrom = !isNaN(fromHomeN) ? formatSpread(favIsHomeFrom ? fromHomeN : fromAwayN) : null;
-      const dogFrom = !isNaN(fromHomeN) ? formatSpread(favIsHomeFrom ? fromAwayN : fromHomeN) : null;
-      return { ts: mov.timestamp, label: "Spread", from: favFrom ? `Fav ${favFrom} / Dog ${dogFrom}` : null, to: `Fav ${favTo} / Dog ${dogTo}`, dir: movDir(favFrom, favTo) };
+      const homeFrom = !isNaN(fromHomeN) ? formatSpread(fromHomeN) : null;
+      const awayFrom = !isNaN(fromAwayN) ? formatSpread(fromAwayN) : null;
+      const homeLabel = homeTeam || "Home";
+      const awayLabel = awayTeam || "Away";
+      return {
+        ts: mov.timestamp,
+        label: "Spread",
+        from: (homeFrom || awayFrom) ? `${awayLabel} ${awayFrom} / ${homeLabel} ${homeFrom}` : null,
+        to: `${awayLabel} ${awayTo} / ${homeLabel} ${homeTo}`,
+        dir: movDir(homeFrom, homeTo),
+      };
     } else {
       return { ts: mov.timestamp, label: "Total", from: mov.from != null ? String(mov.from) : null, to: String(mov.to), dir: movDir(mov.from, mov.to) };
     }
@@ -340,7 +343,7 @@ const LineFeed = ({ movements, loading, homeSpread, awaySpread, over }) => {
           const open = openingCol[key];
           const now = nowCol[key];
           const dir = movDir(open, now);
-          const arrowColor = key === "favSpread" ? (dir < 0 ? "#4caf50" : "#f44336") : (dir > 0 ? "#4caf50" : "#f44336");
+          const arrowColor = (key === "homeSpread" || key === "awaySpread") ? (dir < 0 ? "#4caf50" : "#f44336") : (dir > 0 ? "#4caf50" : "#f44336");
           return (
             <Box key={key} sx={{ display: "flex", alignItems: "center", py: 0.75, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
               <Box sx={{ flex: 1 }}>
@@ -708,7 +711,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
           )
         )}
         {tab === 2 && (
-          <LineFeed movements={lineMovements} loading={lineMovementsLoading} homeSpread={homeSpread} awaySpread={awaySpread} over={over} />
+          <LineFeed movements={lineMovements} loading={lineMovementsLoading} homeSpread={homeSpread} awaySpread={awaySpread} over={over} homeTeam={homeTeam} awayTeam={awayTeam} />
         )}
         {tab === 3 && (
           <>
