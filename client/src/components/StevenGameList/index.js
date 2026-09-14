@@ -280,7 +280,9 @@ const StevenGameList = ({ tempPicks,
                         <Typography color="text.secondary">No picks selected.</Typography>
                     ) : (
                         <List disablePadding>
-                            {["favorite", "dog", "over", "under", "gotw"].map((type) => {
+                            {["favorite", "dog", "over", "under", "gotw"]
+                                .filter((type) => tempPicks.some(p => p.type === type))
+                                .map((type) => {
                                 const pick = tempPicks.find(p => p.type === type);
                                 const isTotal = type === "over" || type === "under" ||
                                     (type === "gotw" && pick?.text?.includes("Over") || type === "gotw" && pick?.text?.includes("Under"));
