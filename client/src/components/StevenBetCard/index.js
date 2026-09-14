@@ -73,7 +73,7 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
                                 : { bg: "transparent", text: "inherit" };
 
                             return (
-                                <StevenTableRow key={type} sx={{ "& td": { color: rowColor.text, fontWeight: pick ? "bold" : "normal" }, bgcolor: rowColor.bg }}>
+                                <StevenTableRow key={type} sx={{ "&.MuiTableRow-root": { backgroundColor: `${rowColor.bg} !important` }, "& td": { color: rowColor.text, fontWeight: pick ? "bold" : "normal" } }}>
                                     <StevenTableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", width: "30%" }}>
                                         <b>{type === 'gotw' ? 'Game of the Week' : type.charAt(0).toUpperCase() + type.slice(1)}</b>
                                     </StevenTableCell>
