@@ -8,7 +8,7 @@ import cron from 'node-cron';
 import tuesdayJob, { fetchAndStoreTeamIds, fetchAndStoreRecords } from './tuesdayjobnew.js';
 import sundayReminder from './sundayremindernew.js';
 import refreshJob from './refreshjobnew.js';
-import { getLiveScoreboard } from './espnapi.js';
+import { getLiveScoreboard, getWeeklyResults } from './espnapi.js';
 import { calculatePickResult } from './processpicksnew.js';
 import { logCronRun } from './cronLogger.js';
 import twilio from 'twilio';
@@ -226,6 +226,22 @@ async function getCachedScoreboard() {
     scoreboardCache = await getLiveScoreboard();
     scoreboardCacheAt = Date.now();
     return scoreboardCache;
+}
+
+// Final scores aren't persisted anywhere once picks are graded, so reports that need
+// historical final scores (e.g. the worst-beats report) re-fetch them from ESPN on
+// demand. Results for a completed week never change, so cache them for process lifetime.
+const weeklyResultsCache = new Map();
+
+async function getCachedWeeklyResults(season, weekType, week) {
+    const key = `${season}|${weekType}|${week}`;
+    if (weeklyResultsCache.has(key)) return weeklyResultsCache.get(key);
+    const results = await getWeeklyResults(season, weekType, week);
+    // Only cache if every game in the week is completed — otherwise scores could still change.
+    if (results.length > 0 && results.every(r => r.completed)) {
+        weeklyResultsCache.set(key, results);
+    }
+    return results;
 }
 
 // Concurrency guard — prevent overlapping processLivePickResults runs
@@ -1699,6 +1715,144 @@ app.get('/api/sharp-report', async (req, res) => {
     } catch (error) {
         console.error('Error fetching sharp report:', error);
         res.status(500).json({ error: 'Error fetching sharp report' });
+    }
+});
+
+// Groups graded picks by (season, week, game, side) — e.g. "Chiefs -3.5" or "Over 44.5" —
+// and reports how many points the bet missed/covered by (using the real final score) plus
+// how many bettors won vs. lost that exact bet. Used to surface "worst beats": bets that
+// came down to a hair (small pointsOff) that also burned a lot of people (very negative netBettors).
+app.get('/api/worst-beats-report', async (req, res) => {
+    try {
+        const { season } = req.query;
+        const db = client.db(DATABASE_NAME);
+
+        const pickFilter = { result: { $exists: true }, gameId: { $ne: null } };
+        if (season) pickFilter.season = { $in: [season, parseInt(season)] };
+
+        const [picks, users] = await Promise.all([
+            db.collection('Picks_History').find(pickFilter).toArray(),
+            db.collection('User_Details').find({}).project({ username: 1, displayName: 1 }).toArray(),
+        ]);
+
+        const userMap = {};
+        for (const u of users) userMap[u.username] = u.displayName || u.username.split('@')[0];
+
+        // Final scores are never persisted once picks are graded, so re-fetch them from ESPN
+        // per distinct (season, week). Assumes regular season (weekType 2) for all logged picks.
+        const weekKeys = [...new Set(picks.map(p => `${p.season}|${p.week}`))];
+        const scoresByWeek = {};
+        await Promise.all(weekKeys.map(async (key) => {
+            const [seasonKey, weekKey] = key.split('|');
+            const results = await getCachedWeeklyResults(seasonKey, 2, weekKey);
+            const map = {};
+            for (const r of results) {
+                if (!r.completed) continue;
+                map[String(r.gameId)] = r;
+            }
+            scoresByWeek[key] = map;
+        }));
+
+        const groups = {};
+
+        for (const pick of picks) {
+            const weekKey = `${pick.season}|${pick.week}`;
+            const game = scoresByWeek[weekKey]?.[String(pick.gameId)];
+            if (!game) continue;
+
+
+            const homeScore = parseFloat(game.homeScore);
+            const awayScore = parseFloat(game.awayScore);
+            const value = parseFloat(pick.value);
+            if ([homeScore, awayScore, value].some(Number.isNaN)) continue;
+
+            const pickedTeam = (pick.text || '').trim().split(' ').slice(0, -1).join(' ');
+            let side, betCategory, margin;
+
+            if (pick.type === 'favorite' || pick.type === 'dog' || pick.type === 'gotw') {
+                const isTotal = pick.type === 'gotw' && (pick.text.includes('Over') || pick.text.includes('Under'));
+                if (isTotal) {
+                    const isOver = pick.text.includes('Over');
+                    side = isOver ? 'over' : 'under';
+                    betCategory = 'total';
+                    margin = isOver ? (homeScore + awayScore - value) : (value - (homeScore + awayScore));
+                } else {
+                    if (pickedTeam !== pick.homeTeam && pickedTeam !== pick.awayTeam) continue;
+                    side = pickedTeam;
+                    betCategory = 'spread';
+                    margin = side === pick.homeTeam
+                        ? homeScore + value - awayScore
+                        : awayScore + value - homeScore;
+                }
+            } else if (pick.type === 'over') {
+                side = 'over';
+                betCategory = 'total';
+                margin = homeScore + awayScore - value;
+            } else if (pick.type === 'under') {
+                side = 'under';
+                betCategory = 'total';
+                margin = value - (homeScore + awayScore);
+            } else {
+                continue;
+            }
+
+            const key = `${pick.season}|${pick.week}|${pick.gameId}|${betCategory}|${side}`;
+            if (!groups[key]) {
+                groups[key] = {
+                    season: pick.season,
+                    week: pick.week,
+                    gameId: pick.gameId,
+                    betCategory,
+                    side,
+                    homeTeam: pick.homeTeam,
+                    awayTeam: pick.awayTeam,
+                    margins: [],
+                    wins: 0,
+                    losses: 0,
+                    pushes: 0,
+                    bettors: [],
+                };
+            }
+
+            const g = groups[key];
+            g.margins.push(margin);
+            const result = Number(pick.result);
+            if (result === 1) g.wins += 1;
+            else if (result === -1) g.losses += 1;
+            else g.pushes += 1;
+            g.bettors.push({ displayName: userMap[pick.username] ?? pick.username.split('@')[0], result });
+        }
+
+        const rows = Object.values(groups).map((g) => {
+            const avgMargin = g.margins.reduce((a, b) => a + b, 0) / g.margins.length;
+            const label = g.betCategory === 'total'
+                ? `${g.side === 'over' ? 'Over' : 'Under'} — ${g.awayTeam} @ ${g.homeTeam}`
+                : g.side;
+
+            return {
+                season: g.season,
+                week: g.week,
+                gameId: g.gameId,
+                betCategory: g.betCategory,
+                label,
+                homeTeam: g.homeTeam,
+                awayTeam: g.awayTeam,
+                pointsOff: parseFloat(Math.abs(avgMargin).toFixed(2)),
+                margin: parseFloat(avgMargin.toFixed(2)),
+                wins: g.wins,
+                losses: g.losses,
+                pushes: g.pushes,
+                netBettors: g.wins - g.losses,
+                totalBettors: g.wins + g.losses + g.pushes,
+                bettors: g.bettors,
+            };
+        });
+
+        rows.sort((a, b) => a.pointsOff - b.pointsOff);
+        res.json(rows);
+    } catch (error) {
+        console.error('Error fetching worst beats report:', error);
+        res.status(500).json({ error: 'Error fetching worst beats report' });
     }
 });
 

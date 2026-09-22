@@ -7,6 +7,12 @@ const pickService = {
         return apiClient.get('/api/sharp-report', { params });
     },
 
+    getWorstBeatsReport: async (season) => {
+        const params = {};
+        if (season && season !== 'All') params.season = season;
+        return apiClient.get('/api/worst-beats-report', { params });
+    },
+
     getPickHistory: async (username, season) => {
         const params = {};
 

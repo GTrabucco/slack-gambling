@@ -14,6 +14,7 @@ const AdvancedStats = () => {
         { id: 7, title: 'By Spread Range', description: 'Record split by spread buckets.', link: "/byspreadrange" },
         { id: 8, title: 'Totals Bands', description: 'Over/under results by total ranges.', link: "/totalsbands" },
         { id: 9, title: 'Prime Time vs Day', description: 'Compare prime-time picks to daytime games.', link: "/primetimevsday" },
+        { id: 10, title: 'Worst Beats', description: 'Scatter of every bet by points off vs. bettors swung, to find the worst beats each week.', link: "/worstbeats" },
     ];
 
     const TeamCard = styled(Card)(({ theme }) => ({

@@ -32,6 +32,7 @@ import BySpreadRange from "./components/AdvancedStats/BySpreadRange";
 import TotalsBands from "./components/AdvancedStats/TotalsBands";
 import PrimeTimeVsDay from "./components/AdvancedStats/PrimeTimeVsDay";
 import SharpReport from "./components/AdvancedStats/SharpReport";
+import WorstBeats from "./components/AdvancedStats/WorstBeats";
 if (process.env.NODE_ENV === 'production') disableReactDevTools();
 
 function App() {
@@ -69,6 +70,7 @@ function App() {
         <Route path="/totalsbands" element={<AuthenticationGuard component={TotalsBands} /> } />
         <Route path="/primetimevsday" element={<AuthenticationGuard component={PrimeTimeVsDay} /> } />
         <Route path="/sharpreport" element={<AuthenticationGuard component={SharpReport} /> } />
+        <Route path="/worstbeats" element={<AuthenticationGuard component={WorstBeats} /> } />
 
         <Route element={<AdminRoute />}>
           <Route path="/calculatescoring" element={<AuthenticationGuard component={CalculateScoring} /> } />
