@@ -233,6 +233,14 @@ async function getCachedScoreboard() {
 // demand. Results for a completed week never change, so cache them for process lifetime.
 const weeklyResultsCache = new Map();
 
+// The worst-beats report recomputes over every graded pick on each request, which is
+// expensive and rarely changes (only when Picks_History is written to). Cache the
+// computed response per season and invalidate whenever a pick is graded/edited/deleted.
+const worstBeatsReportCache = new Map();
+function invalidateWorstBeatsCache() {
+    worstBeatsReportCache.clear();
+}
+
 async function getCachedWeeklyResults(season, weekType, week) {
     const key = `${season}|${weekType}|${week}`;
     if (weeklyResultsCache.has(key)) return weeklyResultsCache.get(key);
@@ -326,6 +334,7 @@ async function processLivePickResults() {
             const summary = `Scored ${scored}/${unscoredPicks.length} pick(s) for ${game.away_team} @ ${game.home_team}${failed > 0 ? ` (${failed} failed)` : ''}`;
             console.log(summary);
             await logCronRun('processLivePickResults', failed > 0 ? 'partial' : 'success', summary);
+            if (scored > 0) invalidateWorstBeatsCache();
         }
     } catch (error) {
         const msg = `processLivePickResults error: ${error.message}`;
@@ -832,6 +841,7 @@ app.post('/api/update-pick-history', async (req, res) => {
         if (season !== undefined) update.season = season;
         if (Object.keys(update).length === 0) return res.status(400).json({ error: 'No fields to update' });
         await db.collection('Picks_History').updateOne({ _id: new ObjectId(id) }, { $set: update });
+        invalidateWorstBeatsCache();
         res.json({ success: true });
     } catch (error) {
         console.log(error)
@@ -856,6 +866,7 @@ app.delete('/api/picks-history/:id', adminLimiter, async (req, res) => {
         const { id } = req.params;
         const db = client.db(DATABASE_NAME);
         await db.collection('Picks_History').deleteOne({ _id: new ObjectId(id) });
+        invalidateWorstBeatsCache();
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting pick history:', error);
@@ -872,6 +883,7 @@ app.delete('/api/picks-history', adminLimiter, async (req, res) => {
         const db = client.db(DATABASE_NAME);
         const objectIds = ids.map(id => new ObjectId(id));
         const result = await db.collection('Picks_History').deleteMany({ _id: { $in: objectIds } });
+        invalidateWorstBeatsCache();
         res.json({ success: true, deletedCount: result.deletedCount });
     } catch (error) {
         console.error('Error bulk deleting pick history:', error);
@@ -900,6 +912,7 @@ app.post('/api/admin/picks-history', adminLimiter, async (req, res) => {
             createdAt: new Date(),
         };
         const inserted = await db.collection('Picks_History').insertOne(doc);
+        invalidateWorstBeatsCache();
         res.json({ success: true, id: inserted.insertedId });
     } catch (error) {
         console.error('Error creating picks history:', error);
@@ -1725,6 +1738,11 @@ app.get('/api/sharp-report', async (req, res) => {
 app.get('/api/worst-beats-report', async (req, res) => {
     try {
         const { season } = req.query;
+        const cacheKey = season || 'All';
+        if (worstBeatsReportCache.has(cacheKey)) {
+            return res.json(worstBeatsReportCache.get(cacheKey));
+        }
+
         const db = client.db(DATABASE_NAME);
 
         const pickFilter = { result: { $exists: true }, gameId: { $ne: null } };
@@ -1849,6 +1867,7 @@ app.get('/api/worst-beats-report', async (req, res) => {
         });
 
         rows.sort((a, b) => a.pointsOff - b.pointsOff);
+        worstBeatsReportCache.set(cacheKey, rows);
         res.json(rows);
     } catch (error) {
         console.error('Error fetching worst beats report:', error);

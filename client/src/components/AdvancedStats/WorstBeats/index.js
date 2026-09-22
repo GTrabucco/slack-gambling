@@ -5,6 +5,8 @@ import {
   FormLabel,
   Switch,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   ScatterChart,
@@ -54,12 +56,18 @@ const CustomTooltip = ({ active, payload, lossesOnly }) => {
   );
 };
 
+// Module-level cache keyed by season — persists for the tab's lifetime so switching
+// seasons or navigating away and back doesn't refetch/recompute data already seen.
+const worstBeatsCache = new Map();
+
 const WorstBeats = () => {
   const [rows, setRows] = useState([]);
   const [seasonOptions, setSeasonOptions] = useState(["All"]);
   const [selectedSeason, setSelectedSeason] = useState("All");
   const [lossesOnly, setLossesOnly] = useState(false);
   const [loading, setLoading] = useState(false);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     fetchData();
@@ -67,12 +75,24 @@ const WorstBeats = () => {
   }, [selectedSeason]);
 
   const fetchData = async () => {
+    const cacheKey = selectedSeason;
+    if (worstBeatsCache.has(cacheKey)) {
+      const data = worstBeatsCache.get(cacheKey);
+      setRows(data);
+      if (selectedSeason === "All") {
+        const seasons = [...new Set(data.map((d) => String(d.season)).filter(Boolean))].sort((a, b) => b - a);
+        setSeasonOptions(["All", ...seasons]);
+      }
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await pickService.getWorstBeatsReport(
         selectedSeason === "All" ? undefined : selectedSeason
       );
       const data = response.data || [];
+      worstBeatsCache.set(cacheKey, data);
       setRows(data);
       if (selectedSeason === "All") {
         const seasons = [...new Set(data.map((d) => String(d.season)).filter(Boolean))].sort((a, b) => b - a);
@@ -111,8 +131,8 @@ const WorstBeats = () => {
         Worst Beats
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ px: 2, pb: 1, textAlign: "center" }}>
-        Every graded bet, plotted by how many points it missed/covered by (closer to 0 = further right)
-        against how many bettors it swung. The worst beats sit far right and deep red.
+        Every graded bet, plotted by how many points it missed/covered by (closer to 0 = further left)
+        against how many bettors it swung. The worst beats sit far left and deep red.
       </Typography>
 
       <Box sx={{ px: 2, pb: 2, display: "flex", gap: 3, flexWrap: "wrap", alignItems: "center" }}>
@@ -130,7 +150,15 @@ const WorstBeats = () => {
         />
       </Box>
 
-      <Box sx={{ px: 2, pb: 2, height: 500 }}>
+      <Box
+        sx={{
+          px: { xs: 0.5, sm: 2 },
+          pb: 2,
+          overflowX: isMobile ? "auto" : "visible",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <Box sx={{ width: isMobile ? 700 : "100%", height: isMobile ? 380 : 500 }}>
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -138,13 +166,16 @@ const WorstBeats = () => {
               type="number"
               dataKey="x"
               name="Points off"
-              reversed
               label={{ value: "Points off (closer to 0 = closer bet)", position: "insideBottom", offset: -10 }}
             />
             <YAxis
               type="number"
               dataKey="y"
               name={lossesOnly ? "Bettors who lost" : "Net bettors (won - lost)"}
+              domain={[
+                (dataMin) => dataMin - Math.max(1, Math.ceil(Math.abs(dataMin) * 0.1)),
+                (dataMax) => dataMax + Math.max(1, Math.ceil(dataMax * 0.1)),
+              ]}
               label={{
                 value: lossesOnly ? "Bettors who lost" : "Net bettors (won - lost)",
                 angle: -90,
@@ -164,11 +195,12 @@ const WorstBeats = () => {
               fill="#8884d8"
               shape={(props) => {
                 const { cx, cy, payload } = props;
+                const baseRadius = lossesOnly ? 8 : Math.max(6, Math.min(14, 4 + payload.totalBettors));
                 return (
                   <circle
                     cx={cx}
                     cy={cy}
-                    r={lossesOnly ? 8 : Math.max(6, Math.min(14, 4 + payload.totalBettors))}
+                    r={baseRadius}
                     fill={lossesOnly ? "#b91c1c" : dotColor(payload.netBettors)}
                     fillOpacity={0.75}
                     stroke="#333"
@@ -179,7 +211,14 @@ const WorstBeats = () => {
             />
           </ScatterChart>
         </ResponsiveContainer>
+        </Box>
       </Box>
+
+      {isMobile && rows.length > 0 && (
+        <Typography variant="caption" color="text.secondary" sx={{ display: "block", px: 2, pb: 1, textAlign: "center" }}>
+          Scroll the chart horizontally to see the full range →
+        </Typography>
+      )}
 
       {!loading && rows.length === 0 && (
         <Typography sx={{ px: 2, pb: 2, textAlign: "center", color: "text.secondary" }}>
