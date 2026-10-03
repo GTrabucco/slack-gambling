@@ -11,6 +11,7 @@ import Switch from "@mui/material/Switch";
 import Chip from "@mui/material/Chip";
 import { BsPencil, BsTrash, BsCheck, BsX } from "react-icons/bs";
 import StevenButton from "../../Common/StevenButton";
+import DonorBadge from "../../Common/DonorBadge";
 import userService from "../../../services/userService";
 import {
     StevenTableContainer,
@@ -21,7 +22,7 @@ import {
     StevenTableCell
 } from "../../Common/StevenTable";
 
-const EMPTY_FORM = { username: "", displayName: "", phoneNumber: "", receiveSundayReminder: false, hasPaid: false };
+const EMPTY_FORM = { username: "", displayName: "", phoneNumber: "", receiveSundayReminder: false, hasPaid: false, donationAmount: "" };
 
 const ManageAccounts = () => {
     const [users, setUsers] = useState([]);
@@ -50,6 +51,7 @@ const ManageAccounts = () => {
             phoneNumber: user.phoneNumber || "",
             receiveSundayReminder: !!user.receiveSundayReminder,
             hasPaid: !!user.hasPaid,
+            donationAmount: user.donationAmount != null ? String(user.donationAmount) : "",
         });
     };
 
@@ -66,6 +68,7 @@ const ManageAccounts = () => {
                 phoneNumber: editForm.phoneNumber,
                 receiveSundayReminder: editForm.receiveSundayReminder,
                 hasPaid: editForm.hasPaid,
+                donationAmount: Number(editForm.donationAmount) || 0,
             });
             setSuccess(`${editForm.displayName || editForm.username} updated.`);
             setEditingUsername(null);
@@ -96,6 +99,7 @@ const ManageAccounts = () => {
                 phoneNumber: newForm.phoneNumber,
                 receiveSundayReminder: newForm.receiveSundayReminder,
                 hasPaid: newForm.hasPaid,
+                donationAmount: Number(newForm.donationAmount) || 0,
             });
             setSuccess(`Account created for ${newForm.displayName || newForm.username}.`);
             setNewForm(EMPTY_FORM);
@@ -138,6 +142,16 @@ const ManageAccounts = () => {
                             <Typography variant="body2">Has Paid</Typography>
                         </Box>
                     </Grid>
+                    <Grid item xs={6} md={2}>
+                        <TextField
+                            label="Donation Amount ($)"
+                            type="number"
+                            value={newForm.donationAmount}
+                            onChange={e => setNewForm(p => ({ ...p, donationAmount: e.target.value }))}
+                            fullWidth
+                            size="small"
+                        />
+                    </Grid>
                 </Grid>
                 <Box sx={{ mt: 2 }}>
                     <StevenButton onClick={handleCreateUser}>Create Account</StevenButton>
@@ -157,6 +171,7 @@ const ManageAccounts = () => {
                             <StevenTableCell>Phone</StevenTableCell>
                             <StevenTableCell>Sunday Reminder</StevenTableCell>
                             <StevenTableCell>Paid</StevenTableCell>
+                            <StevenTableCell>Donation</StevenTableCell>
                             <StevenTableCell>Actions</StevenTableCell>
                         </StevenTableRow>
                     </StevenTableHead>
@@ -180,6 +195,15 @@ const ManageAccounts = () => {
                                             <Switch checked={editForm.hasPaid} onChange={e => setEditForm(p => ({ ...p, hasPaid: e.target.checked }))} size="small" />
                                         </StevenTableCell>
                                         <StevenTableCell>
+                                            <TextField
+                                                type="number"
+                                                value={editForm.donationAmount}
+                                                onChange={e => setEditForm(p => ({ ...p, donationAmount: e.target.value }))}
+                                                size="small"
+                                                sx={{ width: 100 }}
+                                            />
+                                        </StevenTableCell>
+                                        <StevenTableCell>
                                             <Tooltip title="Save">
                                                 <IconButton size="small" onClick={handleSaveEdit}><BsCheck /></IconButton>
                                             </Tooltip>
@@ -199,6 +223,12 @@ const ManageAccounts = () => {
                                             <Chip label={user.hasPaid ? "Paid" : "Unpaid"} color={user.hasPaid ? "success" : "error"} size="small" />
                                         </StevenTableCell>
                                         <StevenTableCell>
+                                            <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+                                                {user.donationAmount > 0 ? `$${user.donationAmount}` : "—"}
+                                                {user.donationAmount > 0 && <DonorBadge amount={user.donationAmount} />}
+                                            </Box>
+                                        </StevenTableCell>
+                                        <StevenTableCell>
                                             <Tooltip title="Edit">
                                                 <IconButton size="small" onClick={() => handleEdit(user)}><BsPencil /></IconButton>
                                             </Tooltip>
@@ -211,7 +241,7 @@ const ManageAccounts = () => {
                             </StevenTableRow>
                         )) : (
                             <StevenTableRow>
-                                <StevenTableCell colSpan={6}>No accounts found.</StevenTableCell>
+                                <StevenTableCell colSpan={7}>No accounts found.</StevenTableCell>
                             </StevenTableRow>
                         )}
                     </StevenTableBody>

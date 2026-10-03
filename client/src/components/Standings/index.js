@@ -12,6 +12,7 @@ import userService from "../../services/userService";
 import pickService from "../../services/pickService";
 import apiClient from "../../services/apiClient";
 import StevenSelect from "../Common/StevenSelect";
+import DonorBadge from "../Common/DonorBadge";
 import {
     StevenTableContainer,
     StevenTable,
@@ -211,6 +212,7 @@ const Standings = () => {
                                                 >
                                                     {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
                                                 </MuiLink>
+                                                {users && users[item.username]?.[0]?.donationAmount > 0 && <DonorBadge amount={users[item.username][0].donationAmount} sx={{ ml: 0.5 }} />}
                                             </StevenTableCell>
                                             <StevenTableCell> {item.resultSum}</StevenTableCell>
                                             <StevenTableCell>{perfectWeeks[item.username]}</StevenTableCell>
@@ -238,6 +240,7 @@ const Standings = () => {
                                                 >
                                                     {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
                                                 </MuiLink>
+                                                {users && users[item.username]?.[0]?.donationAmount > 0 && <DonorBadge amount={users[item.username][0].donationAmount} sx={{ ml: 0.5 }} />}
                                             </StevenTableCell>
                                             <StevenTableCell className="s2-cell"> {item.resultSum}</StevenTableCell>
                                             <StevenTableCell className="s2-cell">{perfectWeeks[item.username]}</StevenTableCell>

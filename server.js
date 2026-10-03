@@ -1728,13 +1728,18 @@ app.get('/api/leaderboard', async (req, res) => {
             }
         }
 
-        const users = await db.collection('User_Details').find({}).project({ username: 1, displayName: 1 }).toArray();
+        const users = await db.collection('User_Details').find({}).project({ username: 1, displayName: 1, donationAmount: 1 }).toArray();
         const displayMap = {};
-        for (const u of users) displayMap[u.username] = u.displayName || u.username.split('@')[0];
+        const donatedMap = {};
+        for (const u of users) {
+            displayMap[u.username] = u.displayName || u.username.split('@')[0];
+            donatedMap[u.username] = Number(u.donationAmount) || 0;
+        }
 
         const sorted = Object.entries(userTotals)
             .map(([username, score]) => ({
                 displayName: displayMap[username] || username.split('@')[0],
+                donationAmount: donatedMap[username] || 0,
                 score,
                 record: userRecord[username] || { wins: 0, losses: 0, pushes: 0 },
                 gotwWins: userGotwWins[username] || 0,
@@ -2003,6 +2008,64 @@ app.get('/api/seasons', async (req, res) => {
 });
 
 
+// Donor badge tiers — admin-configurable list of {minAmount, icon, color, label}.
+// A user's badge is the highest tier whose minAmount they meet/exceed (see donationAmount
+// on User_Details, set via /api/update-userdetails). No row => no badge for that amount.
+app.get('/api/donor-tiers', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const tiers = await db.collection('Donor_Tiers').find({}).sort({ minAmount: -1 }).toArray();
+        res.json(tiers);
+    } catch (error) {
+        console.error('Error fetching donor tiers:', error);
+        res.status(500).json({ error: 'Error fetching donor tiers' });
+    }
+});
+
+app.post('/api/donor-tiers', adminLimiter, async (req, res) => {
+    try {
+        const { minAmount, icon, color, label } = req.body;
+        if (minAmount === undefined || !icon || !label) {
+            return res.status(400).json({ error: 'minAmount, icon, and label are required' });
+        }
+        const db = client.db(DATABASE_NAME);
+        const doc = { minAmount: Number(minAmount), icon, color: color || '#D4AF37', label };
+        const result = await db.collection('Donor_Tiers').insertOne(doc);
+        res.json({ ...doc, _id: result.insertedId });
+    } catch (error) {
+        console.error('Error creating donor tier:', error);
+        res.status(500).json({ error: 'Error creating donor tier' });
+    }
+});
+
+app.put('/api/donor-tiers/:id', adminLimiter, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { minAmount, icon, color, label } = req.body;
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Donor_Tiers').updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { minAmount: Number(minAmount), icon, color: color || '#D4AF37', label } }
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating donor tier:', error);
+        res.status(500).json({ error: 'Error updating donor tier' });
+    }
+});
+
+app.delete('/api/donor-tiers/:id', adminLimiter, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Donor_Tiers').deleteOne({ _id: new ObjectId(id) });
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting donor tier:', error);
+        res.status(500).json({ error: 'Error deleting donor tier' });
+    }
+});
+
 app.get('/api/userdetails', async (req, res) => {
     try {
         const { username } = req.query;
@@ -2062,7 +2125,7 @@ app.post('/api/has-paid', async (req, res) => {
 
 app.post('/api/update-userdetails', async (req, res) => {
     try {
-        const { username, receiveSundayReminder, displayName, phoneNumber, hasPaid, oddsAlertEnabled, oddsAlertThreshold } = req.body;
+        const { username, receiveSundayReminder, displayName, phoneNumber, hasPaid, donationAmount, oddsAlertEnabled, oddsAlertThreshold } = req.body;
         const db = client.db(DATABASE_NAME);
         const userDetails = db.collection('User_Details');
         const filter = { username: username };
@@ -2074,6 +2137,7 @@ app.post('/api/update-userdetails', async (req, res) => {
                 displayName: displayName,
                 phoneNumber: phoneNumber,
                 hasPaid: !!hasPaid,
+                donationAmount: donationAmount !== undefined ? (Number(donationAmount) || 0) : 0,
                 oddsAlertEnabled: !!oddsAlertEnabled,
                 oddsAlertThreshold: oddsAlertThreshold !== undefined ? Number(oddsAlertThreshold) : undefined,
             }

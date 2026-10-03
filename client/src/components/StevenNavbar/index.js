@@ -24,7 +24,7 @@ import {
     BsClockHistory, BsBug, BsCalculator, BsCardChecklist, BsList,
     BsPersonCircle, BsHouseDoor, BsTerminal, BsController, BsCardList,
     BsPeopleFill, BsChevronDown, BsChevronRight, BsShieldLock, BsMegaphone,
-    BsToggles
+    BsToggles, BsGem
 } from "react-icons/bs";
 import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
 import { ImStatsDots } from "react-icons/im";
@@ -35,7 +35,7 @@ import "./style.css";
 
 const ADMIN_PATHS = [
     "/calculatescoring", "/viewReports", "/viewlogs",
-    "/managegames", "/managepicks", "/manageaccounts", "/jobrunner", "/manageteamids", "/manageteamrecords",
+    "/managegames", "/managepicks", "/manageaccounts", "/managedonorbadges", "/jobrunner", "/manageteamids", "/manageteamrecords",
     "/broadcasttext", "/managecronjobs",
 ];
 
@@ -83,6 +83,7 @@ const StevenNavbar = () => {
         { path: "/managegames", label: "Manage Games", icon: <BsController /> },
         { path: "/managepicks", label: "Manage Picks", icon: <BsCardList /> },
         { path: "/manageaccounts", label: "Manage Accounts", icon: <BsPeopleFill /> },
+        { path: "/managedonorbadges", label: "Manage Donor Badges", icon: <BsGem /> },
         { path: "/manageteamids", label: "Team IDs", icon: <BsCardList /> },
         { path: "/manageteamrecords", label: "Team Records", icon: <BsCardList /> },
         { path: "/broadcasttext", label: "Broadcast Text", icon: <BsMegaphone /> },

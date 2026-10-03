@@ -4,6 +4,7 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { FaCrown } from "react-icons/fa";
 import apiClient from "../../services/apiClient";
+import DonorBadge from "../Common/DonorBadge";
 
 const RANKS = ["#1", "#2", "#3"];
 const COLORS = [
@@ -63,6 +64,7 @@ const TopLeaderboard = () => {
                             gap: 0.5,
                         }}>
                             {player.displayName}
+                            {player.donationAmount > 0 && <DonorBadge amount={player.donationAmount} />}
                             {rank === 0 && <FaCrown style={{ fontSize: 14, color: "#D4AF37", flexShrink: 0 }} />}
                         </Typography>
                         <Box sx={{ textAlign: "right" }}>

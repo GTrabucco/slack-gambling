@@ -6,6 +6,7 @@ import Divider from "@mui/material/Divider";
 import Chip from "@mui/material/Chip";
 import pickService from "../../services/pickService";
 import userService from "../../services/userService";
+import DonorBadge from "../Common/DonorBadge";
 
 const GotwReveal = ({ games, gameStarted }) => {
     const [allPicks, setAllPicks] = useState([]);
@@ -29,7 +30,7 @@ const GotwReveal = ({ games, gameStarted }) => {
                 setAllPicks(picksRes.data || []);
                 const userMap = {};
                 for (const u of (usersRes.data || [])) {
-                    userMap[u.username] = u.displayName || u.username.split("@")[0];
+                    userMap[u.username] = { displayName: u.displayName || u.username.split("@")[0], donationAmount: Number(u.donationAmount) || 0 };
                 }
                 setUsers(userMap);
             } catch (err) {
@@ -46,24 +47,25 @@ const GotwReveal = ({ games, gameStarted }) => {
     const activeGame = gotwGame;
     const gotwId = activeGame._id;
 
-    const displayName = (username) => users[username] || username.split("@")[0];
+    const displayName = (username) => users[username]?.displayName || username.split("@")[0];
+    const donationAmount = (username) => Number(users[username]?.donationAmount) || 0;
 
     const favoriteText = activeGame.home_spread < 0 ? activeGame.home_team : activeGame.away_team;
     const underdogText = activeGame.home_spread < 0 ? activeGame.away_team : activeGame.home_team;
 
     const favoritePickers = allPicks
         .filter(p => p.type === "gotw" && !p.text.includes("Over") && !p.text.includes("Under") && p.text.includes(favoriteText.split(" ").pop()))
-        .map(p => ({ name: displayName(p.username), result: p.result, value: p.value != null ? (parseFloat(p.value) > 0 ? `+${p.value}` : `${p.value}`) : null }));
+        .map(p => ({ name: displayName(p.username), donationAmount: donationAmount(p.username), result: p.result, value: p.value != null ? (parseFloat(p.value) > 0 ? `+${p.value}` : `${p.value}`) : null }));
     const underdogPickers = allPicks
         .filter(p => p.type === "gotw" && !p.text.includes("Over") && !p.text.includes("Under") && p.text.includes(underdogText.split(" ").pop()))
-        .map(p => ({ name: displayName(p.username), result: p.result, value: p.value != null ? (parseFloat(p.value) > 0 ? `+${p.value}` : `${p.value}`) : null }));
+        .map(p => ({ name: displayName(p.username), donationAmount: donationAmount(p.username), result: p.result, value: p.value != null ? (parseFloat(p.value) > 0 ? `+${p.value}` : `${p.value}`) : null }));
 
     const overPickers = allPicks
         .filter(p => p.type === "gotw" && p.text.includes("Over"))
-        .map(p => ({ name: displayName(p.username), result: p.result, value: p.value != null ? `o${p.value}` : null }));
+        .map(p => ({ name: displayName(p.username), donationAmount: donationAmount(p.username), result: p.result, value: p.value != null ? `o${p.value}` : null }));
     const underPickers = allPicks
         .filter(p => p.type === "gotw" && p.text.includes("Under"))
-        .map(p => ({ name: displayName(p.username), result: p.result, value: p.value != null ? `u${p.value}` : null }));
+        .map(p => ({ name: displayName(p.username), donationAmount: donationAmount(p.username), result: p.result, value: p.value != null ? `u${p.value}` : null }));
 
     const hasSpread = favoritePickers.length > 0 || underdogPickers.length > 0;
     const hasTotal = overPickers.length > 0 || underPickers.length > 0;
@@ -95,12 +97,17 @@ const GotwReveal = ({ games, gameStarted }) => {
                 </Typography>
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, justifyContent: "center", mt: 0.5 }}>
                     {pickers.length > 0
-                        ? pickers.map(({ name, result, value }) => {
+                        ? pickers.map(({ name, donationAmount, result, value }) => {
                             const { bg, color } = resultColor(result);
                             return (
                                 <Chip
                                     key={name}
-                                    label={value ? `${name} ${value}` : name}
+                                    label={
+                                        <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.4 }}>
+                                            {value ? `${name} ${value}` : name}
+                                            {donationAmount > 0 && <DonorBadge amount={donationAmount} />}
+                                        </Box>
+                                    }
                                     size="small"
                                     sx={{ bgcolor: bg, color, fontSize: "0.7rem" }}
                                 />
