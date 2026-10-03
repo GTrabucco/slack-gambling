@@ -78,6 +78,12 @@ export default async function refreshJob() {
             over: freshGame.over,
             under: freshGame.under,
             commence_time: freshGame.commence_time,
+            venue_name: freshGame.venue_name,
+            venue_city: freshGame.venue_city,
+            venue_state: freshGame.venue_state,
+            venue_country: freshGame.venue_country,
+            venue_indoor: freshGame.venue_indoor,
+            neutral_site: freshGame.neutral_site,
           },
         }
       );

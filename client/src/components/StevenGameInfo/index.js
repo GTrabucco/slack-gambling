@@ -405,6 +405,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
   const [teamStats, setTeamStats] = useState({ home: [], away: [] });
   const [atsData, setAtsData] = useState({ home: null, away: null });
   const [cityName, setCityName] = useState("");
+  const [isIndoor, setIsIndoor] = useState(false);
   const [tab, setTab] = useState(0);
   const [lineMovements, setLineMovements] = useState([]);
   const [lineMovementsLoading, setLineMovementsLoading] = useState(false);
@@ -418,7 +419,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       const response = await gameService.getGame(selectedGameId);
       const game = response.data?.[0];
       if (!game) throw new Error("Game not found");
-      await populate(game.home_team, game.away_team, game.commence_time);
+      await populate(game);
     } catch (error) {
       console.error("Error fetching game:", error);
       setWeatherData([]);
@@ -426,6 +427,9 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
     }
   };
 
+  // Fallback only — used when a game has no venue data (e.g. games stored before
+  // venue tracking was added). Guesses the home team's usual stadium city, which is
+  // wrong for neutral-site/international games, so prefer game.venue_city when present.
   const getCityFromTeam = (homeTeam) => {
     if (!homeTeam) return "";
     let home_team_location = homeTeam.split(" ")[0];
@@ -496,53 +500,20 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
     return cityTimeZones[city] || "Unknown city";
   }
 
-  const cityCoordinates = {
-    "Glendale":      { latitude: 33.5277, longitude: -112.2626 },
-    "Atlanta":       { latitude: 33.7490, longitude: -84.3880 },
-    "Baltimore":     { latitude: 39.2904, longitude: -76.6122 },
-    "Orchard Park":  { latitude: 42.7738, longitude: -78.7869 },
-    "Charlotte":     { latitude: 35.2251, longitude: -80.8526 },
-    "Chicago":       { latitude: 41.8781, longitude: -87.6298 },
-    "Cincinnati":    { latitude: 39.1031, longitude: -84.5120 },
-    "Cleveland":     { latitude: 41.4993, longitude: -81.6944 },
-    "Arlington":     { latitude: 32.7473, longitude: -97.0945 },
-    "Denver":        { latitude: 39.7392, longitude: -104.9903 },
-    "Detroit":       { latitude: 42.3314, longitude: -83.0458 },
-    "Green Bay":     { latitude: 44.5133, longitude: -88.0133 },
-    "Houston":       { latitude: 29.7604, longitude: -95.3698 },
-    "Indianapolis":  { latitude: 39.7684, longitude: -86.1581 },
-    "Jacksonville":  { latitude: 30.3322, longitude: -81.6557 },
-    "Kansas City":   { latitude: 39.0997, longitude: -94.5786 },
-    "Las Vegas":     { latitude: 36.1699, longitude: -115.1398 },
-    "Los Angeles":   { latitude: 34.0522, longitude: -118.2437 }, 
-    "Miami":         { latitude: 25.7617, longitude: -80.1918 },
-    "Minnesota":     { latitude: 44.9778, longitude: -93.2650 }, 
-    "Foxborough":    { latitude: 42.0909, longitude: -71.2643 },
-    "New Orleans":   { latitude: 29.9511, longitude: -90.0715 },
-    "East Rutherford": { latitude: 40.8128, longitude: -74.0742 }, 
-    "Philadelphia":  { latitude: 39.9526, longitude: -75.1652 },
-    "Pittsburgh":    { latitude: 40.4406, longitude: -79.9959 },
-    "Santa Clara":   { latitude: 37.4030, longitude: -121.9700 },
-    "Seattle":       { latitude: 47.6062, longitude: -122.3321 },
-    "Tampa Bay":     { latitude: 27.9506, longitude: -82.4572 },
-    "Tennessee":     { latitude: 36.1627, longitude: -86.7816 },
-    "Washington":    { latitude: 38.9072, longitude: -77.0369 },
-  };
-
-  function getCityLatitude(city) {
-    return cityCoordinates[city]?.latitude ?? null;
-  }
-
-  function getCityLongitude(city) {
-    return cityCoordinates[city]?.longitude ?? null;
-  }
-
-  const getWeather = async (city, gameDate) => {
+  const getWeather = async (city, country, gameDate) => {
     try {
       if (!city || !gameDate) return [];
-      const cityLongitude = getCityLongitude(city);
-      const cityLatitude = getCityLatitude(city);
-      const timeZone = getTimeZone(city) || "UTC";
+
+      // Resolve timezone for the actual venue city via server-side geocoding (works for
+      // any city worldwide, including neutral-site/international venues).
+      let timeZone = "UTC";
+      try {
+        const geoRes = await apiClient.get('/api/geocode', { params: { city, country } });
+        timeZone = geoRes.data?.timezone || getTimeZone(city) || "UTC";
+      } catch {
+        timeZone = getTimeZone(city) || "UTC";
+      }
+
       const localDate = new Date(new Date(gameDate).toLocaleString("en-US", { timeZone }));
       const formattedDate = localDate.toISOString().split("T")[0];
       const localHour = localDate.getHours();
@@ -550,10 +521,8 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       const res = await apiClient.get('/api/weather', {
         params: {
           city,
+          country,
           date: formattedDate,
-          lat: cityLatitude,
-          lon: cityLongitude,
-          timezone: timeZone,
           commenceTime: gameDate,
         },
       });
@@ -568,17 +537,26 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
     }
   };
 
-  const populate = async (home, away, gameDate) => {
+  const populate = async (game) => {
+    const { home_team: home, away_team: away, commence_time: gameDate } = game;
     try {
       setWeatherLoading(true);
       setInjuryLoading(true);
       setDepthLoading(true);
       setStatsLoading(true);
       setAtsLoading(true);
-      const city = getCityFromTeam(home);
-      setCityName(city);
+
+      // Prefer the actual game site reported by ESPN (handles neutral-site and
+      // international games); fall back to guessing from the home team for older
+      // games stored before venue tracking was added.
+      const city = game.venue_city || getCityFromTeam(home);
+      const country = game.venue_country && game.venue_country !== "USA" ? game.venue_country : undefined;
+      const indoor = game.venue_indoor === true;
+      setCityName(game.venue_name ? `${city} (${game.venue_name})` : city);
+      setIsIndoor(indoor);
+
       const [next4Hours, injuryRes, depthRes, statsRes, atsRes] = await Promise.all([
-        getWeather(city, gameDate),
+        indoor ? Promise.resolve([]) : getWeather(city, country, gameDate),
         apiClient.get(`/api/injuries?home=${encodeURIComponent(home)}&away=${encodeURIComponent(away)}&commenceTime=${encodeURIComponent(gameDate)}`)
           .then(r => r.data || { home: [], away: [] })
           .catch(() => ({ home: [], away: [] })),
@@ -628,6 +606,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
       setTeamStats({ home: [], away: [] });
       setAtsData({ home: null, away: null });
       setWeatherLoading(true);
+      setIsIndoor(false);
       setLineMovements([]);
     }
   }, [showStevenInfo, selectedGameId]);
@@ -670,6 +649,11 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
         {tab === 0 && (
           weatherLoading ? (
             <PageLoader />
+          ) : isIndoor ? (
+            <>
+              <Typography variant="body2" sx={{ mb: 2 }}>Venue: {cityName}</Typography>
+              <Typography>This game is played indoors — weather does not apply.</Typography>
+            </>
           ) : weatherData.length ? (
             <>
               <Typography variant="body2" sx={{ mb: 1 }}>Note: time displayed in local time</Typography>

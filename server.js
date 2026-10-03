@@ -509,12 +509,19 @@ app.get('/api/line-movements', async (req, res) => {
 
 app.post('/api/games', adminLimiter, async (req, res) => {
     try {
-        const { gameId, commence_time, home_team, away_team, home_spread, away_spread, over, under, season, week } = req.body;
+        const { gameId, commence_time, home_team, away_team, home_spread, away_spread, over, under, season, week, venue_name, venue_city, venue_state, venue_country, venue_indoor, neutral_site } = req.body;
         if (!home_team || !away_team || !commence_time) {
             return res.status(400).json({ error: 'home_team, away_team, and commence_time are required' });
         }
         const db = client.db(DATABASE_NAME);
-        const game = { gameId: gameId || null, commence_time, home_team, away_team, home_spread: home_spread || null, away_spread: away_spread || null, over: over || null, under: under || null, season, week, isGotw: false };
+        const game = {
+            gameId: gameId || null, commence_time, home_team, away_team,
+            home_spread: home_spread || null, away_spread: away_spread || null,
+            over: over || null, under: under || null, season, week, isGotw: false,
+            venue_name: venue_name || null, venue_city: venue_city || null,
+            venue_state: venue_state || null, venue_country: venue_country || null,
+            venue_indoor: venue_indoor === true, neutral_site: neutral_site === true,
+        };
         const result = await db.collection('Games').insertOne(game);
         res.json({ success: true, insertedId: result.insertedId });
     } catch (error) {
@@ -526,11 +533,18 @@ app.post('/api/games', adminLimiter, async (req, res) => {
 app.put('/api/games/:id', adminLimiter, async (req, res) => {
     try {
         const { id } = req.params;
-        const { gameId, commence_time, home_team, away_team, home_spread, away_spread, over, under, season, week } = req.body;
+        const { gameId, commence_time, home_team, away_team, home_spread, away_spread, over, under, season, week, venue_name, venue_city, venue_state, venue_country, venue_indoor, neutral_site } = req.body;
         const db = client.db(DATABASE_NAME);
         await db.collection('Games').updateOne(
             { _id: new ObjectId(id) },
-            { $set: { gameId, commence_time, home_team, away_team, home_spread: home_spread || null, away_spread: away_spread || null, over: over || null, under: under || null, season, week } }
+            { $set: {
+                gameId, commence_time, home_team, away_team,
+                home_spread: home_spread || null, away_spread: away_spread || null,
+                over: over || null, under: under || null, season, week,
+                venue_name: venue_name || null, venue_city: venue_city || null,
+                venue_state: venue_state || null, venue_country: venue_country || null,
+                venue_indoor: venue_indoor === true, neutral_site: neutral_site === true,
+            } }
         );
         res.json({ success: true });
     } catch (error) {
@@ -586,6 +600,35 @@ app.get('/api/get-game', async (req, res) => {
         const { gameId } = req.query;
         const db = client.db(DATABASE_NAME);
         const data = await db.collection('Games').find({ gameId: gameId }).toArray();
+
+        // Older games were stored before venue tracking was added and are missing
+        // venue_city/venue_country, which makes the weather tab fall back to guessing
+        // the home team's usual stadium (wrong for neutral-site/international games).
+        // Backfill from the live scoreboard (current week) and persist it so this only
+        // needs to happen once per game.
+        const needsBackfill = data.filter(g => !g.venue_city);
+        if (needsBackfill.length > 0) {
+            try {
+                const { games: liveGames } = await getCachedScoreboard();
+                for (const game of needsBackfill) {
+                    const live = liveGames.find(g => String(g.gameId) === String(game.gameId));
+                    if (!live || !live.venue_city) continue;
+                    const venueUpdate = {
+                        venue_name: live.venue_name,
+                        venue_city: live.venue_city,
+                        venue_state: live.venue_state,
+                        venue_country: live.venue_country,
+                        venue_indoor: live.venue_indoor,
+                        neutral_site: live.neutral_site,
+                    };
+                    Object.assign(game, venueUpdate);
+                    await db.collection('Games').updateOne({ _id: game._id }, { $set: venueUpdate });
+                }
+            } catch (backfillError) {
+                console.error('Error backfilling venue data:', backfillError.message);
+            }
+        }
+
         res.json(data);
     } catch (error) {
         res.status(500).json({ error: 'Error fetching data from MongoDB' });
@@ -1431,16 +1474,73 @@ app.get('/api/depthchart', async (req, res) => {
     }
 });
 
+// Resolves a city (optionally scoped by country, e.g. for international/neutral-site
+// games) to lat/lon/timezone via Open-Meteo's geocoding API. Results are cached
+// indefinitely since a city's coordinates/timezone never change.
+async function resolveCityGeocode(db, city, country) {
+    const geocodeCache = db.collection('Geocode_Cache');
+    const key = `${city}__${country || ''}`.toLowerCase();
+
+    const cached = await geocodeCache.findOne({ key });
+    if (cached) return cached.data;
+
+    const url = new URL('https://geocoding-api.open-meteo.com/v1/search');
+    url.searchParams.set('name', city);
+    url.searchParams.set('count', '10');
+    url.searchParams.set('language', 'en');
+    url.searchParams.set('format', 'json');
+
+    const geoRes = await fetch(url.toString()).then(r => r.json());
+    const results = geoRes.results || [];
+    const match = country
+        ? (results.find(r => r.country?.toLowerCase() === country.toLowerCase()) || results[0])
+        : results[0];
+    if (!match) return null;
+
+    const data = { latitude: match.latitude, longitude: match.longitude, timezone: match.timezone };
+    await geocodeCache.updateOne({ key }, { $set: { key, data, cachedAt: new Date() } }, { upsert: true });
+    return data;
+}
+
+app.get('/api/geocode', async (req, res) => {
+    try {
+        const { city, country } = req.query;
+        if (!city) return res.status(400).json({ error: 'city is required' });
+        const db = client.db(DATABASE_NAME);
+        const geocoded = await resolveCityGeocode(db, city, country);
+        if (!geocoded) return res.status(404).json({ error: `Could not resolve coordinates for city "${city}"` });
+        res.json(geocoded);
+    } catch (error) {
+        console.error('Error geocoding city:', error);
+        res.status(500).json({ error: 'Error geocoding city' });
+    }
+});
+
 app.get('/api/weather', async (req, res) => {
     try {
-        const { city, date, lat, lon, timezone, commenceTime } = req.query;
-        if (!city || !date || !lat || !lon || !timezone) {
-            return res.status(400).json({ error: 'city, date, lat, lon, and timezone are required' });
+        const { city, country, date, commenceTime } = req.query;
+        let { lat, lon, timezone } = req.query;
+        if (!city || !date) {
+            return res.status(400).json({ error: 'city and date are required' });
         }
 
         const db = client.db(DATABASE_NAME);
+
+        // Back-compat: lat/lon/timezone can still be passed explicitly, but the
+        // default path geocodes the actual game site (city/country) so neutral-site
+        // and international games get accurate coordinates instead of guessing.
+        if (!lat || !lon || !timezone) {
+            const geocoded = await resolveCityGeocode(db, city, country);
+            if (!geocoded) {
+                return res.status(400).json({ error: `Could not resolve coordinates for city "${city}"` });
+            }
+            lat = geocoded.latitude;
+            lon = geocoded.longitude;
+            timezone = timezone || geocoded.timezone;
+        }
+
         const cache = db.collection('Weather_Cache');
-        const cacheKey = `${city}__${date}`;
+        const cacheKey = `${city}__${country || ''}__${date}`;
 
         const computeTTL = () => {
             if (!commenceTime) return 2 * 60 * 60 * 1000; // default 2h

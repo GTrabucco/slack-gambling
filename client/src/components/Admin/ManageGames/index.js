@@ -11,6 +11,8 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
 import { BsPencil, BsTrash, BsStar, BsStarFill } from "react-icons/bs";
 import StevenButton from "../../Common/StevenButton";
 import gameService from "../../../services/gameService";
@@ -85,6 +87,11 @@ const EMPTY_FORM = {
     under: "",
     season: "",
     week: "",
+    venue_name: "",
+    venue_city: "",
+    venue_country: "",
+    venue_indoor: false,
+    neutral_site: false,
 };
 
 const ManageGames = () => {
@@ -112,7 +119,8 @@ const ManageGames = () => {
     useEffect(() => { fetchGames(); }, []);
 
     const handleChange = (field) => (e) => {
-        setForm(prev => ({ ...prev, [field]: e.target.value }));
+        const value = e.target.type === "checkbox" ? e.target.checked : e.target.value;
+        setForm(prev => ({ ...prev, [field]: value }));
     };
 
     const handleTeamChange = (field) => (value) => {
@@ -133,6 +141,11 @@ const ManageGames = () => {
             under: game.under || "",
             season: game.season || "",
             week: game.week || "",
+            venue_name: game.venue_name || "",
+            venue_city: game.venue_city || "",
+            venue_country: game.venue_country || "",
+            venue_indoor: game.venue_indoor === true,
+            neutral_site: game.neutral_site === true,
         });
         setError("");
         setSuccess("");
@@ -242,6 +255,30 @@ const ManageGames = () => {
                     </Grid>
                     <Grid item xs={6} md={3}>
                         <TextField label="Week" type="number" value={form.week} onChange={handleChange("week")} fullWidth size="small" />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Typography variant="subtitle2" sx={{ mt: 1 }}>Venue (optional — leave blank to use the home team's usual stadium)</Typography>
+                    </Grid>
+                    <Grid item xs={12} md={4}>
+                        <TextField label="Venue Name" value={form.venue_name} onChange={handleChange("venue_name")} fullWidth size="small" />
+                    </Grid>
+                    <Grid item xs={6} md={4}>
+                        <TextField label="Venue City" value={form.venue_city} onChange={handleChange("venue_city")} fullWidth size="small" />
+                    </Grid>
+                    <Grid item xs={6} md={4}>
+                        <TextField label="Venue Country" value={form.venue_country} onChange={handleChange("venue_country")} fullWidth size="small" />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                        <FormControlLabel
+                            control={<Checkbox checked={form.venue_indoor} onChange={handleChange("venue_indoor")} />}
+                            label="Indoor stadium"
+                        />
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                        <FormControlLabel
+                            control={<Checkbox checked={form.neutral_site} onChange={handleChange("neutral_site")} />}
+                            label="Neutral site"
+                        />
                     </Grid>
                 </Grid>
                 <Box sx={{ mt: 2, display: "flex", gap: 1 }}>

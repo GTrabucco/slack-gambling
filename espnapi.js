@@ -74,6 +74,11 @@ function parseScoreboardEvents(events, oddsMap = {}) {
     const status = comp.status || {};
     const odds = oddsMap[comp.id] || { home_spread: null, away_spread: null, over: null, under: null };
 
+    // Venue is the actual site of the game — needed because neutral-site/international
+    // games (London, Munich, Madrid, etc.) aren't played at the home team's usual stadium.
+    const venue = comp.venue || {};
+    const venueAddress = venue.address || {};
+
     games.push({
       gameId: comp.id,
       commence_time: comp.date || comp.startDate,
@@ -94,6 +99,12 @@ function parseScoreboardEvents(events, oddsMap = {}) {
       clock: status.displayClock || '',
       is_completed: status.type?.completed === true,
       state: status.type?.state || 'pre',
+      venue_name: venue.fullName || '',
+      venue_city: venueAddress.city || '',
+      venue_state: venueAddress.state || '',
+      venue_country: venueAddress.country || '',
+      venue_indoor: venue.indoor === true,
+      neutral_site: comp.neutralSite === true,
     });
   }
   return games;
@@ -132,6 +143,12 @@ export async function getGames(season, weekType, week) {
       away_spread: g.away_spread,
       over: g.over,
       under: g.under,
+      venue_name: g.venue_name,
+      venue_city: g.venue_city,
+      venue_state: g.venue_state,
+      venue_country: g.venue_country,
+      venue_indoor: g.venue_indoor,
+      neutral_site: g.neutral_site,
     }));
   } catch (error) {
     console.error('getGames ESPN error:', error.message);
