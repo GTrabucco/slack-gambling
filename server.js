@@ -14,6 +14,7 @@ import { calculatePickResult } from './processpicksnew.js';
 import { logCronRun } from './cronLogger.js';
 import twilio from 'twilio';
 import RateLimit from 'express-rate-limit';
+import * as cheerio from 'cheerio';
 
 dotenv.config();
 
@@ -1601,6 +1602,170 @@ app.get('/api/weather', async (req, res) => {
     } catch (error) {
         console.error('Error fetching weather:', error);
         res.status(500).json({ error: 'Error fetching weather' });
+    }
+});
+
+// Public betting consensus (admin-only feature, gated client-side) — scrapes
+// Covers.com's public consensus page for NFL (bets %, not just Sunday games,
+// since the date is a plain URL path segment: /overall/YYYY-MM-DD). Cached
+// aggressively (6h) in Mongo per-date since this is a scrape of a third-party
+// site we don't want to hit on every page load.
+const PUBLIC_BETTING_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+
+// Covers.com team logo filenames (e.g. .../new_logos/nfl/den.png) use the
+// NFL's standard short codes, which map 1:1 to our app's full team names —
+// far more reliable to key off than the "title" attribute text (e.g. Covers
+// renders the Jets' title as "N.Y. Jets", LA Rams as just "la", etc).
+const COVERS_ABBR_TO_TEAM = {
+    ari: 'Arizona Cardinals', atl: 'Atlanta Falcons', bal: 'Baltimore Ravens', buf: 'Buffalo Bills',
+    car: 'Carolina Panthers', chi: 'Chicago Bears', cin: 'Cincinnati Bengals', cle: 'Cleveland Browns',
+    dal: 'Dallas Cowboys', den: 'Denver Broncos', det: 'Detroit Lions', gb: 'Green Bay Packers',
+    hou: 'Houston Texans', ind: 'Indianapolis Colts', jac: 'Jacksonville Jaguars', kc: 'Kansas City Chiefs',
+    lv: 'Las Vegas Raiders', la: 'Los Angeles Rams', lac: 'Los Angeles Chargers', mia: 'Miami Dolphins',
+    min: 'Minnesota Vikings', ne: 'New England Patriots', no: 'New Orleans Saints', nyg: 'New York Giants',
+    nyj: 'New York Jets', phi: 'Philadelphia Eagles', pit: 'Pittsburgh Steelers', sf: 'San Francisco 49ers',
+    sea: 'Seattle Seahawks', tb: 'Tampa Bay Buccaneers', ten: 'Tennessee Titans', was: 'Washington Commanders',
+};
+
+async function scrapePublicBetting(date) {
+    const url = `https://contests.covers.com/consensus/topconsensus/nfl/overall/${date}`;
+    const html = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36' },
+    }).then(r => r.text());
+    const $ = cheerio.load(html);
+    const games = [];
+
+    const abbrFromImg = ($el) => {
+        const src = $el.find('img.covers-CoversConsensus-mainLogo').attr('src') || '';
+        const match = src.match(/logos\/nfl\/([a-z0-9]+)\.(?:png|gif)/i);
+        return match ? match[1].toLowerCase() : null;
+    };
+
+    $('table.shepherd-filter-scroll tbody tr').each((_, row) => {
+        const $row = $(row);
+        const $matchup = $row.find('td.covers-CoversConsensus-table--matchupColumn');
+        if ($matchup.length === 0) return; // header row
+
+        const awayAbbr = abbrFromImg($matchup.find('.covers-CoversConsensus-table--teamBlock'));
+        const homeAbbr = abbrFromImg($matchup.find('.covers-CoversConsensus-table--teamBlock2'));
+        const awayTeam = COVERS_ABBR_TO_TEAM[awayAbbr];
+        const homeTeam = COVERS_ABBR_TO_TEAM[homeAbbr];
+        if (!awayTeam || !homeTeam) return; // unrecognized abbreviation — skip rather than guess
+
+        const pctCells = $row.find('.covers-CoversConsensus-consensusTable--low span, .covers-CoversConsensus-consensusTable--high span');
+        const awayPickPct = pctCells.eq(0).text().trim();
+        const homePickPct = pctCells.eq(1).text().trim();
+
+        const cells = $row.find('td');
+        const sidesCell = $(cells[3]);
+        const picksCell = $(cells[4]);
+        const [awaySpread, homeSpread] = sidesCell.html()?.split(/<br\s*\/?>/i).map(s => $('<div>').html(s).text().trim()) || [];
+        const [awayPicks, homePicks] = picksCell.html()?.split(/<br\s*\/?>/i).map(s => $('<div>').html(s).text().trim()) || [];
+
+        games.push({
+            awayTeam, homeTeam,
+            awayPickPct, homePickPct,
+            awaySpread, homeSpread,
+            awayPicks, homePicks,
+        });
+    });
+
+    return games;
+}
+
+// Companion Covers.com page — public Over/Under consensus — same table shape
+// as the spread consensus page, keyed off the same team-abbreviation logos,
+// just with "X % Over" / "Y % Under" text instead of raw percentages and a
+// "Total" (the over/under line) column instead of a spread column.
+async function scrapeOverUnderConsensus(date) {
+    const url = `https://contests.covers.com/consensus/topoverunderconsensus/nfl/overall/${date}`;
+    const html = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36' },
+    }).then(r => r.text());
+    const $ = cheerio.load(html);
+    const games = [];
+
+    const abbrFromImg = ($el) => {
+        const src = $el.find('img.covers-CoversConsensus-mainLogo').attr('src') || '';
+        const match = src.match(/logos\/nfl\/([a-z0-9]+)\.(?:png|gif)/i);
+        return match ? match[1].toLowerCase() : null;
+    };
+
+    $('table.responsive tbody tr').each((_, row) => {
+        const $row = $(row);
+        const $matchup = $row.find('td.covers-CoversConsensus-table--matchupColumn');
+        if ($matchup.length === 0) return; // header row
+
+        const awayAbbr = abbrFromImg($matchup.find('.covers-CoversConsensus-table--teamBlock'));
+        const homeAbbr = abbrFromImg($matchup.find('.covers-CoversConsensus-table--teamBlock2'));
+        const awayTeam = COVERS_ABBR_TO_TEAM[awayAbbr];
+        const homeTeam = COVERS_ABBR_TO_TEAM[homeAbbr];
+        if (!awayTeam || !homeTeam) return;
+
+        const highText = $row.find('.covers-CoversConsensus-consensusTable--high span').text().trim(); // e.g. "71 % Over"
+        const lowText = $row.find('.covers-CoversConsensus-consensusTable--low span').text().trim(); // e.g. "29 % Under"
+        const parseSide = (text) => {
+            const match = text.match(/(\d+)\s*%\s*(Over|Under)/i);
+            return match ? { pct: `${match[1]}%`, side: match[2] } : null;
+        };
+        const high = parseSide(highText);
+        const low = parseSide(lowText);
+        const overPct = high?.side === 'Over' ? high.pct : low?.pct;
+        const underPct = high?.side === 'Under' ? high.pct : low?.pct;
+
+        const cells = $row.find('td');
+        const total = $(cells[3]).text().trim();
+        const picksCell = $(cells[4]);
+        const [overPicks, underPicks] = picksCell.html()?.split(/<br\s*\/?>/i).map(s => $('<div>').html(s).text().trim()) || [];
+
+        games.push({ awayTeam, homeTeam, total, overPct, underPct, overPicks, underPicks });
+    });
+
+    return games;
+}
+
+app.get('/api/public-betting', async (req, res) => {
+    try {
+        const date = req.query.date || new Date().toISOString().slice(0, 10);
+        const db = client.db(DATABASE_NAME);
+        const cache = db.collection('Public_Betting_Cache');
+
+        const cached = await cache.findOne({ key: date });
+        // Guard against pre-O/U-feature cache entries (schema version bump) —
+        // without this, a 6h-fresh cached entry from before this field existed
+        // would silently hide over/under data for the rest of its TTL window.
+        const cachedHasOverUnder = Array.isArray(cached?.data) && (cached.data.length === 0 || cached.data.some(g => g.overPct != null));
+        if (cached && cachedHasOverUnder && (Date.now() - new Date(cached.cachedAt).getTime()) < PUBLIC_BETTING_CACHE_TTL_MS) {
+            return res.json(cached.data);
+        }
+
+        try {
+            const [spreadGames, overUnderGames] = await Promise.all([
+                scrapePublicBetting(date),
+                scrapeOverUnderConsensus(date),
+            ]);
+            const ouByMatchup = new Map(overUnderGames.map(g => [`${g.awayTeam}|${g.homeTeam}`, g]));
+            const data = spreadGames.map(g => {
+                const ou = ouByMatchup.get(`${g.awayTeam}|${g.homeTeam}`);
+                return ou
+                    ? { ...g, total: ou.total, overPct: ou.overPct, underPct: ou.underPct, overPicks: ou.overPicks, underPicks: ou.underPicks }
+                    : g;
+            });
+            await cache.updateOne(
+                { key: date },
+                { $set: { key: date, data, cachedAt: new Date() } },
+                { upsert: true }
+            );
+            res.json(data);
+        } catch (scrapeError) {
+            console.error('Error scraping public betting consensus:', scrapeError);
+            // Fall back to stale cache rather than erroring out the game list.
+            if (cached) return res.json(cached.data);
+            res.json([]);
+        }
+    } catch (error) {
+        console.error('Error fetching public betting consensus:', error);
+        res.status(500).json({ error: 'Error fetching public betting consensus' });
     }
 });
 

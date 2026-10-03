@@ -15,6 +15,7 @@ import StevenButton from "../Common/StevenButton";
 import gameService from "../../services/gameService";
 import pickService from "../../services/pickService";
 import apiClient from "../../services/apiClient";
+import publicBettingService from "../../services/publicBettingService";
 
 const StevenGameList = ({ tempPicks,
     setMessage,
@@ -34,6 +35,8 @@ const StevenGameList = ({ tempPicks,
     const [showConfirm, setShowConfirm] = useState(false)
     const [records, setRecords] = useState({})
     const [liveScores, setLiveScores] = useState({})
+    const [publicBetting, setPublicBetting] = useState([])
+    const isAdmin = user?.email?.toLowerCase() === "giulian.trabucco@gmail.com";
 
     const fetchLiveScores = async () => {
         try {
@@ -84,6 +87,21 @@ const StevenGameList = ({ tempPicks,
         const liveScoresInterval = setInterval(fetchLiveScores, 60 * 1000);
         return () => clearInterval(liveScoresInterval);
     }, [games]);
+
+    // Admin-only public betting consensus (not just Sunday games — fetch one
+    // request per distinct ET game date present in the week's slate).
+    useEffect(() => {
+        if (!isAdmin || !games?.length) return;
+        const dates = [...new Set(games.map(g =>
+            new Date(g.commence_time).toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
+        ))];
+        let cancelled = false;
+        Promise.all(dates.map(d => publicBettingService.getConsensus(d))).then(results => {
+            if (cancelled) return;
+            setPublicBetting(results.flat());
+        });
+        return () => { cancelled = true; };
+    }, [isAdmin, games]);
 
     const fetchPicks = async () => {
         try {
@@ -270,6 +288,8 @@ const StevenGameList = ({ tempPicks,
                 homeSpread={selectedGame?.homeSpread}
                 awaySpread={selectedGame?.awaySpread}
                 over={selectedGame?.over}
+                isAdmin={isAdmin}
+                publicBetting={publicBetting}
             />
 
             {/* Confirmation Modal */}

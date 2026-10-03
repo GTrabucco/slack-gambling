@@ -13,6 +13,7 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 
 import StevenButton from "../Common/StevenButton";
+import PublicBettingConsensus from "../Common/PublicBettingConsensus";
 import gameService from "../../services/gameService";
 import apiClient from "../../services/apiClient";
 
@@ -393,7 +394,7 @@ const LineFeed = ({ movements, loading, homeSpread, awaySpread, over, homeTeam, 
   );
 };
 
-const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, homeTeam, awayTeam, homeSpread, awaySpread, over }) => {
+const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, homeTeam, awayTeam, homeSpread, awaySpread, over, isAdmin, publicBetting }) => {
   const [weatherData, setWeatherData] = useState([]);
   const [weatherLoading, setWeatherLoading] = useState(true);
   const [injuryLoading, setInjuryLoading] = useState(false);
@@ -644,6 +645,7 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
         <Tab label="Depth Chart" />
         <Tab label="Lines" />
         <Tab label="Stats" />
+        {isAdmin && <Tab label="Public Betting" />}
       </Tabs>
       <DialogContent dividers>
         {tab === 0 && (
@@ -713,6 +715,9 @@ const StevenGameInfo = ({ showStevenInfo, selectedGameId, setShowStevenInfo, hom
               </>
             )}
           </>
+        )}
+        {isAdmin && tab === 4 && (
+          <PublicBettingConsensus consensusData={publicBetting} homeTeam={homeTeam} awayTeam={awayTeam} />
         )}
       </DialogContent>
       <DialogActions>
