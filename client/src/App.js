@@ -14,7 +14,7 @@ import ViewLogs from "./components/Admin/ViewLogs";
 import ManageGames from "./components/Admin/ManageGames";
 import ManagePicks from "./components/Admin/ManagePicks";
 import ManageAccounts from "./components/Admin/ManageAccounts";
-import ManageDonorBadges from "./components/Admin/ManageDonorBadges";
+import ManageDonorPerks from "./components/Admin/ManageDonorPerks";
 import ManageTeamIDs from "./components/Admin/ManageTeamIDs";
 import ManageTeamRecords from "./components/Admin/ManageTeamRecords";
 import BroadcastText from "./components/Admin/BroadcastText";
@@ -80,7 +80,7 @@ function App() {
           <Route path="/managegames" element={<AuthenticationGuard component={ManageGames} /> } />
           <Route path="/managepicks" element={<AuthenticationGuard component={ManagePicks} /> } />
           <Route path="/manageaccounts" element={<AuthenticationGuard component={ManageAccounts} /> } />
-          <Route path="/managedonorbadges" element={<AuthenticationGuard component={ManageDonorBadges} /> } />
+          <Route path="/managedonorperks" element={<AuthenticationGuard component={ManageDonorPerks} /> } />
           <Route path="/manageteamids" element={<AuthenticationGuard component={ManageTeamIDs} /> } />
           <Route path="/manageteamrecords" element={<AuthenticationGuard component={ManageTeamRecords} /> } />
           <Route path="/broadcasttext" element={<AuthenticationGuard component={BroadcastText} /> } />

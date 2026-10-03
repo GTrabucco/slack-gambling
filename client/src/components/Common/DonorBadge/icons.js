@@ -1,7 +1,7 @@
 import { FaGem, FaStar, FaCrown, FaTrophy, FaMedal, FaFire, FaBolt, FaHeart, FaGift, FaDollarSign } from "react-icons/fa";
 
 // Shared icon registry used both by the DonorBadge (to render a tier's icon)
-// and the Manage Donor Badges admin screen (to let an admin pick an icon for
+// and the Manage Donor Perks admin screen (to let an admin pick an icon for
 // a tier). Keyed by a stable string so it can be stored in Mongo and survive
 // renames/reordering of the underlying react-icons imports.
 //

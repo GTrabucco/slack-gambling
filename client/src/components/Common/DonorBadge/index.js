@@ -6,7 +6,7 @@ import { DonorIcon } from "./icons";
 // Badge shown next to a user's name wherever they appear (standings,
 // leaderboard, GOTW reveal) to recognize fundraiser donors. Tiers (icon,
 // color, label, and dollar threshold) are fully admin-configurable via the
-// Manage Donor Badges screen — this component just picks the highest tier
+// Manage Donor Perks screen — this component just picks the highest tier
 // the given `amount` qualifies for.
 const DonorBadge = ({ amount, sx }) => {
     const [tiers, setTiers] = useState([]);

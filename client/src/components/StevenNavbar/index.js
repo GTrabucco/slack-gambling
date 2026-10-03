@@ -35,7 +35,7 @@ import "./style.css";
 
 const ADMIN_PATHS = [
     "/calculatescoring", "/viewReports", "/viewlogs",
-    "/managegames", "/managepicks", "/manageaccounts", "/managedonorbadges", "/jobrunner", "/manageteamids", "/manageteamrecords",
+    "/managegames", "/managepicks", "/manageaccounts", "/managedonorperks", "/jobrunner", "/manageteamids", "/manageteamrecords",
     "/broadcasttext", "/managecronjobs",
 ];
 
@@ -83,7 +83,7 @@ const StevenNavbar = () => {
         { path: "/managegames", label: "Manage Games", icon: <BsController /> },
         { path: "/managepicks", label: "Manage Picks", icon: <BsCardList /> },
         { path: "/manageaccounts", label: "Manage Accounts", icon: <BsPeopleFill /> },
-        { path: "/managedonorbadges", label: "Manage Donor Badges", icon: <BsGem /> },
+        { path: "/managedonorperks", label: "Manage Donor Perks", icon: <BsGem /> },
         { path: "/manageteamids", label: "Team IDs", icon: <BsCardList /> },
         { path: "/manageteamrecords", label: "Team Records", icon: <BsCardList /> },
         { path: "/broadcasttext", label: "Broadcast Text", icon: <BsMegaphone /> },

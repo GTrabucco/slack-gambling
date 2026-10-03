@@ -17,6 +17,7 @@ const Dashboard = () => {
   const [errors, setError] = useState("")
   const [showVenmo, setShowVenmo] = useState(false)
   const [message, setMessage] = useState("");
+  const [donationAmount, setDonationAmount] = useState(0);
   const { user } = useAuth0();
 
   const createUserDetails = async (e) => {
@@ -50,6 +51,7 @@ const Dashboard = () => {
         } else {
           setShowVenmo(false);
         }
+        setDonationAmount(Number(details?.donationAmount) || 0);
 
       } catch (error) {
         setMessage('Error fetching user details');
@@ -105,6 +107,7 @@ const Dashboard = () => {
         setTempPicks={setTempPicks}
         setError={setError}
         user={user}
+        donationAmount={donationAmount}
         selectedPicks={selectedPicks}
         setSelectedPicks={setSelectedPicks}
         getCommenceTimeByGameId={getCommenceTimeByGameId}

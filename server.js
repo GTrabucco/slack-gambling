@@ -2231,6 +2231,46 @@ app.delete('/api/donor-tiers/:id', adminLimiter, async (req, res) => {
     }
 });
 
+// Donation-based access thresholds for beta/admin-only features (odds-shift
+// text alerts, public betting consensus). A null threshold means the feature
+// stays admin-only; a number means any donor whose donationAmount meets or
+// exceeds it also gets access. Single shared settings document.
+app.get('/api/feature-access-settings', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const settings = await db.collection('Feature_Access_Settings').findOne({ key: 'default' });
+        res.json({
+            oddsAlertThreshold: settings?.oddsAlertThreshold ?? null,
+            publicBettingThreshold: settings?.publicBettingThreshold ?? null,
+        });
+    } catch (error) {
+        console.error('Error fetching feature access settings:', error);
+        res.status(500).json({ error: 'Error fetching feature access settings' });
+    }
+});
+
+app.put('/api/feature-access-settings', adminLimiter, async (req, res) => {
+    try {
+        const { oddsAlertThreshold, publicBettingThreshold } = req.body;
+        const db = client.db(DATABASE_NAME);
+        await db.collection('Feature_Access_Settings').updateOne(
+            { key: 'default' },
+            {
+                $set: {
+                    key: 'default',
+                    oddsAlertThreshold: oddsAlertThreshold === null || oddsAlertThreshold === undefined || oddsAlertThreshold === '' ? null : Number(oddsAlertThreshold),
+                    publicBettingThreshold: publicBettingThreshold === null || publicBettingThreshold === undefined || publicBettingThreshold === '' ? null : Number(publicBettingThreshold),
+                }
+            },
+            { upsert: true }
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error updating feature access settings:', error);
+        res.status(500).json({ error: 'Error updating feature access settings' });
+    }
+});
+
 app.get('/api/userdetails', async (req, res) => {
     try {
         const { username } = req.query;
@@ -2302,12 +2342,15 @@ app.post('/api/update-userdetails', async (req, res) => {
                 displayName: displayName,
                 phoneNumber: phoneNumber,
                 hasPaid: !!hasPaid,
-                donationAmount: donationAmount !== undefined ? (Number(donationAmount) || 0) : 0,
-                oddsAlertEnabled: !!oddsAlertEnabled,
-                oddsAlertThreshold: oddsAlertThreshold !== undefined ? Number(oddsAlertThreshold) : undefined,
             }
         };
-        if (update.$set.oddsAlertThreshold === undefined) delete update.$set.oddsAlertThreshold;
+        // Only touch these fields when the caller explicitly sends them —
+        // several callers (e.g. the user's own account-settings save) don't
+        // include donationAmount/oddsAlert* at all, and defaulting them to
+        // 0/false here would silently wipe out values an admin set elsewhere.
+        if (donationAmount !== undefined) update.$set.donationAmount = Number(donationAmount) || 0;
+        if (oddsAlertEnabled !== undefined) update.$set.oddsAlertEnabled = !!oddsAlertEnabled;
+        if (oddsAlertThreshold !== undefined) update.$set.oddsAlertThreshold = Number(oddsAlertThreshold);
 
         const options = { upsert: true };
         await userDetails.updateOne(filter, update, options);

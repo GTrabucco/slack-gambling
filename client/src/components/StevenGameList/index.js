@@ -16,6 +16,7 @@ import gameService from "../../services/gameService";
 import pickService from "../../services/pickService";
 import apiClient from "../../services/apiClient";
 import publicBettingService from "../../services/publicBettingService";
+import featureAccessService from "../../services/featureAccessService";
 
 const StevenGameList = ({ tempPicks,
     setMessage,
@@ -23,6 +24,7 @@ const StevenGameList = ({ tempPicks,
     setTempPicks,
     setError,
     user,
+    donationAmount,
     selectedPicks,
     setSelectedPicks,
     getCommenceTimeByGameId,
@@ -36,7 +38,13 @@ const StevenGameList = ({ tempPicks,
     const [records, setRecords] = useState({})
     const [liveScores, setLiveScores] = useState({})
     const [publicBetting, setPublicBetting] = useState([])
+    const [publicBettingThreshold, setPublicBettingThreshold] = useState(null)
     const isAdmin = user?.email?.toLowerCase() === "giulian.trabucco@gmail.com";
+    const canViewPublicBetting = isAdmin || (publicBettingThreshold != null && donationAmount >= publicBettingThreshold);
+
+    useEffect(() => {
+        featureAccessService.getSettings().then(s => setPublicBettingThreshold(s.publicBettingThreshold));
+    }, []);
 
     const fetchLiveScores = async () => {
         try {
@@ -88,10 +96,11 @@ const StevenGameList = ({ tempPicks,
         return () => clearInterval(liveScoresInterval);
     }, [games]);
 
-    // Admin-only public betting consensus (not just Sunday games — fetch one
-    // request per distinct ET game date present in the week's slate).
+    // Public betting consensus — admin-only, or any donor who meets the
+    // configured threshold (not just Sunday games — fetch one request per
+    // distinct ET game date present in the week's slate).
     useEffect(() => {
-        if (!isAdmin || !games?.length) return;
+        if (!canViewPublicBetting || !games?.length) return;
         const dates = [...new Set(games.map(g =>
             new Date(g.commence_time).toLocaleDateString('en-CA', { timeZone: 'America/New_York' })
         ))];
@@ -101,7 +110,7 @@ const StevenGameList = ({ tempPicks,
             setPublicBetting(results.flat());
         });
         return () => { cancelled = true; };
-    }, [isAdmin, games]);
+    }, [canViewPublicBetting, games]);
 
     const fetchPicks = async () => {
         try {
@@ -288,7 +297,7 @@ const StevenGameList = ({ tempPicks,
                 homeSpread={selectedGame?.homeSpread}
                 awaySpread={selectedGame?.awaySpread}
                 over={selectedGame?.over}
-                isAdmin={isAdmin}
+                canViewPublicBetting={canViewPublicBetting}
                 publicBetting={publicBetting}
             />
 

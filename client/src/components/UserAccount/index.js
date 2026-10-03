@@ -11,6 +11,7 @@ import StevenNotification from "../StevenNotification";
 import './style.css'
 import StevenButton from "../Common/StevenButton";
 import userService from "../../services/userService";
+import featureAccessService from "../../services/featureAccessService";
 
 const UserAccount = () => {
     const { user } = useAuth0();
@@ -21,6 +22,13 @@ const UserAccount = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [oddsAlertEnabled, setOddsAlertEnabled] = useState(false);
     const [oddsAlertThreshold, setOddsAlertThreshold] = useState('1');
+    const [donationAmount, setDonationAmount] = useState(0);
+    const [oddsAlertAccessThreshold, setOddsAlertAccessThreshold] = useState(null);
+    const canUseOddsAlert = isAdmin || (oddsAlertAccessThreshold != null && donationAmount >= oddsAlertAccessThreshold);
+
+    useEffect(() => {
+        featureAccessService.getSettings().then(s => setOddsAlertAccessThreshold(s.oddsAlertThreshold));
+    }, []);
 
     useEffect(() => {
         const fetchUserDetails = async () => {
@@ -33,6 +41,7 @@ const UserAccount = () => {
                     setPhoneNumber("");
                     setOddsAlertEnabled(false);
                     setOddsAlertThreshold('1');
+                    setDonationAmount(0);
                     return;
                 }
 
@@ -45,6 +54,7 @@ const UserAccount = () => {
                         ? String(details.oddsAlertThreshold)
                         : '1'
                 );
+                setDonationAmount(Number(details.donationAmount) || 0);
             } catch (error) {
                 setMessage('Error fetching user details');
             }
@@ -61,7 +71,7 @@ const UserAccount = () => {
                 displayName: displayName?.trim() ? displayName.trim() : user.name,
                 receiveSundayReminder: receiveSundayReminderChecked,
                 phoneNumber: phoneNumber,
-                ...(isAdmin && {
+                ...(canUseOddsAlert && {
                     oddsAlertEnabled: oddsAlertEnabled,
                     oddsAlertThreshold: Number(oddsAlertThreshold) || 0,
                 }),
@@ -134,7 +144,7 @@ const UserAccount = () => {
                         )}
                     </div>
 
-                    {isAdmin && (
+                    {canUseOddsAlert && (
                         <div className="ua-section">
                             <FormControlLabel
                                 control={

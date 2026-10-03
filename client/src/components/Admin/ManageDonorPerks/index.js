@@ -13,6 +13,7 @@ import StevenButton from "../../Common/StevenButton";
 import StevenSelect from "../../Common/StevenSelect";
 import { DONOR_ICON_OPTIONS, DonorIcon } from "../../Common/DonorBadge/icons";
 import donorTierService from "../../../services/donorTierService";
+import featureAccessService from "../../../services/featureAccessService";
 import {
     StevenTableContainer,
     StevenTable,
@@ -38,7 +39,9 @@ const IconPreview = ({ iconKey, color }) => (
     <DonorIcon iconKey={iconKey} color={color} style={{ fontSize: 18 }} />
 );
 
-const ManageDonorBadges = () => {
+const ADMIN_ONLY_VALUE = "__admin_only__";
+
+const ManageDonorPerks = () => {
     const [tiers, setTiers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editingId, setEditingId] = useState(null);
@@ -46,6 +49,9 @@ const ManageDonorBadges = () => {
     const [newForm, setNewForm] = useState(EMPTY_FORM);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [accessForm, setAccessForm] = useState({ oddsAlertThreshold: "", publicBettingThreshold: "" });
+    const [accessLoading, setAccessLoading] = useState(true);
+    const [accessSaving, setAccessSaving] = useState(false);
 
     const fetchTiers = async () => {
         try {
@@ -61,7 +67,60 @@ const ManageDonorBadges = () => {
         }
     };
 
-    useEffect(() => { fetchTiers(); }, []);
+    const fetchAccessSettings = async () => {
+        try {
+            featureAccessService.invalidateCache();
+            const settings = await featureAccessService.getSettings();
+            setAccessForm({
+                oddsAlertThreshold: settings.oddsAlertThreshold != null ? String(settings.oddsAlertThreshold) : ADMIN_ONLY_VALUE,
+                publicBettingThreshold: settings.publicBettingThreshold != null ? String(settings.publicBettingThreshold) : ADMIN_ONLY_VALUE,
+            });
+        } catch (e) {
+            setError("Error fetching feature access settings");
+        } finally {
+            setAccessLoading(false);
+        }
+    };
+
+    const handleSaveAccessSettings = async () => {
+        setAccessSaving(true);
+        try {
+            await featureAccessService.updateSettings({
+                oddsAlertThreshold: accessForm.oddsAlertThreshold === ADMIN_ONLY_VALUE ? null : Number(accessForm.oddsAlertThreshold),
+                publicBettingThreshold: accessForm.publicBettingThreshold === ADMIN_ONLY_VALUE ? null : Number(accessForm.publicBettingThreshold),
+            });
+            featureAccessService.invalidateCache();
+            setSuccess("Feature access thresholds updated.");
+        } catch (e) {
+            setError("Error saving feature access thresholds");
+        } finally {
+            setAccessSaving(false);
+        }
+    };
+
+    // Dropdown options derived from configured donor badge tiers (lowest
+    // minAmount first, so picking one reads naturally as a rising bar), plus
+    // an explicit "Admin Only" option that clears the threshold.
+    const tierAccessOptions = [
+        { value: ADMIN_ONLY_VALUE, label: "Admin Only" },
+        ...tiers.slice().sort((a, b) => Number(a.minAmount) - Number(b.minAmount)).map(tier => ({
+            value: String(tier.minAmount),
+            label: `${tier.label} ($${tier.minAmount}+)`,
+        })),
+    ];
+
+    // If a previously saved threshold doesn't match any current tier's
+    // minAmount (e.g. the tier was since deleted or renamed), surface it as
+    // a "Custom" option so the dropdown still shows a valid selection
+    // instead of silently reverting.
+    const withCustomFallback = (options, currentValue) => {
+        if (currentValue === ADMIN_ONLY_VALUE || options.some(o => o.value === currentValue)) return options;
+        return [...options, { value: currentValue, label: `Custom ($${currentValue}+)` }];
+    };
+    const oddsAlertOptions = withCustomFallback(tierAccessOptions, accessForm.oddsAlertThreshold);
+    const publicBettingOptions = withCustomFallback(tierAccessOptions, accessForm.publicBettingThreshold);
+
+    useEffect(() => { fetchTiers(); fetchAccessSettings(); }, []);
 
     const handleEdit = (tier) => {
         setEditingId(tier._id);
@@ -127,15 +186,56 @@ const ManageDonorBadges = () => {
 
     return (
         <Box>
-            <Typography variant="h5" sx={{ mb: 1 }}>Manage Donor Badges</Typography>
+            <Typography variant="h5" sx={{ mb: 1 }}>Manage Donor Perks</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Define badge tiers by donation amount. A user's badge (shown next to their name in standings, the
+                Define badge tiers by donation amount, and configure which donation-based perks (like early access
+                to beta features) donors unlock. A user's badge (shown next to their name in standings, the
                 leaderboard, and the GOTW reveal) is the highest tier their donation amount meets or exceeds. Set a
                 user's donation amount in Manage Accounts.
             </Typography>
 
             {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>{error}</Alert>}
             {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess("")}>{success}</Alert>}
+
+            {/* Feature Access Thresholds */}
+            <Box sx={{ border: 1, borderColor: "divider", borderRadius: 1, p: 3, mb: 3, bgcolor: "background.paper" }}>
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>Beta Feature Access</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    These admin-only features also unlock for any donor whose donation amount meets or exceeds the
+                    selected badge tier. Choose "Admin Only" to keep a feature restricted to admins.
+                </Typography>
+                {accessLoading ? <CircularProgress size={24} /> : (
+                    <>
+                        <Grid container spacing={2} alignItems="center">
+                            <Grid item xs={12} md={4}>
+                                <Typography variant="caption" color="text.secondary">Odds Alert Access</Typography>
+                                <StevenSelect
+                                    value={accessForm.oddsAlertThreshold}
+                                    onChange={e => setAccessForm(p => ({ ...p, oddsAlertThreshold: e.target.value }))}
+                                    options={oddsAlertOptions}
+                                    size="small"
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={4}>
+                                <Typography variant="caption" color="text.secondary">Public Betting Info Access</Typography>
+                                <StevenSelect
+                                    value={accessForm.publicBettingThreshold}
+                                    onChange={e => setAccessForm(p => ({ ...p, publicBettingThreshold: e.target.value }))}
+                                    options={publicBettingOptions}
+                                    size="small"
+                                />
+                            </Grid>
+                        </Grid>
+                        <Box sx={{ mt: 2 }}>
+                            <StevenButton onClick={handleSaveAccessSettings} disabled={accessSaving}>
+                                {accessSaving ? "Saving..." : "Save Thresholds"}
+                            </StevenButton>
+                        </Box>
+                    </>
+                )}
+            </Box>
+
+            <Divider sx={{ mb: 3 }} />
 
             {/* Create Tier Form */}
             <Box sx={{ border: 1, borderColor: "divider", borderRadius: 1, p: 3, mb: 3, bgcolor: "background.paper" }}>
@@ -271,4 +371,4 @@ const ManageDonorBadges = () => {
     );
 };
 
-export default ManageDonorBadges;
+export default ManageDonorPerks;
