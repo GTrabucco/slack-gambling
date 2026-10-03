@@ -8,6 +8,7 @@ import cron from 'node-cron';
 import tuesdayJob, { fetchAndStoreTeamIds, fetchAndStoreRecords } from './tuesdayjobnew.js';
 import sundayReminder from './sundayremindernew.js';
 import refreshJob from './refreshjobnew.js';
+import checkOddsAlerts from './oddsAlertJob.js';
 import { getLiveScoreboard, getWeeklyResults } from './espnapi.js';
 import { calculatePickResult } from './processpicksnew.js';
 import { logCronRun } from './cronLogger.js';
@@ -193,6 +194,12 @@ cron.schedule("*/30 * * * 1-6", async () => {
     } catch (error) {
         console.error("Refresh job (Mon-Sat) failed:", error);
         await sendFailureAlert('Refresh Job (Mon-Sat)', error);
+        return;
+    }
+    try {
+        await checkOddsAlerts();
+    } catch (error) {
+        console.error("Odds alert check (Mon-Sat) failed:", error);
     }
 },
     { timezone: "America/New_York" }
@@ -209,6 +216,12 @@ cron.schedule("*/15 * * * 0", async () => {
     } catch (error) {
         console.error("Refresh job (Sunday) failed:", error);
         await sendFailureAlert('Refresh Job (Sunday)', error);
+        return;
+    }
+    try {
+        await checkOddsAlerts();
+    } catch (error) {
+        console.error("Odds alert check (Sunday) failed:", error);
     }
 },
     { timezone: "America/New_York" }
@@ -1062,7 +1075,10 @@ app.post('/api/submit-picks', submitLimiter, async (req, res) => {
                 type: type,
                 createdAt: new Date(),
                 season: season
-            }
+            },
+            // A (re)locked pick has a brand-new locked-in line, so clear any prior
+            // odds-alert dedupe state — a fresh favorable shift should be alertable again.
+            $unset: { oddsAlertSent: "", oddsAlertSentAt: "" }
         };
 
         const options = { upsert: true };
@@ -2046,7 +2062,7 @@ app.post('/api/has-paid', async (req, res) => {
 
 app.post('/api/update-userdetails', async (req, res) => {
     try {
-        const { username, receiveSundayReminder, displayName, phoneNumber, hasPaid } = req.body;
+        const { username, receiveSundayReminder, displayName, phoneNumber, hasPaid, oddsAlertEnabled, oddsAlertThreshold } = req.body;
         const db = client.db(DATABASE_NAME);
         const userDetails = db.collection('User_Details');
         const filter = { username: username };
@@ -2058,8 +2074,11 @@ app.post('/api/update-userdetails', async (req, res) => {
                 displayName: displayName,
                 phoneNumber: phoneNumber,
                 hasPaid: !!hasPaid,
+                oddsAlertEnabled: !!oddsAlertEnabled,
+                oddsAlertThreshold: oddsAlertThreshold !== undefined ? Number(oddsAlertThreshold) : undefined,
             }
         };
+        if (update.$set.oddsAlertThreshold === undefined) delete update.$set.oddsAlertThreshold;
 
         const options = { upsert: true };
         await userDetails.updateOne(filter, update, options);

@@ -14,10 +14,13 @@ import userService from "../../services/userService";
 
 const UserAccount = () => {
     const { user } = useAuth0();
+    const isAdmin = user.email.toLowerCase() === "giulian.trabucco@gmail.com";
     const [message, setMessage] = useState();
     const [displayName, setDisplayName] = useState("");
     const [receiveSundayReminderChecked, setReceiveSundayReminderChecked] = useState(false);
     const [phoneNumber, setPhoneNumber] = useState('');
+    const [oddsAlertEnabled, setOddsAlertEnabled] = useState(false);
+    const [oddsAlertThreshold, setOddsAlertThreshold] = useState('1');
 
     useEffect(() => {
         const fetchUserDetails = async () => {
@@ -28,12 +31,20 @@ const UserAccount = () => {
                     setDisplayName(user.name);
                     setReceiveSundayReminderChecked(false);
                     setPhoneNumber("");
+                    setOddsAlertEnabled(false);
+                    setOddsAlertThreshold('1');
                     return;
                 }
 
                 setReceiveSundayReminderChecked(!!details.receiveSundayReminder);
                 setDisplayName(details.displayName || user.name);
                 setPhoneNumber(details.phoneNumber || "");
+                setOddsAlertEnabled(!!details.oddsAlertEnabled);
+                setOddsAlertThreshold(
+                    details.oddsAlertThreshold !== undefined && details.oddsAlertThreshold !== null
+                        ? String(details.oddsAlertThreshold)
+                        : '1'
+                );
             } catch (error) {
                 setMessage('Error fetching user details');
             }
@@ -49,7 +60,11 @@ const UserAccount = () => {
                 username: username,
                 displayName: displayName?.trim() ? displayName.trim() : user.name,
                 receiveSundayReminder: receiveSundayReminderChecked,
-                phoneNumber: phoneNumber
+                phoneNumber: phoneNumber,
+                ...(isAdmin && {
+                    oddsAlertEnabled: oddsAlertEnabled,
+                    oddsAlertThreshold: Number(oddsAlertThreshold) || 0,
+                }),
             });
             setMessage('Updated User Details');
         } catch (error) {
@@ -118,6 +133,34 @@ const UserAccount = () => {
                             />
                         )}
                     </div>
+
+                    {isAdmin && (
+                        <div className="ua-section">
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={oddsAlertEnabled}
+                                        onChange={() => setOddsAlertEnabled(!oddsAlertEnabled)}
+                                    />
+                                }
+                                label="Text me when a line moves in my favor"
+                            />
+                            {oddsAlertEnabled && (
+                                <TextField
+                                    id="oddsAlertThreshold"
+                                    label="Alert threshold (points)"
+                                    type="number"
+                                    fullWidth
+                                    placeholder="e.g. 1"
+                                    value={oddsAlertThreshold}
+                                    onChange={(e) => setOddsAlertThreshold(e.target.value)}
+                                    size="small"
+                                    sx={{ mt: 1.5 }}
+                                    helperText="Get a text once a pick's line has moved in your favor by at least this many points."
+                                />
+                            )}
+                        </div>
+                    )}
 
                     <div className="ua-actions">
                         <StevenButton type="submit">Save Changes</StevenButton>
