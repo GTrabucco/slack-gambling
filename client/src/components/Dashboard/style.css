@@ -137,6 +137,14 @@
   margin-bottom: 10px;
 }
 
+.line-moved-note {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #ffb74d;
+  margin-top: 4px;
+  letter-spacing: 0.01em;
+}
+
 .gotw-picked {
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
   background-color: rgba(212, 175, 55, 0.25);

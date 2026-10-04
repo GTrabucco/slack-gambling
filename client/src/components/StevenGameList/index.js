@@ -18,6 +18,14 @@ import apiClient from "../../services/apiClient";
 import publicBettingService from "../../services/publicBettingService";
 import featureAccessService from "../../services/featureAccessService";
 
+// Formats a numeric spread/total value with a leading "+" for positives,
+// matching how spreads are displayed elsewhere (e.g. StevenGameInfo).
+const formatLineValue = (val) => {
+    const n = parseFloat(val);
+    if (isNaN(n)) return val;
+    return n > 0 ? `+${n}` : `${n}`;
+};
+
 const StevenGameList = ({ tempPicks,
     setMessage,
     gameStarted,
@@ -435,6 +443,19 @@ const StevenGameList = ({ tempPicks,
                             const underPickForClass = isGotw ? gotwUnder : under_picked;
                             const overPickClass = getTotalPickClass(overPickForClass);
                             const underPickClass = getTotalPickClass(underPickForClass);
+
+                            // Detect when a stored pick's locked-in line no longer matches the
+                            // game's current line (odds moved since the pick was made).
+                            const lineHasMoved = (pick, currentValue) => {
+                                if (!pick) return false;
+                                const picked = parseFloat(pick.value);
+                                const current = parseFloat(currentValue);
+                                return !isNaN(picked) && !isNaN(current) && picked !== current;
+                            };
+                            const awayLineMoved = lineHasMoved(away_picked, away_spread_num);
+                            const homeLineMoved = lineHasMoved(home_picked, home_spread_num);
+                            const overLineMoved = lineHasMoved(overPickForClass, over);
+                            const underLineMoved = lineHasMoved(underPickForClass, under);
                             return (
                                 <Paper
                                     key={isGotw ? `gotw-${game["gameId"]}` : game["gameId"]}
@@ -540,6 +561,11 @@ const StevenGameList = ({ tempPicks,
                                             <img src={away_logo} alt={away_team} className="logo" />
                                             <div className="team-record">{records[away_team] ?? ""}</div>
                                             <div><div className="team-name">{away_team}</div><b>{away_spread_num > 0 ? "+" + away_spread_num : away_spread_num}</b></div>
+                                            {awayLineMoved && (
+                                                <div className="line-moved-note" title={`Line moved since you picked ${formatLineValue(away_picked.value)} — current line is ${formatLineValue(away_spread_num)}`}>
+                                                    Line moved: picked {formatLineValue(away_picked.value)}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className={`team-container ${homePickClass}`} onClick={() =>
                                             updatePick(
@@ -555,6 +581,11 @@ const StevenGameList = ({ tempPicks,
                                             <img src={home_logo} alt={home_team} className="logo" />
                                             <div className="team-record">{records[home_team] ?? ""}</div>
                                             <div><div className="team-name">{home_team}</div><b>{home_spread_num > 0 ? "+" + home_spread_num : home_spread_num}</b></div>
+                                            {homeLineMoved && (
+                                                <div className="line-moved-note" title={`Line moved since you picked ${formatLineValue(home_picked.value)} — current line is ${formatLineValue(home_spread_num)}`}>
+                                                    Line moved: picked {formatLineValue(home_picked.value)}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="icon-text-container">
                                                 {overPickClass ? (
@@ -579,6 +610,14 @@ const StevenGameList = ({ tempPicks,
                                                     <h2 className="total bi bi-arrow-down-square-fill" onClick={() =>
                                                         updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
                                                     }></h2>
+                                                )}
+                                                {(overLineMoved || underLineMoved) && (
+                                                    <div
+                                                        className="line-moved-note"
+                                                        title={`Line moved since you picked ${formatLineValue(overLineMoved ? overPickForClass.value : underPickForClass.value)} — current total is ${formatLineValue(overLineMoved ? over : under)}`}
+                                                    >
+                                                        Line moved: picked {formatLineValue(overLineMoved ? overPickForClass.value : underPickForClass.value)}
+                                                    </div>
                                                 )}
                                             </div>
                                     </div>
