@@ -39,6 +39,15 @@ const IconPreview = ({ iconKey, color }) => (
     <DonorIcon iconKey={iconKey} color={color} style={{ fontSize: 18 }} />
 );
 
+// Shows the icon next to its name in a DONOR_ICON_OPTIONS dropdown, tinted
+// with whatever color is currently selected for that tier/form.
+const renderIconOption = (color) => (option) => (
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+        <DonorIcon iconKey={option.value} color={color} style={{ fontSize: 16 }} />
+        {option.label}
+    </Box>
+);
+
 const ADMIN_ONLY_VALUE = "__admin_only__";
 
 const ManageDonorPerks = () => {
@@ -266,6 +275,7 @@ const ManageDonorPerks = () => {
                             value={newForm.icon}
                             onChange={e => setNewForm(p => ({ ...p, icon: e.target.value }))}
                             options={DONOR_ICON_OPTIONS}
+                            renderOption={renderIconOption(newForm.color)}
                             size="small"
                         />
                     </Grid>
@@ -324,6 +334,7 @@ const ManageDonorPerks = () => {
                                                     value={editForm.icon}
                                                     onChange={e => setEditForm(p => ({ ...p, icon: e.target.value }))}
                                                     options={DONOR_ICON_OPTIONS}
+                                                    renderOption={renderIconOption(editForm.color)}
                                                     size="small"
                                                     sx={{ minWidth: 110 }}
                                                 />

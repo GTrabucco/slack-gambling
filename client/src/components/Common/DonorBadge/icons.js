@@ -1,4 +1,27 @@
-import { FaGem, FaStar, FaCrown, FaTrophy, FaMedal, FaFire, FaBolt, FaHeart, FaGift, FaDollarSign } from "react-icons/fa";
+import {
+    FaGem,
+    FaStar,
+    FaCrown,
+    FaTrophy,
+    FaMedal,
+    FaFire,
+    FaBolt,
+    FaHeart,
+    FaGift,
+    FaDollarSign,
+    FaShieldAlt,
+    FaRocket,
+    FaMoon,
+    FaSun,
+    FaLeaf,
+    FaAnchor,
+    FaFeatherAlt,
+    FaPaw,
+    FaSkullCrossbones,
+    FaMagic,
+    FaDragon,
+    FaDice,
+} from "react-icons/fa";
 
 // Shared icon registry used both by the DonorBadge (to render a tier's icon)
 // and the Manage Donor Perks admin screen (to let an admin pick an icon for
@@ -23,11 +46,24 @@ export const DONOR_ICONS = {
     heart: { type: "component", Component: FaHeart },
     gift: { type: "component", Component: FaGift },
     dollar: { type: "component", Component: FaDollarSign },
-    // The image icon is rendered as two stacked masks: a white "fill" layer
-    // (the full smiley silhouette, from the original PNG's alpha channel)
-    // plus a colored "outline" layer on top (just the stroke lines, derived
-    // separately since the source PNG's face fill is opaque white too).
-    // This keeps the face white and only tints the outline per-tier.
+    shield: { type: "component", Component: FaShieldAlt },
+    rocket: { type: "component", Component: FaRocket },
+    moon: { type: "component", Component: FaMoon },
+    sun: { type: "component", Component: FaSun },
+    leaf: { type: "component", Component: FaLeaf },
+    anchor: { type: "component", Component: FaAnchor },
+    feather: { type: "component", Component: FaFeatherAlt },
+    paw: { type: "component", Component: FaPaw },
+    skull: { type: "component", Component: FaSkullCrossbones },
+    magic: { type: "component", Component: FaMagic },
+    dragon: { type: "component", Component: FaDragon },
+    dice: { type: "component", Component: FaDice },
+    // The image icon is rendered as two stacked masks: a colored "fill"
+    // layer (the full smiley silhouette, from the original PNG's alpha
+    // channel) tinted per-tier, plus a black "outline" layer on top (just
+    // the stroke lines, derived separately since the source PNG's face
+    // fill is opaque white too). This tints the face per-tier and keeps
+    // the outline black.
     stevenlogo: { type: "image", fillSrc: "/stevenlogo.png", outlineSrc: "/stevenlogo-outline.png" },
 };
 
@@ -59,8 +95,8 @@ export const DonorIcon = ({ iconKey, color, style, ...props }) => {
                 {...props}
                 style={{ position: "relative", display: "inline-block", width: size, height: size, ...style, fontSize: undefined }}
             >
-                <span style={{ ...maskStyle(entry.fillSrc), backgroundColor: "#fff" }} />
-                <span style={{ ...maskStyle(entry.outlineSrc), backgroundColor: color || "#D4AF37" }} />
+                <span style={{ ...maskStyle(entry.fillSrc), backgroundColor: color || "#D4AF37" }} />
+                <span style={{ ...maskStyle(entry.outlineSrc), backgroundColor: "#000" }} />
             </span>
         );
     }
