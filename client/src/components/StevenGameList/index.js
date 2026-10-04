@@ -63,14 +63,14 @@ const StevenGameList = ({ tempPicks,
                 scoreMap[`${game.away_team}@${game.home_team}`] = game;
             }
             setLiveScores(scoreMap);
-        } catch (_) {}
+        } catch (_) { }
     };
 
     const fetchRecords = async () => {
         try {
             const res = await apiClient.get("/api/records");
             setRecords(res.data || {});
-        } catch (_) {}
+        } catch (_) { }
     };
     useEffect(() => {
         const fetchGames = async () => {
@@ -320,42 +320,42 @@ const StevenGameList = ({ tempPicks,
                             {["favorite", "dog", "over", "under", "gotw"]
                                 .filter((type) => tempPicks.some(p => p.type === type))
                                 .map((type) => {
-                                const pick = tempPicks.find(p => p.type === type);
-                                const isTotal = type === "over" || type === "under" ||
-                                    (type === "gotw" && pick?.text?.includes("Over") || type === "gotw" && pick?.text?.includes("Under"));
-                                const homeLogoName = pick ? `logos/${pick.homeTeam?.split(" ").pop()}.png` : null;
-                                const awayLogoName = pick ? `logos/${pick.awayTeam?.split(" ").pop()}.png` : null;
-                                // For spread picks, determine which team was picked from the text
-                                const pickedTeamLogo = pick && !isTotal
-                                    ? (() => {
-                                        const homeLast = pick.homeTeam?.split(" ").pop();
-                                        const awayLast = pick.awayTeam?.split(" ").pop();
-                                        if (pick.text?.includes(pick.homeTeam)) return `logos/${homeLast}.png`;
-                                        if (pick.text?.includes(pick.awayTeam)) return `logos/${awayLast}.png`;
-                                        return null;
-                                    })()
-                                    : null;
-                                return (
-                                    <ListItem key={type} disablePadding sx={{ py: 0.75, gap: 1.5, alignItems: "center" }}>
-                                        <Box sx={{ width: 64, flexShrink: 0, display: "flex", gap: 0.5, justifyContent: "center", alignItems: "center" }}>
-                                            {pick && isTotal ? (
-                                                <>
-                                                    <img src={awayLogoName} alt="" width={28} height={28} style={{ objectFit: "contain" }} />
-                                                    <img src={homeLogoName} alt="" width={28} height={28} style={{ objectFit: "contain" }} />
-                                                </>
-                                            ) : pick && pickedTeamLogo ? (
-                                                <img src={pickedTeamLogo} alt="" width={32} height={32} style={{ objectFit: "contain" }} />
-                                            ) : null}
-                                        </Box>
-                                        <ListItemText
-                                            primary={pickTypeLabel(type)}
-                                            secondary={pick ? pick.text : <em style={{ color: "#888" }}>No pick</em>}
-                                            primaryTypographyProps={{ fontWeight: 600, fontSize: 14 }}
-                                            secondaryTypographyProps={{ fontSize: 13 }}
-                                        />
-                                    </ListItem>
-                                );
-                            })}
+                                    const pick = tempPicks.find(p => p.type === type);
+                                    const isTotal = type === "over" || type === "under" ||
+                                        (type === "gotw" && pick?.text?.includes("Over") || type === "gotw" && pick?.text?.includes("Under"));
+                                    const homeLogoName = pick ? `logos/${pick.homeTeam?.split(" ").pop()}.png` : null;
+                                    const awayLogoName = pick ? `logos/${pick.awayTeam?.split(" ").pop()}.png` : null;
+                                    // For spread picks, determine which team was picked from the text
+                                    const pickedTeamLogo = pick && !isTotal
+                                        ? (() => {
+                                            const homeLast = pick.homeTeam?.split(" ").pop();
+                                            const awayLast = pick.awayTeam?.split(" ").pop();
+                                            if (pick.text?.includes(pick.homeTeam)) return `logos/${homeLast}.png`;
+                                            if (pick.text?.includes(pick.awayTeam)) return `logos/${awayLast}.png`;
+                                            return null;
+                                        })()
+                                        : null;
+                                    return (
+                                        <ListItem key={type} disablePadding sx={{ py: 0.75, gap: 1.5, alignItems: "center" }}>
+                                            <Box sx={{ width: 64, flexShrink: 0, display: "flex", gap: 0.5, justifyContent: "center", alignItems: "center" }}>
+                                                {pick && isTotal ? (
+                                                    <>
+                                                        <img src={awayLogoName} alt="" width={28} height={28} style={{ objectFit: "contain" }} />
+                                                        <img src={homeLogoName} alt="" width={28} height={28} style={{ objectFit: "contain" }} />
+                                                    </>
+                                                ) : pick && pickedTeamLogo ? (
+                                                    <img src={pickedTeamLogo} alt="" width={32} height={32} style={{ objectFit: "contain" }} />
+                                                ) : null}
+                                            </Box>
+                                            <ListItemText
+                                                primary={pickTypeLabel(type)}
+                                                secondary={pick ? pick.text : <em style={{ color: "#888" }}>No pick</em>}
+                                                primaryTypographyProps={{ fontWeight: 600, fontSize: 14 }}
+                                                secondaryTypographyProps={{ fontSize: 13 }}
+                                            />
+                                        </ListItem>
+                                    );
+                                })}
                         </List>
                     )}
                 </DialogContent>
@@ -367,275 +367,275 @@ const StevenGameList = ({ tempPicks,
 
             <Box id="game-picks-form" sx={{ maxWidth: 600, mx: "auto" }}>
                 {gameEntries
-                        .map(({ game, isGotw }, entryIndex) => {
-                            let home_team = game["home_team"];
-                            let away_team = game["away_team"];
-                            let home_spread = game["home_spread"]
-                            let away_spread = game["away_spread"]
+                    .map(({ game, isGotw }, entryIndex) => {
+                        let home_team = game["home_team"];
+                        let away_team = game["away_team"];
+                        let home_spread = game["home_spread"]
+                        let away_spread = game["away_spread"]
 
-                            let home_team_name = home_team.split(" ").pop()
-                            let away_team_name = away_team.split(" ").pop()
+                        let home_team_name = home_team.split(" ").pop()
+                        let away_team_name = away_team.split(" ").pop()
 
-                            let home_logo = `logos/${home_team_name}.png`;
-                            let away_logo = `logos/${away_team_name}.png`;
+                        let home_logo = `logos/${home_team_name}.png`;
+                        let away_logo = `logos/${away_team_name}.png`;
 
-                            let over = game["over"]
-                            let under = game["under"]
-                            let commenceTime = game["commence_time"]
-                            let home_spread_num = +home_spread
-                            let away_spread_num = +away_spread
-                            let favorite = home_spread_num > away_spread_num ? away_team + " " + away_spread_num : home_team + " " + home_spread_num
-                            let underdog = home_spread_num > away_spread_num ? home_team + " +" + home_spread_num : away_team + " +" + away_spread_num
-                            let favorite_spread = home_spread_num > away_spread_num ? away_spread_num : home_spread_num
-                            let underdog_spread = home_spread_num > away_spread_num ? home_spread_num : away_spread_num
+                        let over = game["over"]
+                        let under = game["under"]
+                        let commenceTime = game["commence_time"]
+                        let home_spread_num = +home_spread
+                        let away_spread_num = +away_spread
+                        let favorite = home_spread_num > away_spread_num ? away_team + " " + away_spread_num : home_team + " " + home_spread_num
+                        let underdog = home_spread_num > away_spread_num ? home_team + " +" + home_spread_num : away_team + " +" + away_spread_num
+                        let favorite_spread = home_spread_num > away_spread_num ? away_spread_num : home_spread_num
+                        let underdog_spread = home_spread_num > away_spread_num ? home_spread_num : away_spread_num
 
-                            const gameIdStr = game["gameId"];
-                            const away_picked = Array.isArray(tempPicks)
-                                ? isGotw
-                                    ? tempPicks.find(obj => obj.type === "gotw" && !obj.text.includes("Over") && !obj.text.includes("Under") && obj.text.includes(away_team_name))
-                                    : tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "dog" && obj.text.includes(away_team_name)) ||
-                                      tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "favorite" && obj.text.includes(away_team_name))
-                                : null;
-                            const home_picked = Array.isArray(tempPicks)
-                                ? isGotw
-                                    ? tempPicks.find(obj => obj.type === "gotw" && !obj.text.includes("Over") && !obj.text.includes("Under") && obj.text.includes(home_team_name))
-                                    : tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "dog" && obj.text.includes(home_team_name)) ||
-                                      tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "favorite" && obj.text.includes(home_team_name))
-                                : null;
-                            const over_picked = Array.isArray(tempPicks)
-                                ? tempPicks.find(obj => obj.type === "over" && obj.text?.includes(home_team) && obj.text?.includes(away_team))
-                                : null;
-                            const under_picked = Array.isArray(tempPicks)
-                                ? tempPicks.find(obj => obj.type === "under" && obj.text?.includes(home_team) && obj.text?.includes(away_team))
-                                : null;
+                        const gameIdStr = game["gameId"];
+                        const away_picked = Array.isArray(tempPicks)
+                            ? isGotw
+                                ? tempPicks.find(obj => obj.type === "gotw" && !obj.text.includes("Over") && !obj.text.includes("Under") && obj.text.includes(away_team_name))
+                                : tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "dog" && obj.text.includes(away_team_name)) ||
+                                tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "favorite" && obj.text.includes(away_team_name))
+                            : null;
+                        const home_picked = Array.isArray(tempPicks)
+                            ? isGotw
+                                ? tempPicks.find(obj => obj.type === "gotw" && !obj.text.includes("Over") && !obj.text.includes("Under") && obj.text.includes(home_team_name))
+                                : tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "dog" && obj.text.includes(home_team_name)) ||
+                                tempPicks.find(obj => (obj.gameId === gameIdStr || (obj.text?.includes(away_team) && obj.text?.includes(home_team))) && obj.type === "favorite" && obj.text.includes(home_team_name))
+                            : null;
+                        const over_picked = Array.isArray(tempPicks)
+                            ? tempPicks.find(obj => obj.type === "over" && obj.text?.includes(home_team) && obj.text?.includes(away_team))
+                            : null;
+                        const under_picked = Array.isArray(tempPicks)
+                            ? tempPicks.find(obj => obj.type === "under" && obj.text?.includes(home_team) && obj.text?.includes(away_team))
+                            : null;
 
-                            const dateObj = new Date(commenceTime);
-                            const liveScore = liveScores[`${away_team}@${home_team}`];
-                            const hasScore = liveScore && liveScore.state !== 'pre';
-                            const isCompleted = liveScore?.is_completed ?? false;
+                        const dateObj = new Date(commenceTime);
+                        const liveScore = liveScores[`${away_team}@${home_team}`];
+                        const hasScore = liveScore && liveScore.state !== 'pre';
+                        const isCompleted = liveScore?.is_completed ?? false;
 
-                            const getTeamPickClass = (pick) => {
-                                if (!pick) return "";
-                                if (isCompleted) {
-                                    if (pick.result === 1) return "pick-win";
-                                    if (pick.result === -1) return "pick-loss";
-                                    if (pick.result === 0) return "pick-push";
-                                }
-                                return isGotw ? "gotw-picked" : "picked";
-                            };
+                        const getTeamPickClass = (pick) => {
+                            if (!pick) return "";
+                            if (isCompleted) {
+                                if (pick.result === 1) return "pick-win";
+                                if (pick.result === -1) return "pick-loss";
+                                if (pick.result === 0) return "pick-push";
+                            }
+                            return isGotw ? "gotw-picked" : "picked";
+                        };
 
-                            const getTotalPickClass = (pick) => {
-                                if (!pick) return null;
-                                if (isCompleted) {
-                                    if (pick.result === 1) return "total-win";
-                                    if (pick.result === -1) return "total-loss";
-                                    if (pick.result === 0) return "total-push";
-                                }
-                                return isGotw ? "gotw-total-picked" : "total-picked";
-                            };
+                        const getTotalPickClass = (pick) => {
+                            if (!pick) return null;
+                            if (isCompleted) {
+                                if (pick.result === 1) return "total-win";
+                                if (pick.result === -1) return "total-loss";
+                                if (pick.result === 0) return "total-push";
+                            }
+                            return isGotw ? "gotw-total-picked" : "total-picked";
+                        };
 
-                            const awayPickClass = getTeamPickClass(away_picked);
-                            const homePickClass = getTeamPickClass(home_picked);
+                        const awayPickClass = getTeamPickClass(away_picked);
+                        const homePickClass = getTeamPickClass(home_picked);
 
-                            const gotwOver = isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Over")) : null;
-                            const gotwUnder = isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Under")) : null;
-                            const overPickForClass = isGotw ? gotwOver : over_picked;
-                            const underPickForClass = isGotw ? gotwUnder : under_picked;
-                            const overPickClass = getTotalPickClass(overPickForClass);
-                            const underPickClass = getTotalPickClass(underPickForClass);
+                        const gotwOver = isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Over")) : null;
+                        const gotwUnder = isGotw ? tempPicks.find(obj => obj.type === "gotw" && obj.text.includes("Under")) : null;
+                        const overPickForClass = isGotw ? gotwOver : over_picked;
+                        const underPickForClass = isGotw ? gotwUnder : under_picked;
+                        const overPickClass = getTotalPickClass(overPickForClass);
+                        const underPickClass = getTotalPickClass(underPickForClass);
 
-                            // Detect when a stored pick's locked-in line no longer matches the
-                            // game's current line (odds moved since the pick was made).
-                            const lineHasMoved = (pick, currentValue) => {
-                                if (!pick) return false;
-                                const picked = parseFloat(pick.value);
-                                const current = parseFloat(currentValue);
-                                return !isNaN(picked) && !isNaN(current) && picked !== current;
-                            };
-                            const awayLineMoved = lineHasMoved(away_picked, away_spread_num);
-                            const homeLineMoved = lineHasMoved(home_picked, home_spread_num);
-                            const overLineMoved = lineHasMoved(overPickForClass, over);
-                            const underLineMoved = lineHasMoved(underPickForClass, under);
-                            return (
-                                <Paper
-                                    key={isGotw ? `gotw-${game["gameId"]}` : game["gameId"]}
-                                    sx={{
-                                        mb: 2.5,
-                                        ...(isGotw && {
-                                            border: "2px solid #D4AF37",
-                                            boxShadow: "0 2px 16px rgba(212, 175, 55, 0.35)",
-                                        })
-                                    }}
-                                    elevation={isGotw ? 4 : 2}
-                                >
-                                    {isGotw && (
-                                        <Box sx={{
-                                            background: "linear-gradient(90deg, #9a7c0a 0%, #D4AF37 40%, #F5CB5C 70%, #D4AF37 100%)",
-                                            color: "#3d2b00",
-                                            px: 1.5,
-                                            py: 0.75,
-                                            borderRadius: "2px 2px 0 0",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            gap: 0.5,
-                                        }}>
-                                            <Typography variant="caption" fontWeight="bold" sx={{ fontSize: "0.8rem", letterSpacing: "0.04em" }}>
-                                                GAME OF THE WEEK
-                                            </Typography>
-                                        </Box>
-                                    )}
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", px: 1.5, pt: 1.5 }}>
-                                        <Typography variant="body2" fontWeight="bold">
-                                            {hasScore
-                                                ? (liveScore.is_completed ? "Final" : liveScore.status_short_detail)
-                                                : `${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
+                        // Detect when a stored pick's locked-in line no longer matches the
+                        // game's current line (odds moved since the pick was made).
+                        const lineHasMoved = (pick, currentValue) => {
+                            if (!pick) return false;
+                            const picked = parseFloat(pick.value);
+                            const current = parseFloat(currentValue);
+                            return !isNaN(picked) && !isNaN(current) && picked !== current;
+                        };
+                        const awayLineMoved = lineHasMoved(away_picked, away_spread_num);
+                        const homeLineMoved = lineHasMoved(home_picked, home_spread_num);
+                        const overLineMoved = lineHasMoved(overPickForClass, over);
+                        const underLineMoved = lineHasMoved(underPickForClass, under);
+                        return (
+                            <Paper
+                                key={isGotw ? `gotw-${game["gameId"]}` : game["gameId"]}
+                                sx={{
+                                    mb: 2.5,
+                                    ...(isGotw && {
+                                        border: "2px solid #D4AF37",
+                                        boxShadow: "0 2px 16px rgba(212, 175, 55, 0.35)",
+                                    })
+                                }}
+                                elevation={isGotw ? 4 : 2}
+                            >
+                                {isGotw && (
+                                    <Box sx={{
+                                        background: "linear-gradient(90deg, #9a7c0a 0%, #D4AF37 40%, #F5CB5C 70%, #D4AF37 100%)",
+                                        color: "#3d2b00",
+                                        px: 1.5,
+                                        py: 0.75,
+                                        borderRadius: "2px 2px 0 0",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        gap: 0.5,
+                                    }}>
+                                        <Typography variant="caption" fontWeight="bold" sx={{ fontSize: "0.8rem", letterSpacing: "0.04em" }}>
+                                            GAME OF THE WEEK
                                         </Typography>
-                                        <Box sx={{ display: "flex", gap: 1.5 }}>
-                                                            <Typography
-                                                                variant="body2"
-                                                                onClick={() => {
-                                                                    setShowStevenInfo(true);
-                                                                    setSelectedGameId(game["gameId"]);
-                                                                    setSelectedGame({ home: home_team, away: away_team, homeSpread: home_spread, awaySpread: away_spread, over });
-                                                                }}
-                                                                sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
-                                                            >
-                                                                Game Info
-                                                            </Typography>
-                                                        </Box>
                                     </Box>
-                                    {hasScore && (() => {
-                                        const awayLs = liveScore.away_linescores || [];
-                                        const homeLs = liveScore.home_linescores || [];
-                                        const maxPeriod = Math.max(4, ...[...awayLs, ...homeLs].map(q => q.period));
-                                        const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
-                                        const colLabel = (p) => p <= 4 ? `Q${p}` : `OT${p - 4}`;
-                                        const getVal = (ls, p) => { const q = ls.find(x => x.period === p); return q ? q.displayValue : '-'; };
-                                        const cellSx = { fontSize: "0.7rem", textAlign: "center", px: 0.75, py: 0.25, minWidth: 28 };
-                                        const headerSx = { ...cellSx, color: "text.secondary", fontWeight: 600 };
-                                        const totalSx = { ...cellSx, fontWeight: 700, fontSize: "0.8rem", borderLeft: "1px solid rgba(255,255,255,0.12)" };
-                                        const nameSx = { fontSize: "0.7rem", fontWeight: 600, textAlign: "left", pr: 1, minWidth: 32 };
-                                        return (
-                                            <Box sx={{ overflowX: "auto", px: 1.5, pt: 1.5, pb: 0.5 }}>
-                                                <Box component="table" sx={{ width: "100%", borderCollapse: "collapse" }}>
-                                                    <Box component="thead">
-                                                        <Box component="tr">
-                                                            <Box component="th" sx={nameSx} />
-                                                            {periods.map(p => (
-                                                                <Box component="th" key={p} sx={headerSx}>{colLabel(p)}</Box>
-                                                            ))}
-                                                            <Box component="th" sx={{ ...headerSx, borderLeft: "1px solid rgba(255,255,255,0.12)", fontWeight: 700 }}>T</Box>
-                                                        </Box>
-                                                    </Box>
-                                                    <Box component="tbody">
-                                                        {[
-                                                            { label: away_team_name, ls: awayLs, total: liveScore.away_score },
-                                                            { label: home_team_name, ls: homeLs, total: liveScore.home_score },
-                                                        ].map(({ label, ls, total }) => (
-                                                            <Box component="tr" key={label}>
-                                                                <Box component="td" sx={nameSx}>{label}</Box>
-                                                                {periods.map(p => (
-                                                                    <Box component="td" key={p} sx={cellSx}>{getVal(ls, p)}</Box>
-                                                                ))}
-                                                                <Box component="td" sx={totalSx}>{total ?? '-'}</Box>
-                                                            </Box>
+                                )}
+                                <Box sx={{ display: "flex", justifyContent: "space-between", px: 1.5, pt: 1.5 }}>
+                                    <Typography variant="body2" fontWeight="bold">
+                                        {hasScore
+                                            ? (liveScore.is_completed ? "Final" : liveScore.status_short_detail)
+                                            : `${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
+                                    </Typography>
+                                    <Box sx={{ display: "flex", gap: 1.5 }}>
+                                        <Typography
+                                            variant="body2"
+                                            onClick={() => {
+                                                setShowStevenInfo(true);
+                                                setSelectedGameId(game["gameId"]);
+                                                setSelectedGame({ home: home_team, away: away_team, homeSpread: home_spread, awaySpread: away_spread, over });
+                                            }}
+                                            sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
+                                        >
+                                            Game Info
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                                {hasScore && (() => {
+                                    const awayLs = liveScore.away_linescores || [];
+                                    const homeLs = liveScore.home_linescores || [];
+                                    const maxPeriod = Math.max(4, ...[...awayLs, ...homeLs].map(q => q.period));
+                                    const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
+                                    const colLabel = (p) => p <= 4 ? `Q${p}` : `OT${p - 4}`;
+                                    const getVal = (ls, p) => { const q = ls.find(x => x.period === p); return q ? q.displayValue : '-'; };
+                                    const cellSx = { fontSize: "0.7rem", textAlign: "center", px: 0.75, py: 0.25, minWidth: 28 };
+                                    const headerSx = { ...cellSx, color: "text.secondary", fontWeight: 600 };
+                                    const totalSx = { ...cellSx, fontWeight: 700, fontSize: "0.8rem", borderLeft: "1px solid rgba(255,255,255,0.12)" };
+                                    const nameSx = { fontSize: "0.7rem", fontWeight: 600, textAlign: "left", pr: 1, minWidth: 32 };
+                                    return (
+                                        <Box sx={{ overflowX: "auto", px: 1.5, pt: 1.5, pb: 0.5 }}>
+                                            <Box component="table" sx={{ width: "100%", borderCollapse: "collapse" }}>
+                                                <Box component="thead">
+                                                    <Box component="tr">
+                                                        <Box component="th" sx={nameSx} />
+                                                        {periods.map(p => (
+                                                            <Box component="th" key={p} sx={headerSx}>{colLabel(p)}</Box>
                                                         ))}
+                                                        <Box component="th" sx={{ ...headerSx, borderLeft: "1px solid rgba(255,255,255,0.12)", fontWeight: 700 }}>T</Box>
                                                     </Box>
                                                 </Box>
+                                                <Box component="tbody">
+                                                    {[
+                                                        { label: away_team_name, ls: awayLs, total: liveScore.away_score },
+                                                        { label: home_team_name, ls: homeLs, total: liveScore.home_score },
+                                                    ].map(({ label, ls, total }) => (
+                                                        <Box component="tr" key={label}>
+                                                            <Box component="td" sx={nameSx}>{label}</Box>
+                                                            {periods.map(p => (
+                                                                <Box component="td" key={p} sx={cellSx}>{getVal(ls, p)}</Box>
+                                                            ))}
+                                                            <Box component="td" sx={totalSx}>{total ?? '-'}</Box>
+                                                        </Box>
+                                                    ))}
+                                                </Box>
                                             </Box>
-                                        );
-                                    })()}
-                                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", textAlign: "center", width: "100%" }}>
-                                        <div className={`team-container ${awayPickClass}`} onClick={() =>
-                                            updatePick(
-                                                game["gameId"],
-                                                home_team,
-                                                away_team,
-                                                isGotw ? "gotw" : (away_spread_num > 0 ? "dog" : "favorite"),
-                                                away_spread_num > 0 ? underdog_spread : favorite_spread,
-                                                away_spread_num > 0 ? underdog : favorite,
-                                                commenceTime
-                                            )
-                                        }>
-                                            <img src={away_logo} alt={away_team} className="logo" />
-                                            <div className="team-record">{records[away_team] ?? ""}</div>
-                                            <div><div className="team-name">{away_team}</div><b>{away_spread_num > 0 ? "+" + away_spread_num : away_spread_num}</b></div>
-                                            {awayLineMoved && (
-                                                <div className="line-moved-note" title={`Line moved since you picked ${formatLineValue(away_picked.value)} — current line is ${formatLineValue(away_spread_num)}`}>
-                                                    Line moved: picked {formatLineValue(away_picked.value)}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className={`team-container ${homePickClass}`} onClick={() =>
-                                            updatePick(
-                                                game["gameId"],
-                                                home_team,
-                                                away_team,
-                                                isGotw ? "gotw" : (away_spread_num > 0 ? "favorite" : "dog"),
-                                                away_spread_num > 0 ? favorite_spread : underdog_spread,
-                                                away_spread_num > 0 ? favorite : underdog,
-                                                commenceTime
-                                            )
-                                        }>
-                                            <img src={home_logo} alt={home_team} className="logo" />
-                                            <div className="team-record">{records[home_team] ?? ""}</div>
-                                            <div><div className="team-name">{home_team}</div><b>{home_spread_num > 0 ? "+" + home_spread_num : home_spread_num}</b></div>
-                                            {homeLineMoved && (
-                                                <div className="line-moved-note" title={`Line moved since you picked ${formatLineValue(home_picked.value)} — current line is ${formatLineValue(home_spread_num)}`}>
-                                                    Line moved: picked {formatLineValue(home_picked.value)}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="icon-text-container">
-                                                {overPickClass ? (
-                                                    <span className={overPickClass}>
-                                                        <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
-                                                            updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
-                                                        }></h2>
-                                                    </span>
-                                                ) : (
-                                                    <h2 className="total bi bi-arrow-up-square-fill" onClick={() =>
-                                                        updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
-                                                    }></h2>
-                                                )}
-                                                <div className="over-text"><b>{over}</b></div>
-                                                {underPickClass ? (
-                                                    <span className={underPickClass}>
-                                                        <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
-                                                            updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
-                                                        }></h2>
-                                                    </span>
-                                                ) : (
-                                                    <h2 className="total bi bi-arrow-down-square-fill" onClick={() =>
-                                                        updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
-                                                    }></h2>
-                                                )}
-                                                {(overLineMoved || underLineMoved) && (
-                                                    <div
-                                                        className="line-moved-note"
-                                                        title={`Line moved since you picked ${formatLineValue(overLineMoved ? overPickForClass.value : underPickForClass.value)} — current total is ${formatLineValue(overLineMoved ? over : under)}`}
-                                                    >
-                                                        Line moved: picked {formatLineValue(overLineMoved ? overPickForClass.value : underPickForClass.value)}
-                                                    </div>
-                                                )}
+                                        </Box>
+                                    );
+                                })()}
+                                <div style={{ display: "flex", justifyContent: "center", alignItems: "center", textAlign: "center", width: "100%" }}>
+                                    <div className={`team-container ${awayPickClass}`} onClick={() =>
+                                        updatePick(
+                                            game["gameId"],
+                                            home_team,
+                                            away_team,
+                                            isGotw ? "gotw" : (away_spread_num > 0 ? "dog" : "favorite"),
+                                            away_spread_num > 0 ? underdog_spread : favorite_spread,
+                                            away_spread_num > 0 ? underdog : favorite,
+                                            commenceTime
+                                        )
+                                    }>
+                                        <img src={away_logo} alt={away_team} className="logo" />
+                                        <div className="team-record">{records[away_team] ?? ""}</div>
+                                        <div><div className="team-name">{away_team}</div><b>{away_spread_num > 0 ? "+" + away_spread_num : away_spread_num}</b></div>
+                                        {awayLineMoved && (
+                                            <div className="line-moved-note" title={`Line moved since you picked ${formatLineValue(away_picked.value)} — current line is ${formatLineValue(away_spread_num)}`}>
+                                                You have:  {formatLineValue(away_picked.value)}
                                             </div>
+                                        )}
                                     </div>
-                                </Paper>
-                            );
-                        })}
+                                    <div className={`team-container ${homePickClass}`} onClick={() =>
+                                        updatePick(
+                                            game["gameId"],
+                                            home_team,
+                                            away_team,
+                                            isGotw ? "gotw" : (away_spread_num > 0 ? "favorite" : "dog"),
+                                            away_spread_num > 0 ? favorite_spread : underdog_spread,
+                                            away_spread_num > 0 ? favorite : underdog,
+                                            commenceTime
+                                        )
+                                    }>
+                                        <img src={home_logo} alt={home_team} className="logo" />
+                                        <div className="team-record">{records[home_team] ?? ""}</div>
+                                        <div><div className="team-name">{home_team}</div><b>{home_spread_num > 0 ? "+" + home_spread_num : home_spread_num}</b></div>
+                                        {homeLineMoved && (
+                                            <div className="line-moved-note" title={`Line moved since you picked ${formatLineValue(home_picked.value)} — current line is ${formatLineValue(home_spread_num)}`}>
+                                                You have:  {formatLineValue(home_picked.value)}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="icon-text-container">
+                                        {overPickClass ? (
+                                            <span className={overPickClass}>
+                                                <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
+                                                    updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
+                                                }></h2>
+                                            </span>
+                                        ) : (
+                                            <h2 className="total bi bi-arrow-up-square-fill" onClick={() =>
+                                                updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
+                                            }></h2>
+                                        )}
+                                        <div className="over-text"><b>{over}</b></div>
+                                        {underPickClass ? (
+                                            <span className={underPickClass}>
+                                                <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
+                                                    updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
+                                                }></h2>
+                                            </span>
+                                        ) : (
+                                            <h2 className="total bi bi-arrow-down-square-fill" onClick={() =>
+                                                updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
+                                            }></h2>
+                                        )}
+                                        {(overLineMoved || underLineMoved) && (
+                                            <div
+                                                className="line-moved-note"
+                                                title={`Line moved since you picked ${formatLineValue(overLineMoved ? overPickForClass.value : underPickForClass.value)} — current total is ${formatLineValue(overLineMoved ? over : under)}`}
+                                            >
+                                                You have:  {formatLineValue(overLineMoved ? overPickForClass.value : underPickForClass.value)}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </Paper>
+                        );
+                    })}
                 <Box sx={{ pb: 10 }} />
-                </Box>
-                <Box sx={{
-                    position: "fixed",
-                    bottom: 20,
-                    left: 0,
-                    right: 0,
-                    px: 2,
-                    zIndex: 1000,
-                }}>
-                    <StevenButton
-                        onClick={() => setShowConfirm(true)}
+            </Box>
+            <Box sx={{
+                position: "fixed",
+                bottom: 20,
+                left: 0,
+                right: 0,
+                px: 2,
+                zIndex: 1000,
+            }}>
+                <StevenButton
+                    onClick={() => setShowConfirm(true)}
                     sx={{
                         width: "100%",
                         py: 1.5,
