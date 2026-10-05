@@ -24,7 +24,7 @@ import {
     BsClockHistory, BsBug, BsCalculator, BsCardChecklist, BsList,
     BsPersonCircle, BsHouseDoor, BsTerminal, BsController, BsCardList,
     BsPeopleFill, BsChevronDown, BsChevronRight, BsShieldLock, BsMegaphone,
-    BsToggles, BsGem
+    BsToggles, BsGem, BsHeartFill
 } from "react-icons/bs";
 import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
 import { ImStatsDots } from "react-icons/im";
@@ -43,9 +43,20 @@ const StevenNavbar = () => {
     const { user } = useAuth0();
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [showRules, setShowRules] = useState(false);
+    const [showDonationDialog, setShowDonationDialog] = useState(false);
     const [adminOpen, setAdminOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+
+    const CTF_DONATION_URL = "https://join.ctf.org/fundraiser/7629640?is_new=true";
+
+    useEffect(() => {
+        const hasSeenDonationDialog = localStorage.getItem("ctfDonationDialogSeen");
+        if (!hasSeenDonationDialog) {
+            setShowDonationDialog(true);
+            localStorage.setItem("ctfDonationDialogSeen", "true");
+        }
+    }, []);
 
     const isAdmin = user.email.toLowerCase() === "giulian.trabucco@gmail.com";
     const [issueCount, setIssueCount] = useState(0);
@@ -105,6 +116,27 @@ const StevenNavbar = () => {
 
     return (
         <>
+            <Dialog open={showDonationDialog} onClose={() => setShowDonationDialog(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Support the Children's Tumor Foundation</DialogTitle>
+                <DialogContent dividers>
+                    <Typography gutterBottom>
+                        Hello everyone. In February, I'm running the Austin marathon and am raising money for the
+                        children's tumor foundation. My nephew and godson, Elio, was recently diagnosed with NF1.
+                        NF1 is a lifelong genetic condition that causes the formation of tumors on nerves in your
+                        brain, spinal cord and skin. Any amount of money would go a long way and would be greatly
+                        appreciated
+                    </Typography>
+                    <Typography>
+                        <a href={CTF_DONATION_URL} target="_blank" rel="noopener noreferrer">
+                            {CTF_DONATION_URL}
+                        </a>
+                    </Typography>
+                </DialogContent>
+                <DialogActions>
+                    <StevenButton onClick={() => setShowDonationDialog(false)} sx={{ backgroundColor: "white", color: "black", "&:hover": { backgroundColor: "#f0f0f0" } }}>Close</StevenButton>
+                </DialogActions>
+            </Dialog>
+
             <Dialog open={showRules} onClose={() => setShowRules(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>Slack Gambling Rules</DialogTitle>
                 <DialogContent dividers>
@@ -144,6 +176,15 @@ const StevenNavbar = () => {
                         <img alt="" width="45" height="45" src="/stevenlogo.png" />
                         <Typography sx={{ fontWeight: 400, fontSize: 18 }}>Slack Gambling</Typography>
                     </Box>
+                    <StevenButton
+                        onClick={() => window.open(CTF_DONATION_URL, "_blank", "noopener,noreferrer")}
+                        variant="outlined"
+                        size="small"
+                        startIcon={<BsHeartFill />}
+                        sx={{ color: "#e91e63", borderColor: "#e91e63", "&:hover": { borderColor: "#ad1457", color: "#ad1457" } }}
+                    >
+                        Donate to CTF
+                    </StevenButton>
                     <StevenButton
                         onClick={() => setShowRules(true)}
                         variant="outlined"
