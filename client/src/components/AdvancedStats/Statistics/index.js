@@ -79,34 +79,39 @@ const Statistics = () => {
     return `${wins} - ${losses} - ${pushes} (${pct}%)`;
   };
 
-  const getWeekSums = (data, groupByUser) => {
+  // 2025 seasons scored 4 categories per week (favorite, dog, over, under);
+  // 2026+ seasons added a 5th category (gotw), raising the perfect/winless week score.
+  const getWeekMaxForSeason = (season) => (parseInt(season) >= 2026 ? 5 : 4);
+
+  const getWeekGroups = (data, groupByUser) => {
     const keyFn = groupByUser
       ? i => `${i.username}-${i.season}-${i.week}`
       : i => `${i.season}-${i.week}`;
 
-    return Object.values(
-      Object.groupBy(data, keyFn)
-    ).map(week => week.reduce((sum, i) => sum + i.result, 0));
+    return Object.values(Object.groupBy(data, keyFn)).map(week => ({
+      season: week[0]?.season,
+      sum: week.reduce((sum, i) => sum + i.result, 0),
+    }));
   };
 
   const getPerfectWeeks = (data) => {
-    const sums = getWeekSums(data, selectedPlayer === "All");
-    return sums.filter(s => s === 4).length;
+    const groups = getWeekGroups(data, selectedPlayer === "All");
+    return groups.filter(g => g.sum === getWeekMaxForSeason(g.season)).length;
   };
 
   const getNegativeWeeks = (data) => {
-    const sums = getWeekSums(data, selectedPlayer === "All");
-    return sums.filter(s => s === -4).length;
+    const groups = getWeekGroups(data, selectedPlayer === "All");
+    return groups.filter(g => g.sum === -getWeekMaxForSeason(g.season)).length;
   };
 
   const getPlusWeeks = (data) => {
-    const sums = getWeekSums(data, selectedPlayer === "All");
-    return sums.filter(s => s > 0).length;
+    const groups = getWeekGroups(data, selectedPlayer === "All");
+    return groups.filter(g => g.sum > 0).length;
   };
 
   const getMinusWeeks = (data) => {
-    const sums = getWeekSums(data, selectedPlayer === "All");
-    return sums.filter(s => s < 0).length;
+    const groups = getWeekGroups(data, selectedPlayer === "All");
+    return groups.filter(g => g.sum < 0).length;
   };
 
   const getOverallRecord = (data) => {
@@ -171,8 +176,9 @@ const Statistics = () => {
               <StevenTableRow><StevenTableCell>Underdogs</StevenTableCell><StevenTableCell>{getRecord(filteredPicks, "dog")}</StevenTableCell></StevenTableRow>
               <StevenTableRow><StevenTableCell>Overs</StevenTableCell><StevenTableCell>{getRecord(filteredPicks, "over")}</StevenTableCell></StevenTableRow>
               <StevenTableRow><StevenTableCell>Unders</StevenTableCell><StevenTableCell>{getRecord(filteredPicks, "under")}</StevenTableCell></StevenTableRow>
-              <StevenTableRow><StevenTableCell>4/4 Weeks</StevenTableCell><StevenTableCell>{getPerfectWeeks(filteredPicks)}</StevenTableCell></StevenTableRow>
-              <StevenTableRow><StevenTableCell>0/4 Weeks</StevenTableCell><StevenTableCell>{getNegativeWeeks(filteredPicks)}</StevenTableCell></StevenTableRow>
+              <StevenTableRow><StevenTableCell>Game of the Week</StevenTableCell><StevenTableCell>{getRecord(filteredPicks, "gotw")}</StevenTableCell></StevenTableRow>
+              <StevenTableRow><StevenTableCell>Perfect Weeks</StevenTableCell><StevenTableCell>{getPerfectWeeks(filteredPicks)}</StevenTableCell></StevenTableRow>
+              <StevenTableRow><StevenTableCell>Winless Weeks</StevenTableCell><StevenTableCell>{getNegativeWeeks(filteredPicks)}</StevenTableCell></StevenTableRow>
               <StevenTableRow><StevenTableCell>Positive Weeks</StevenTableCell><StevenTableCell>{getPlusWeeks(filteredPicks)}</StevenTableCell></StevenTableRow>
               <StevenTableRow><StevenTableCell>Negative Weeks</StevenTableCell><StevenTableCell>{getMinusWeeks(filteredPicks)}</StevenTableCell></StevenTableRow>
             </StevenTableBody>

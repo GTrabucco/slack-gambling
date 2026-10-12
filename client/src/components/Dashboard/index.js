@@ -8,6 +8,7 @@ import StevenBetCard from "../StevenBetCard";
 import StevenGameList from "../StevenGameList";
 import GotwReveal from "../GotwReveal";
 import TopLeaderboard from "../TopLeaderboard";
+import PerfectWeekWatch from "../PerfectWeekWatch";
 import userService from "../../services/userService";
 
 const Dashboard = () => {
@@ -87,6 +88,7 @@ const Dashboard = () => {
         user={user}
       />
       <TopLeaderboard />
+      <PerfectWeekWatch />
       <Divider sx={{ my: 2 }} />
       <StevenBetCard
         selectedPicks={selectedPicks}
