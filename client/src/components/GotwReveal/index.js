@@ -161,6 +161,8 @@ const GotwReveal = ({ games, gameStarted }) => {
                     </Typography>
                 </Box>
 
+                <Box sx={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+                <Box sx={{ minWidth: 480 }}>
                 {hasSpread && (
                     <PickRow
                         leftLabel={favName}
@@ -180,6 +182,8 @@ const GotwReveal = ({ games, gameStarted }) => {
                         rightPickers={underPickers}
                     />
                 )}
+                </Box>
+                </Box>
             </Paper>
         </Box>
     );
