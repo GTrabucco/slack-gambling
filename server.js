@@ -1927,7 +1927,7 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
-// Users currently running a perfect (4-0 or better) record on this week's scored picks
+// Users currently running a perfect (3-0 or better) record on this week's scored picks
 app.get('/api/perfect-week-watch', async (req, res) => {
     try {
         const db = client.db(DATABASE_NAME);
@@ -1942,7 +1942,7 @@ app.get('/api/perfect-week-watch', async (req, res) => {
         }
 
         const perfectUsernames = Object.entries(userRecord)
-            .filter(([, record]) => record.losses === 0 && record.wins >= 4)
+            .filter(([, record]) => record.losses === 0 && record.wins >= 3)
             .map(([username, record]) => ({ username, record }));
 
         if (perfectUsernames.length === 0) return res.json([]);
