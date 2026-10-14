@@ -58,7 +58,7 @@ const ManageDonorPerks = () => {
     const [newForm, setNewForm] = useState(EMPTY_FORM);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-    const [accessForm, setAccessForm] = useState({ oddsAlertThreshold: "", publicBettingThreshold: "", injuryScoreThreshold: "" });
+    const [accessForm, setAccessForm] = useState({ oddsAlertThreshold: "", publicBettingThreshold: "" });
     const [accessLoading, setAccessLoading] = useState(true);
     const [accessSaving, setAccessSaving] = useState(false);
 
@@ -83,7 +83,6 @@ const ManageDonorPerks = () => {
             setAccessForm({
                 oddsAlertThreshold: settings.oddsAlertThreshold != null ? String(settings.oddsAlertThreshold) : ADMIN_ONLY_VALUE,
                 publicBettingThreshold: settings.publicBettingThreshold != null ? String(settings.publicBettingThreshold) : ADMIN_ONLY_VALUE,
-                injuryScoreThreshold: settings.injuryScoreThreshold != null ? String(settings.injuryScoreThreshold) : ADMIN_ONLY_VALUE,
             });
         } catch (e) {
             setError("Error fetching feature access settings");
@@ -98,7 +97,6 @@ const ManageDonorPerks = () => {
             await featureAccessService.updateSettings({
                 oddsAlertThreshold: accessForm.oddsAlertThreshold === ADMIN_ONLY_VALUE ? null : Number(accessForm.oddsAlertThreshold),
                 publicBettingThreshold: accessForm.publicBettingThreshold === ADMIN_ONLY_VALUE ? null : Number(accessForm.publicBettingThreshold),
-                injuryScoreThreshold: accessForm.injuryScoreThreshold === ADMIN_ONLY_VALUE ? null : Number(accessForm.injuryScoreThreshold),
             });
             featureAccessService.invalidateCache();
             setSuccess("Feature access thresholds updated.");
@@ -130,7 +128,6 @@ const ManageDonorPerks = () => {
     };
     const oddsAlertOptions = withCustomFallback(tierAccessOptions, accessForm.oddsAlertThreshold);
     const publicBettingOptions = withCustomFallback(tierAccessOptions, accessForm.publicBettingThreshold);
-    const injuryScoreOptions = withCustomFallback(tierAccessOptions, accessForm.injuryScoreThreshold);
 
     useEffect(() => { fetchTiers(); fetchAccessSettings(); }, []);
 
@@ -234,15 +231,6 @@ const ManageDonorPerks = () => {
                                     value={accessForm.publicBettingThreshold}
                                     onChange={e => setAccessForm(p => ({ ...p, publicBettingThreshold: e.target.value }))}
                                     options={publicBettingOptions}
-                                    size="small"
-                                />
-                            </Grid>
-                            <Grid item xs={12} md={4}>
-                                <Typography variant="caption" color="text.secondary">Injury Score Access</Typography>
-                                <StevenSelect
-                                    value={accessForm.injuryScoreThreshold}
-                                    onChange={e => setAccessForm(p => ({ ...p, injuryScoreThreshold: e.target.value }))}
-                                    options={injuryScoreOptions}
                                     size="small"
                                 />
                             </Grid>

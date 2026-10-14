@@ -2284,7 +2284,6 @@ app.get('/api/feature-access-settings', async (req, res) => {
         res.json({
             oddsAlertThreshold: settings?.oddsAlertThreshold ?? null,
             publicBettingThreshold: settings?.publicBettingThreshold ?? null,
-            injuryScoreThreshold: settings?.injuryScoreThreshold ?? null,
         });
     } catch (error) {
         console.error('Error fetching feature access settings:', error);
@@ -2294,7 +2293,7 @@ app.get('/api/feature-access-settings', async (req, res) => {
 
 app.put('/api/feature-access-settings', adminLimiter, async (req, res) => {
     try {
-        const { oddsAlertThreshold, publicBettingThreshold, injuryScoreThreshold } = req.body;
+        const { oddsAlertThreshold, publicBettingThreshold } = req.body;
         const db = client.db(DATABASE_NAME);
         await db.collection('Feature_Access_Settings').updateOne(
             { key: 'default' },
@@ -2303,7 +2302,6 @@ app.put('/api/feature-access-settings', adminLimiter, async (req, res) => {
                     key: 'default',
                     oddsAlertThreshold: oddsAlertThreshold === null || oddsAlertThreshold === undefined || oddsAlertThreshold === '' ? null : Number(oddsAlertThreshold),
                     publicBettingThreshold: publicBettingThreshold === null || publicBettingThreshold === undefined || publicBettingThreshold === '' ? null : Number(publicBettingThreshold),
-                    injuryScoreThreshold: injuryScoreThreshold === null || injuryScoreThreshold === undefined || injuryScoreThreshold === '' ? null : Number(injuryScoreThreshold),
                 }
             },
             { upsert: true }
@@ -2312,75 +2310,6 @@ app.put('/api/feature-access-settings', adminLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error updating feature access settings:', error);
         res.status(500).json({ error: 'Error updating feature access settings' });
-    }
-});
-
-// Per-user weights for the per-game injury score (see AdminInjuryScore on the client),
-// available to admins and qualifying donors. One document per username; any group
-// left unset falls back to the client defaults.
-const INJURY_SCORE_GROUPS = ['positionWeight', 'statusFactor'];
-
-const parseWeight = (path, v) => {
-    const n = Number(v);
-    if (v === '' || v === null || typeof v === 'object' || !Number.isFinite(n) || n < 0) {
-        const err = new Error(`${path} must be a non-negative number`);
-        err.validation = true;
-        throw err;
-    }
-    return n;
-};
-
-app.get('/api/injury-score-settings', async (req, res) => {
-    try {
-        const { username } = req.query;
-        if (typeof username !== 'string' || !username) return res.status(400).json({ error: 'username is required' });
-        const db = client.db(DATABASE_NAME);
-        const settings = await db.collection('Injury_Score_Settings').findOne({ username });
-        res.json(Object.fromEntries(INJURY_SCORE_GROUPS.map(g => [g, settings?.[g] ?? null])));
-    } catch (error) {
-        console.error('Error fetching injury score settings:', error);
-        res.status(500).json({ error: 'Error fetching injury score settings' });
-    }
-});
-
-// positionWeight is { position: { rank: weight } }; statusFactor is { status: factor }.
-app.put('/api/injury-score-settings', submitLimiter, async (req, res) => {
-    try {
-        const { username } = req.body || {};
-        if (typeof username !== 'string' || !username) return res.status(400).json({ error: 'username is required' });
-        const update = { username };
-        for (const group of INJURY_SCORE_GROUPS) {
-            const values = req.body?.[group];
-            if (values === null || values === undefined) {
-                update[group] = null;
-                continue;
-            }
-            if (typeof values !== 'object' || Array.isArray(values)) {
-                return res.status(400).json({ error: `${group} must be an object` });
-            }
-            const clean = {};
-            for (const [k, v] of Object.entries(values)) {
-                if (group === 'positionWeight') {
-                    if (!v || typeof v !== 'object' || Array.isArray(v)) {
-                        return res.status(400).json({ error: `${group}.${k} must be an object keyed by rank` });
-                    }
-                    clean[k] = {};
-                    for (const [rank, w] of Object.entries(v)) {
-                        clean[k][rank] = parseWeight(`${group}.${k}.${rank}`, w);
-                    }
-                } else {
-                    clean[k] = parseWeight(`${group}.${k}`, v);
-                }
-            }
-            update[group] = clean;
-        }
-        const db = client.db(DATABASE_NAME);
-        await db.collection('Injury_Score_Settings').updateOne({ username }, { $set: update }, { upsert: true });
-        res.json({ success: true });
-    } catch (error) {
-        if (error.validation) return res.status(400).json({ error: error.message });
-        console.error('Error updating injury score settings:', error);
-        res.status(500).json({ error: 'Error updating injury score settings' });
     }
 });
 

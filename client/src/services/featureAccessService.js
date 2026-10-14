@@ -13,7 +13,7 @@ const featureAccessService = {
         if (!pendingFetch) {
             pendingFetch = apiClient.get("/api/feature-access-settings")
                 .then((res) => {
-                    cachedSettings = res.data || { oddsAlertThreshold: null, publicBettingThreshold: null, injuryScoreThreshold: null };
+                    cachedSettings = res.data || { oddsAlertThreshold: null, publicBettingThreshold: null };
                     return cachedSettings;
                 })
                 .finally(() => { pendingFetch = null; });
