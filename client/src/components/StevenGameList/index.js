@@ -12,6 +12,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
 import StevenGameInfo from "../StevenGameInfo";
 import StevenButton from "../Common/StevenButton";
+import AdminInjuryScore from "../Common/AdminInjuryScore";
 import gameService from "../../services/gameService";
 import pickService from "../../services/pickService";
 import apiClient from "../../services/apiClient";
@@ -47,11 +48,16 @@ const StevenGameList = ({ tempPicks,
     const [liveScores, setLiveScores] = useState({})
     const [publicBetting, setPublicBetting] = useState([])
     const [publicBettingThreshold, setPublicBettingThreshold] = useState(null)
+    const [injuryScoreThreshold, setInjuryScoreThreshold] = useState(null)
     const isAdmin = user?.email?.toLowerCase() === "giulian.trabucco@gmail.com";
     const canViewPublicBetting = isAdmin || (publicBettingThreshold != null && donationAmount >= publicBettingThreshold);
+    const canViewInjuryScore = isAdmin || (injuryScoreThreshold != null && donationAmount >= injuryScoreThreshold);
 
     useEffect(() => {
-        featureAccessService.getSettings().then(s => setPublicBettingThreshold(s.publicBettingThreshold));
+        featureAccessService.getSettings().then(s => {
+            setPublicBettingThreshold(s.publicBettingThreshold);
+            setInjuryScoreThreshold(s.injuryScoreThreshold);
+        });
     }, []);
 
     const fetchLiveScores = async () => {
@@ -621,6 +627,9 @@ const StevenGameList = ({ tempPicks,
                                         )}
                                     </div>
                                 </div>
+                                {canViewInjuryScore && (
+                                    <AdminInjuryScore homeTeam={home_team} awayTeam={away_team} commenceTime={commenceTime} username={user?.name} />
+                                )}
                             </Paper>
                         );
                     })}

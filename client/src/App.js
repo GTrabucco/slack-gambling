@@ -16,6 +16,7 @@ import ManagePicks from "./components/Admin/ManagePicks";
 import ManageAccounts from "./components/Admin/ManageAccounts";
 import ManageDonorPerks from "./components/Admin/ManageDonorPerks";
 import ManageTeamIDs from "./components/Admin/ManageTeamIDs";
+import InjuryScoreWeights from "./components/InjuryScoreWeights";
 import ManageTeamRecords from "./components/Admin/ManageTeamRecords";
 import BroadcastText from "./components/Admin/BroadcastText";
 import PageLoader from "./components/PageLoader";
@@ -72,6 +73,7 @@ function App() {
         <Route path="/primetimevsday" element={<AuthenticationGuard component={PrimeTimeVsDay} /> } />
         <Route path="/sharpreport" element={<AuthenticationGuard component={SharpReport} /> } />
         <Route path="/worstbeats" element={<AuthenticationGuard component={WorstBeats} /> } />
+        <Route path="/injuryscore" element={<AuthenticationGuard component={InjuryScoreWeights} /> } />
 
         <Route element={<AdminRoute />}>
           <Route path="/calculatescoring" element={<AuthenticationGuard component={CalculateScoring} /> } />

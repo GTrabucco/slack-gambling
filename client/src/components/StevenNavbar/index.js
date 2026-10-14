@@ -24,12 +24,13 @@ import {
     BsClockHistory, BsBug, BsCalculator, BsCardChecklist, BsList,
     BsPersonCircle, BsHouseDoor, BsTerminal, BsController, BsCardList,
     BsPeopleFill, BsChevronDown, BsChevronRight, BsShieldLock, BsMegaphone,
-    BsToggles, BsGem, BsHeartFill
+    BsToggles, BsGem, BsHeartFill, BsHeartPulse
 } from "react-icons/bs";
 import { IoLogOutOutline, IoPodiumOutline } from "react-icons/io5";
 import { ImStatsDots } from "react-icons/im";
 import { GiRunningNinja } from "react-icons/gi";
 import StevenButton from "../Common/StevenButton";
+import useInjuryScoreAccess from "../Common/useInjuryScoreAccess";
 import apiClient from "../../services/apiClient";
 import "./style.css";
 
@@ -50,6 +51,7 @@ const StevenNavbar = () => {
     const CTF_DONATION_URL = "https://join.ctf.org/fundraiser/7629640?is_new=true";
 
     const isAdmin = user.email.toLowerCase() === "giulian.trabucco@gmail.com";
+    const { canUse: canUseInjuryScore } = useInjuryScoreAccess();
     const [issueCount, setIssueCount] = useState(0);
     const [unreadLogCount, setUnreadLogCount] = useState(0);
 
@@ -74,6 +76,7 @@ const StevenNavbar = () => {
         { path: "/standings", label: "Standings", icon: <IoPodiumOutline /> },
         { path: "/pickhistory", label: "History", icon: <BsClockHistory /> },
         { path: "/advancedStats", label: "Advanced Stats", icon: <ImStatsDots /> },
+        ...(canUseInjuryScore ? [{ path: "/injuryscore", label: "Injury Score Weights", icon: <BsHeartPulse /> }] : []),
         { path: "/reportissue", label: "Report Issue", icon: <BsBug /> },
         { path: "/account", label: "Account", icon: <BsPersonCircle /> },
     ];
