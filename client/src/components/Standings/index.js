@@ -53,7 +53,7 @@ const Standings = () => {
                 if (data.length > 0) {
                     setSelectedSeason(data[0]);
                 }
-            } catch (_) {}
+            } catch (_) { }
         };
         fetchSeasons();
     }, []);
@@ -216,9 +216,9 @@ const Standings = () => {
                                     <StevenTableCell className={getPlace(item.rank)}>
                                         {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" alt="Gold medal" />
                                             : item.rank === 2 ? <img className="medal" src="SilverMedal.svg" alt="Silver medal" />
-                                            : item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" alt="Bronze medal" />
-                                            : item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" />
-                                            : item.rank}
+                                                : item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" alt="Bronze medal" />
+                                                    : item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" />
+                                                        : item.rank}
                                     </StevenTableCell>
                                     <StevenTableCell className={item.rank > 3 ? "s1-cell" : undefined}>
                                         <MuiLink
@@ -230,7 +230,7 @@ const Standings = () => {
                                             {details?.displayName || item.username.split("@")[0]}
                                         </MuiLink>
                                         {details?.donationAmount > 0 && <DonorBadge amount={details.donationAmount} sx={{ ml: 0.5 }} />}
-                                        {isMe && <Typography component="span" sx={{ ml: 0.75, fontSize: 11, color: colors.primary }}>(you)</Typography>}
+                                        {isMe && <Typography component="span" sx={{ ml: 0.75, fontSize: 11, color: colors.primary }}></Typography>}
                                     </StevenTableCell>
                                     <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{item.resultSum}</StevenTableCell>
                                     {hasGotw && <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{item.gotwWins}</StevenTableCell>}
