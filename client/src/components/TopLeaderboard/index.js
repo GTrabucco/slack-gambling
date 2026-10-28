@@ -5,10 +5,11 @@ import Typography from "@mui/material/Typography";
 import { FaCrown } from "react-icons/fa";
 import apiClient from "../../services/apiClient";
 import DonorBadge from "../Common/DonorBadge";
+import { colors } from "../../theme";
 
 const RANKS = ["#1", "#2", "#3"];
 const COLORS = [
-    { bg: "rgba(212,175,55,0.15)", border: "rgba(212,175,55,0.6)", text: "#D4AF37" },
+    { bg: "rgba(212,175,55,0.15)", border: "rgba(212,175,55,0.6)", text: colors.gold },
     { bg: "transparent", border: "rgba(255,255,255,0.08)", text: "#888" },
     { bg: "transparent", border: "rgba(255,255,255,0.06)", text: "#666" },
 ];
@@ -58,14 +59,14 @@ const TopLeaderboard = () => {
                             flex: 1,
                             fontSize: rank === 0 ? 15 : 13,
                             fontWeight: rank === 0 ? 700 : 500,
-                            color: rank === 0 ? "#FFD700" : "text.primary",
+                            color: rank === 0 ? colors.goldBright : "text.primary",
                             display: "flex",
                             alignItems: "center",
                             gap: 0.5,
                         }}>
                             {player.displayName}
                             {player.donationAmount > 0 && <DonorBadge amount={player.donationAmount} />}
-                            {rank === 0 && <FaCrown style={{ fontSize: 14, color: "#D4AF37", flexShrink: 0 }} />}
+                            {rank === 0 && <FaCrown style={{ fontSize: 14, color: colors.gold, flexShrink: 0 }} />}
                         </Typography>
                         <Box sx={{ textAlign: "right" }}>
                             {player.record && (

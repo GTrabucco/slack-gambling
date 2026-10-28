@@ -32,7 +32,7 @@ export const SignupButton = () => {
   }, [isAuthenticated, getAccessTokenSilently]);
 
   return (
-    <StevenButton onClick={handleSignUp} fullWidth variant="outlined">
+    <StevenButton onClick={handleSignUp} fullWidth variant="outlined" sx={{ color: "white", borderColor: "rgba(255,255,255,0.5)", "&:hover": { borderColor: "white" } }}>
       Sign Up
     </StevenButton>
   );

@@ -1,0 +1,1438 @@
+From c7861a7a8300515dac5194f5c40ec2d098790700 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 28 Oct 2026 02:55:35 +0000
+Subject: [PATCH] UI/UX improvements: pending picks, locked games, result
+ icons, theme tokens
+
+- Show unsubmitted pick changes in My Picks (with undo), make the Submit
+  button show the change count and disable it when nothing changed, limit
+  it to the 600px content width, and warn before leaving with unsaved picks
+- Lock and dim games that have kicked off instead of only showing an
+  error toast on click
+- Make Game Info a real link-button for keyboard/screen-reader access
+- Add win/loss/push icons so results aren't conveyed by color alone
+- Pick History: dark-theme week headers, theme result colors, neutral
+  color for 0, heading naming whose history it is, Dispute only on your
+  own history
+- Standings: fix invalid Alert severity, highlight the current user, add
+  GOTW Wins column for 2026+, collapse duplicated row rendering
+- Week Picks: show display names and group picks by user
+- StevenButton only forces the white fill on contained buttons
+- Centralize colors in src/theme.js and CSS variables in index.css
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01FudKSbHSVc9gMong6sdNTY
+---
+ .../src/components/Common/DonorBadge/icons.js |   5 +-
+ .../src/components/Common/ResultIcon/index.js |  27 ++++
+ .../components/Common/StevenButton/index.js   |  17 ++-
+ client/src/components/Common/signup-button.js |   2 +-
+ client/src/components/Dashboard/index.js      |  14 ++
+ client/src/components/Dashboard/style.css     |  79 ++++++-----
+ client/src/components/GotwReveal/index.js     |   5 +-
+ client/src/components/PickHistory/index.js    |  58 +++++---
+ client/src/components/Standings/index.js      | 113 +++++++--------
+ client/src/components/StevenBetCard/index.js  | 131 ++++++++++++------
+ client/src/components/StevenGameList/index.js |  71 +++++++---
+ client/src/components/StevenNavbar/index.js   |  23 +--
+ client/src/components/TopLeaderboard/index.js |   7 +-
+ client/src/components/WeekPicks/index.js      |  64 +++++++--
+ client/src/index.css                          |  14 ++
+ client/src/index.js                           |  16 +--
+ client/src/theme.js                           |  45 ++++++
+ client/src/utils/pickChanges.js               |  15 ++
+ 18 files changed, 481 insertions(+), 225 deletions(-)
+ create mode 100644 client/src/components/Common/ResultIcon/index.js
+ create mode 100644 client/src/theme.js
+ create mode 100644 client/src/utils/pickChanges.js
+
+diff --git a/client/src/components/Common/DonorBadge/icons.js b/client/src/components/Common/DonorBadge/icons.js
+index 8d184f3..8b5af5b 100644
+--- a/client/src/components/Common/DonorBadge/icons.js
++++ b/client/src/components/Common/DonorBadge/icons.js
+@@ -1,3 +1,4 @@
++import { colors } from "../../../theme";
+ import {
+     FaGem,
+     FaStar,
+@@ -95,11 +96,11 @@ export const DonorIcon = ({ iconKey, color, style, ...props }) => {
+                 {...props}
+                 style={{ position: "relative", display: "inline-block", width: size, height: size, ...style, fontSize: undefined }}
+             >
+-                <span style={{ ...maskStyle(entry.fillSrc), backgroundColor: color || "#D4AF37" }} />
++                <span style={{ ...maskStyle(entry.fillSrc), backgroundColor: color || colors.gold }} />
+                 <span style={{ ...maskStyle(entry.outlineSrc), backgroundColor: "#000" }} />
+             </span>
+         );
+     }
+     const Icon = entry.Component;
+-    return <Icon style={{ color: color || "#D4AF37", ...style }} {...props} />;
++    return <Icon style={{ color: color || colors.gold, ...style }} {...props} />;
+ };
+diff --git a/client/src/components/Common/ResultIcon/index.js b/client/src/components/Common/ResultIcon/index.js
+new file mode 100644
+index 0000000..a354690
+--- /dev/null
++++ b/client/src/components/Common/ResultIcon/index.js
+@@ -0,0 +1,27 @@
++import { BsCheckCircleFill, BsXCircleFill, BsDashCircleFill } from "react-icons/bs";
++import { resultColors } from "../../../theme";
++
++// Icon for a graded pick (1 = win, -1 = loss, 0 = push) so results aren't
++// conveyed by color alone. Renders nothing for ungraded picks.
++const RESULTS = {
++    1: { Icon: BsCheckCircleFill, label: "Win", color: resultColors.win.text },
++    [-1]: { Icon: BsXCircleFill, label: "Loss", color: resultColors.loss.text },
++    0: { Icon: BsDashCircleFill, label: "Push", color: resultColors.push.text },
++};
++
++const ResultIcon = ({ result, size = 14, color, style }) => {
++    const entry = RESULTS[result];
++    if (!entry) return null;
++    const { Icon, label } = entry;
++    return (
++        <Icon
++            role="img"
++            aria-label={label}
++            title={label}
++            size={size}
++            style={{ color: color ?? entry.color, flexShrink: 0, verticalAlign: "middle", ...style }}
++        />
++    );
++};
++
++export default ResultIcon;
+diff --git a/client/src/components/Common/StevenButton/index.js b/client/src/components/Common/StevenButton/index.js
+index abb44f5..fd15147 100644
+--- a/client/src/components/Common/StevenButton/index.js
++++ b/client/src/components/Common/StevenButton/index.js
+@@ -1,16 +1,23 @@
+ import Button from '@mui/material/Button';
+ import './style.css';
+ 
+-const StevenButton = ({ children, variant = "contained", ...props }) => {
++// The white "Steven" style only applies to the default filled button —
++// outlined/text variants keep their own transparent background so callers
++// can color them via sx without fighting a forced white fill.
++const containedSx = {
++  backgroundColor: "white",
++  color: "black",
++  "&:hover": { backgroundColor: "#f0f0f0" },
++};
++
++const StevenButton = ({ children, variant = "contained", sx, ...props }) => {
+   return (
+     <Button
+       variant={variant}
+       {...props}
+       sx={{
+-        backgroundColor: "white",
+-        color: "black",
+-        "&:hover": { backgroundColor: "#f0f0f0" },
+-        ...props.sx
++        ...(variant === "contained" ? containedSx : {}),
++        ...sx
+       }}
+     >
+       {children}
+diff --git a/client/src/components/Common/signup-button.js b/client/src/components/Common/signup-button.js
+index ae3017c..f88e2ef 100644
+--- a/client/src/components/Common/signup-button.js
++++ b/client/src/components/Common/signup-button.js
+@@ -32,7 +32,7 @@ export const SignupButton = () => {
+   }, [isAuthenticated, getAccessTokenSilently]);
+ 
+   return (
+-    <StevenButton onClick={handleSignUp} fullWidth variant="outlined">
++    <StevenButton onClick={handleSignUp} fullWidth variant="outlined" sx={{ color: "white", borderColor: "rgba(255,255,255,0.5)", "&:hover": { borderColor: "white" } }}>
+       Sign Up
+     </StevenButton>
+   );
+diff --git a/client/src/components/Dashboard/index.js b/client/src/components/Dashboard/index.js
+index 0c8701a..0ebe5b4 100644
+--- a/client/src/components/Dashboard/index.js
++++ b/client/src/components/Dashboard/index.js
+@@ -10,6 +10,7 @@ import GotwReveal from "../GotwReveal";
+ import TopLeaderboard from "../TopLeaderboard";
+ import PerfectWeekWatch from "../PerfectWeekWatch";
+ import userService from "../../services/userService";
++import { getPickChanges } from "../../utils/pickChanges";
+ 
+ const Dashboard = () => {
+   const [games, setGames] = useState([]);
+@@ -62,6 +63,18 @@ const Dashboard = () => {
+     fetchUserDetails();
+   }, [user.name]);
+ 
++  // Warn before closing/reloading the tab while picks are staged but not submitted.
++  const pendingCount = getPickChanges(selectedPicks, tempPicks).count;
++  useEffect(() => {
++    if (pendingCount === 0) return;
++    const handleBeforeUnload = (e) => {
++      e.preventDefault();
++      e.returnValue = "";
++    };
++    window.addEventListener("beforeunload", handleBeforeUnload);
++    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
++  }, [pendingCount]);
++
+   const getCommenceTimeByGameId = (gameId) => {
+     const obj = games.find(item => item["gameId"] === gameId);
+     return obj?.commence_time;
+@@ -92,6 +105,7 @@ const Dashboard = () => {
+       <Divider sx={{ my: 2 }} />
+       <StevenBetCard
+         selectedPicks={selectedPicks}
++        tempPicks={tempPicks}
+         setMessage={setMessage}
+         setError={setError}
+         getCommenceTimeByGameId={getCommenceTimeByGameId}
+diff --git a/client/src/components/Dashboard/style.css b/client/src/components/Dashboard/style.css
+index f7d97ca..9708187 100644
+--- a/client/src/components/Dashboard/style.css
++++ b/client/src/components/Dashboard/style.css
+@@ -140,24 +140,24 @@
+ .line-moved-note {
+   font-size: 0.65rem;
+   font-weight: 700;
+-  color: #ffb74d;
++  color: var(--sg-line-moved);
+   margin-top: 4px;
+   letter-spacing: 0.01em;
+ }
+ 
+ .gotw-picked {
+   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
+-  background-color: rgba(212, 175, 55, 0.25);
+-  border: 1.5px solid #D4AF37;
++  background-color: rgba(var(--sg-gold-rgb), 0.25);
++  border: 1.5px solid var(--sg-gold);
+ }
+ 
+ .gotw-picked .team-record {
+-  color: rgba(212, 175, 55, 0.6);
++  color: rgba(var(--sg-gold-rgb), 0.6);
+   border-radius: 12px;
+ }
+ 
+ .gotw-picked:hover {
+-  background-color: rgba(212, 175, 55, 0.38);
++  background-color: rgba(var(--sg-gold-rgb), 0.38);
+ }
+ 
+ .gotw-picked::after {
+@@ -167,7 +167,7 @@
+   right: 10px;
+   font-size: 0.85rem;
+   font-weight: bold;
+-  color: #D4AF37;
++  color: var(--sg-gold);
+ }
+ 
+ .total-picked {
+@@ -205,15 +205,15 @@
+   width: 50px;
+   height: 50px;
+   border-radius: 10px;
+-  background-color: rgba(212, 175, 55, 0.25);
+-  border: 1.5px solid #D4AF37;
++  background-color: rgba(var(--sg-gold-rgb), 0.25);
++  border: 1.5px solid var(--sg-gold);
+   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+   cursor: pointer;
+   transition: all 0.2s ease-in-out;
+ }
+ 
+ .gotw-total-picked:hover {
+-  background-color: rgba(212, 175, 55, 0.38);
++  background-color: rgba(var(--sg-gold-rgb), 0.38);
+   transform: translateY(-2px);
+ }
+ 
+@@ -224,10 +224,10 @@
+ /* Result-colored team buttons */
+ .pick-win {
+   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
+-  background-color: rgba(27, 94, 32, 0.55);
+-  border: 1.5px solid #a5d6a7;
++  background-color: rgba(var(--sg-win-rgb), 0.55);
++  border: 1.5px solid var(--sg-win-text);
+   border-radius: 12px;
+-  color: #a5d6a7;
++  color: var(--sg-win-text);
+ }
+ 
+ .pick-win .team-record {
+@@ -235,15 +235,15 @@
+ }
+ 
+ .pick-win:hover {
+-  background-color: rgba(27, 94, 32, 0.7);
++  background-color: rgba(var(--sg-win-rgb), 0.7);
+ }
+ 
+ .pick-loss {
+   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
+-  background-color: rgba(127, 0, 0, 0.55);
+-  border: 1.5px solid #ef9a9a;
++  background-color: rgba(var(--sg-loss-rgb), 0.55);
++  border: 1.5px solid var(--sg-loss-text);
+   border-radius: 12px;
+-  color: #ef9a9a;
++  color: var(--sg-loss-text);
+ }
+ 
+ .pick-loss .team-record {
+@@ -251,15 +251,15 @@
+ }
+ 
+ .pick-loss:hover {
+-  background-color: rgba(127, 0, 0, 0.7);
++  background-color: rgba(var(--sg-loss-rgb), 0.7);
+ }
+ 
+ .pick-push {
+   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.9);
+-  background-color: rgba(74, 56, 0, 0.55);
+-  border: 1.5px solid #ffe082;
++  background-color: rgba(var(--sg-push-rgb), 0.55);
++  border: 1.5px solid var(--sg-push-text);
+   border-radius: 12px;
+-  color: #ffe082;
++  color: var(--sg-push-text);
+ }
+ 
+ .pick-push .team-record {
+@@ -267,7 +267,7 @@
+ }
+ 
+ .pick-push:hover {
+-  background-color: rgba(74, 56, 0, 0.7);
++  background-color: rgba(var(--sg-push-rgb), 0.7);
+ }
+ 
+ /* Result-colored total (over/under) buttons */
+@@ -278,21 +278,21 @@
+   width: 50px;
+   height: 50px;
+   border-radius: 10px;
+-  background-color: rgba(27, 94, 32, 0.55);
+-  border: 1.5px solid #a5d6a7;
++  background-color: rgba(var(--sg-win-rgb), 0.55);
++  border: 1.5px solid var(--sg-win-text);
+   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+   cursor: pointer;
+   transition: all 0.2s ease-in-out;
+ }
+ 
+ .total-win h2 {
+-  color: #a5d6a7;
++  color: var(--sg-win-text);
+   padding: 0;
+   margin: 0;
+ }
+ 
+ .total-win:hover {
+-  background-color: rgba(27, 94, 32, 0.7);
++  background-color: rgba(var(--sg-win-rgb), 0.7);
+   transform: translateY(-2px);
+ }
+ 
+@@ -303,21 +303,21 @@
+   width: 50px;
+   height: 50px;
+   border-radius: 10px;
+-  background-color: rgba(127, 0, 0, 0.55);
+-  border: 1.5px solid #ef9a9a;
++  background-color: rgba(var(--sg-loss-rgb), 0.55);
++  border: 1.5px solid var(--sg-loss-text);
+   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+   cursor: pointer;
+   transition: all 0.2s ease-in-out;
+ }
+ 
+ .total-loss h2 {
+-  color: #ef9a9a;
++  color: var(--sg-loss-text);
+   padding: 0;
+   margin: 0;
+ }
+ 
+ .total-loss:hover {
+-  background-color: rgba(127, 0, 0, 0.7);
++  background-color: rgba(var(--sg-loss-rgb), 0.7);
+   transform: translateY(-2px);
+ }
+ 
+@@ -328,21 +328,34 @@
+   width: 50px;
+   height: 50px;
+   border-radius: 10px;
+-  background-color: rgba(74, 56, 0, 0.55);
+-  border: 1.5px solid #ffe082;
++  background-color: rgba(var(--sg-push-rgb), 0.55);
++  border: 1.5px solid var(--sg-push-text);
+   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+   cursor: pointer;
+   transition: all 0.2s ease-in-out;
+ }
+ 
+ .total-push h2 {
+-  color: #ffe082;
++  color: var(--sg-push-text);
+   padding: 0;
+   margin: 0;
+ }
+ 
+ .total-push:hover {
+-  background-color: rgba(74, 56, 0, 0.7);
++  background-color: rgba(var(--sg-push-rgb), 0.7);
+   transform: translateY(-2px);
+ }
+ 
++/* Games that have kicked off: picks are locked, so options stop reacting to
++   clicks/hover and unpicked options are dimmed. */
++.locked-card .team-container,
++.locked-card .icon-text-container {
++  pointer-events: none;
++  cursor: default;
++}
++
++.locked-card .team-container:not(.picked):not(.gotw-picked):not(.pick-win):not(.pick-loss):not(.pick-push),
++.locked-card .total {
++  opacity: 0.4;
++  box-shadow: none;
++}
+diff --git a/client/src/components/GotwReveal/index.js b/client/src/components/GotwReveal/index.js
+index b040485..f22a7e3 100644
+--- a/client/src/components/GotwReveal/index.js
++++ b/client/src/components/GotwReveal/index.js
+@@ -7,6 +7,7 @@ import Chip from "@mui/material/Chip";
+ import pickService from "../../services/pickService";
+ import userService from "../../services/userService";
+ import DonorBadge from "../Common/DonorBadge";
++import { colors } from "../../theme";
+ 
+ const GotwReveal = ({ games, gameStarted }) => {
+     const [allPicks, setAllPicks] = useState([]);
+@@ -142,13 +143,13 @@ const GotwReveal = ({ games, gameStarted }) => {
+     return (
+         <Box sx={{ mb: 2.5, maxWidth: 600, mx: "auto" }}>
+             <Paper sx={{
+-                border: "2px solid #D4AF37",
++                border: `2px solid ${colors.gold}`,
+                 boxShadow: "0 2px 16px rgba(212, 175, 55, 0.35)",
+                 borderRadius: 2,
+                 overflow: "hidden"
+             }} elevation={4}>
+                 <Box sx={{
+-                    background: "linear-gradient(90deg, #9a7c0a 0%, #D4AF37 40%, #F5CB5C 70%, #D4AF37 100%)",
++                    background: `linear-gradient(90deg, #9a7c0a 0%, ${colors.gold} 40%, #F5CB5C 70%, ${colors.gold} 100%)`,
+                     color: "#3d2b00",
+                     px: 1.5,
+                     py: 0.75,
+diff --git a/client/src/components/PickHistory/index.js b/client/src/components/PickHistory/index.js
+index 62910e8..0c4edb6 100644
+--- a/client/src/components/PickHistory/index.js
++++ b/client/src/components/PickHistory/index.js
+@@ -12,6 +12,9 @@ import { useNavigate } from "react-router-dom";
+ import StevenButton from "../Common/StevenButton";
+ import pickService from "../../services/pickService";
+ import apiClient from "../../services/apiClient";
++import userService from "../../services/userService";
++import ResultIcon from "../Common/ResultIcon";
++import { resultColors } from "../../theme";
+ import StevenSelect from "../Common/StevenSelect";
+ import {
+     StevenTableContainer,
+@@ -33,7 +36,18 @@ const PickHistory = () => {
+     const usernameDisplay = userParam ? userParam : user.name;
+     const [message, setMessage] = useState("");
+     const navigate = useNavigate();
+-    const isOwnPage = !userParam;
++    const isOwnPage = !userParam || userParam === user.name;
++    const [viewedDisplayName, setViewedDisplayName] = useState("");
++
++    useEffect(() => {
++        if (isOwnPage) return;
++        setViewedDisplayName("");
++        userService.getByUsername(userParam)
++            .then(res => setViewedDisplayName(res.data?.[0]?.displayName || ""))
++            .catch(() => { });
++    }, [userParam, isOwnPage]);
++
++    const viewedName = viewedDisplayName || (userParam || "").split("@")[0];
+ 
+     const disputePick = (description) => {
+         navigate('/reportissue', { state: { description: `I want to dispute: ${description}` } });
+@@ -78,6 +92,10 @@ const PickHistory = () => {
+         return acc;
+     }, {});
+ 
++    // Neutral color for pushes (0) so a break-even pick/week doesn't read as a loss.
++    const resultColor = (result) =>
++        result > 0 ? resultColors.win.text : result < 0 ? resultColors.loss.text : "inherit";
++
+     const sortedWeekKeys = Object.keys(groupedByWeek).sort((a, b) => Number(b) - Number(a));
+     return (
+         <Container>
+@@ -101,6 +119,9 @@ const PickHistory = () => {
+                 </FormControl>
+             </Box>
+             <Box sx={{ pb: 2.5 }}>
++                <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
++                    {isOwnPage ? "My Pick History" : `${viewedName}'s Pick History`}
++                </Typography>
+                 <Typography variant="h6">Score: {picks.reduce((acc, item) => acc + item.result, 0)}</Typography>
+             </Box>
+             <StevenTableContainer>
+@@ -109,38 +130,33 @@ const PickHistory = () => {
+                         {sortedWeekKeys.map(week => (
+                             <React.Fragment key={week}>
+                                 <StevenTableRow>
+-                                    <StevenTableCell colSpan={4} sx={{ backgroundColor: "#eee", fontWeight: "bold", color: "black" }}>
++                                    <StevenTableCell colSpan={isOwnPage ? 3 : 2} sx={{ backgroundColor: "rgba(255,255,255,0.08)", fontWeight: "bold", borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
+                                         Week {week} ({(() => {
+                                             const sum = groupedByWeek[week].reduce((acc, item) => acc + item.result, 0);
+-                                            return sum > 0 ? <span style={{ color: "green" }}>+{sum}</span> : <span style={{ color: "red" }}>{sum}</span>;
++                                            return <span style={{ color: resultColor(Math.sign(sum)) }}>{sum > 0 ? `+${sum}` : sum}</span>;
+                                         })()})
+                                     </StevenTableCell>
+                                 </StevenTableRow>
+                                 {groupedByWeek[week].map(item => (
+                                     <StevenTableRow className="ph-row" key={item._id}>
+                                         <StevenTableCell className="ph2-cell" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>
+-                                            {item.result > 0 ? (
+-                                                <span style={{ color: "green" }}><b>{item.text}</b></span>
+-                                            ) : item.result < 0 ? (
+-                                                <span style={{ color: "red" }}><b>{item.text}</b></span>
+-                                            ) : (
++                                            <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.75, color: resultColor(item.result) }}>
++                                                <ResultIcon result={Math.sign(item.result)} />
+                                                 <b>{item.text}</b>
+-                                            )}
++                                            </Box>
+                                         </StevenTableCell>
+                                         <StevenTableCell className="ph3-cell">
+-                                            {item.result > 0 ? (
+-                                                <span style={{ color: "green" }}><b>1</b></span>
+-                                            ) : item.result < 0 ? (
+-                                                <span style={{ color: "red" }}><b>-1</b></span>
+-                                            ) : (
+-                                                <b>0</b>
+-                                            )}
+-                                        </StevenTableCell>
+-                                        <StevenTableCell>
+-                                            <StevenButton onClick={() => disputePick(`Week ${item.week}: ${item.text}`)}>
+-                                                Dispute
+-                                            </StevenButton>
++                                            <b style={{ color: resultColor(item.result) }}>
++                                                {item.result > 0 ? "+1" : item.result < 0 ? "-1" : "0"}
++                                            </b>
+                                         </StevenTableCell>
++                                        {isOwnPage && (
++                                            <StevenTableCell>
++                                                <StevenButton onClick={() => disputePick(`Week ${item.week}: ${item.text}`)}>
++                                                    Dispute
++                                                </StevenButton>
++                                            </StevenTableCell>
++                                        )}
+                                     </StevenTableRow>
+                                 ))}
+                             </React.Fragment>
+diff --git a/client/src/components/Standings/index.js b/client/src/components/Standings/index.js
+index cb19ed0..d019e42 100644
+--- a/client/src/components/Standings/index.js
++++ b/client/src/components/Standings/index.js
+@@ -8,6 +8,8 @@ import Typography from "@mui/material/Typography";
+ import MuiLink from "@mui/material/Link";
+ import './style.css';
+ import { useNavigate } from "react-router-dom";
++import { useAuth0 } from "@auth0/auth0-react";
++import { colors } from "../../theme";
+ import userService from "../../services/userService";
+ import pickService from "../../services/pickService";
+ import apiClient from "../../services/apiClient";
+@@ -40,6 +42,7 @@ const Standings = () => {
+     const [selectedSeason, setSelectedSeason] = useState("");
+     const [lastPlaceRank, setLastPlaceRank] = useState(null);
+     const navigate = useNavigate();
++    const { user } = useAuth0();
+ 
+     useEffect(() => {
+         const fetchSeasons = async () => {
+@@ -164,6 +167,9 @@ const Standings = () => {
+         }
+     };
+ 
++    const hasGotw = parseInt(selectedSeason) >= 2026;
++    const perfectScore = hasGotw ? 5 : 4;
++
+     return (
+         <Container>
+             <Box sx={{ mb: 2, pt: 2 }}>
+@@ -176,9 +182,9 @@ const Standings = () => {
+                     />
+                 </FormControl>
+             </Box>
+-            {error && <Alert severity="danger" sx={{ mb: 2 }}>{error}</Alert>}
++            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+             <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
+-                Tiebreaker rules: {parseInt(selectedSeason) >= 2026 ? "GOTW record → " : ""}Fewest 0/{parseInt(selectedSeason) >= 2026 ? 5 : 4} weeks → Most {parseInt(selectedSeason) >= 2026 ? 5 : 4}/{parseInt(selectedSeason) >= 2026 ? 5 : 4} weeks → Most &gt;0 weeks
++                Tiebreaker rules: {hasGotw ? "GOTW wins → " : ""}Fewest 0/{perfectScore} weeks → Most {perfectScore}/{perfectScore} weeks → Most &gt;0 weeks
+             </Typography>
+             <StevenTableContainer sx={{ overflowX: 'auto', overflowY: 'visible' }}>
+                 <StevenTable stickyHeader>
+@@ -187,69 +193,52 @@ const Standings = () => {
+                             <StevenTableCell sx={{ bgcolor: "background.paper" }}></StevenTableCell>
+                             <StevenTableCell sx={{ bgcolor: "background.paper" }}>Name</StevenTableCell>
+                             <StevenTableCell sx={{ bgcolor: "background.paper" }}>Points</StevenTableCell>
+-                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>{parseInt(selectedSeason) >= 2026 ? "5/5 Weeks" : "4/4 Weeks"}</StevenTableCell>
+-                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>{parseInt(selectedSeason) >= 2026 ? "0/5 Weeks" : "0/4 Weeks"}</StevenTableCell>
++                            {hasGotw && <StevenTableCell sx={{ bgcolor: "background.paper" }}>GOTW Wins</StevenTableCell>}
++                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>{perfectScore}/{perfectScore} Weeks</StevenTableCell>
++                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>0/{perfectScore} Weeks</StevenTableCell>
+                         </StevenTableRow>
+                     </StevenTableHead>
+                     <StevenTableBody>
+-                        {data
+-                            .sort((a, b) => b.resultSum - a.resultSum)
+-                            .map((item) => {
+-                                if (item.rank < 4) {
+-                                    return (
+-                                        <StevenTableRow key={item.username}>
+-                                            <StevenTableCell>
+-                                                {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" alt="Gold medal" /> : ""}
+-                                                {item.rank === 2 ? <img className="medal" src="SilverMedal.svg" alt="Silver medal" /> : ""}
+-                                                {item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" alt="Bronze medal" /> : ""}
+-                                            </StevenTableCell>
+-                                            <StevenTableCell>
+-                                                <MuiLink
+-                                                    component="button"
+-                                                    underline="hover"
+-                                                    onClick={() => navigate(`/pickhistory?user=${item.username}`)}
+-                                                    sx={{ cursor: "pointer" }}
+-                                                >
+-                                                    {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
+-                                                </MuiLink>
+-                                                {users && users[item.username]?.[0]?.donationAmount > 0 && <DonorBadge amount={users[item.username][0].donationAmount} sx={{ ml: 0.5 }} />}
+-                                            </StevenTableCell>
+-                                            <StevenTableCell> {item.resultSum}</StevenTableCell>
+-                                            <StevenTableCell>{perfectWeeks[item.username]}</StevenTableCell>
+-                                            <StevenTableCell>{negFourWeeks[item.username]}</StevenTableCell>
+-                                        </StevenTableRow>
+-                                    );
+-                                }
+-                                return null;
+-                            })}
+-                        {data
+-                            .sort((a, b) => b.resultSum - a.resultSum)
+-                            .map((item) => {
+-                                if (item.rank > 3) {
+-                                    return (
+-                                        <StevenTableRow className="s-row" key={item.username}>
+-                                            <StevenTableCell className={getPlace(item.rank)}>
+-                                                {item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" /> : item.rank}
+-                                            </StevenTableCell>
+-                                            <StevenTableCell className="s1-cell">
+-                                                <MuiLink
+-                                                    component="button"
+-                                                    underline="hover"
+-                                                    onClick={() => navigate(`/pickhistory?user=${item.username}`)}
+-                                                    sx={{ cursor: "pointer" }}
+-                                                >
+-                                                    {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
+-                                                </MuiLink>
+-                                                {users && users[item.username]?.[0]?.donationAmount > 0 && <DonorBadge amount={users[item.username][0].donationAmount} sx={{ ml: 0.5 }} />}
+-                                            </StevenTableCell>
+-                                            <StevenTableCell className="s2-cell"> {item.resultSum}</StevenTableCell>
+-                                            <StevenTableCell className="s2-cell">{perfectWeeks[item.username]}</StevenTableCell>
+-                                            <StevenTableCell className="s2-cell">{negFourWeeks[item.username]}</StevenTableCell>
+-                                        </StevenTableRow>
+-                                    );
+-                                }
+-                                return null;
+-                            })}
++                        {data.map((item) => {
++                            const isMe = item.username === user?.name;
++                            const details = users?.[item.username]?.[0];
++                            return (
++                                <StevenTableRow
++                                    key={item.username}
++                                    className={item.rank > 3 ? "s-row" : undefined}
++                                    aria-current={isMe ? "true" : undefined}
++                                    sx={isMe ? {
++                                        "&.MuiTableRow-root": { backgroundColor: "rgba(144, 202, 249, 0.12) !important" },
++                                        "& td:first-of-type": { boxShadow: `inset 3px 0 0 ${colors.primary}` },
++                                        "& td": { fontWeight: 700 },
++                                    } : undefined}
++                                >
++                                    <StevenTableCell className={getPlace(item.rank)}>
++                                        {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" alt="Gold medal" />
++                                            : item.rank === 2 ? <img className="medal" src="SilverMedal.svg" alt="Silver medal" />
++                                            : item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" alt="Bronze medal" />
++                                            : item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" />
++                                            : item.rank}
++                                    </StevenTableCell>
++                                    <StevenTableCell className={item.rank > 3 ? "s1-cell" : undefined}>
++                                        <MuiLink
++                                            component="button"
++                                            underline="hover"
++                                            onClick={() => navigate(`/pickhistory?user=${item.username}`)}
++                                            sx={{ cursor: "pointer", fontWeight: "inherit" }}
++                                        >
++                                            {details?.displayName || item.username.split("@")[0]}
++                                        </MuiLink>
++                                        {details?.donationAmount > 0 && <DonorBadge amount={details.donationAmount} sx={{ ml: 0.5 }} />}
++                                        {isMe && <Typography component="span" sx={{ ml: 0.75, fontSize: 11, color: colors.primary }}>(you)</Typography>}
++                                    </StevenTableCell>
++                                    <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{item.resultSum}</StevenTableCell>
++                                    {hasGotw && <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{item.gotwWins}</StevenTableCell>}
++                                    <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{perfectWeeks[item.username]}</StevenTableCell>
++                                    <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{negFourWeeks[item.username]}</StevenTableCell>
++                                </StevenTableRow>
++                            );
++                        })}
+                     </StevenTableBody>
+                 </StevenTable>
+             </StevenTableContainer>
+diff --git a/client/src/components/StevenBetCard/index.js b/client/src/components/StevenBetCard/index.js
+index f349748..25425f3 100644
+--- a/client/src/components/StevenBetCard/index.js
++++ b/client/src/components/StevenBetCard/index.js
+@@ -1,8 +1,13 @@
+ import { FaTrash } from 'react-icons/fa';
++import { BsArrowCounterclockwise } from 'react-icons/bs';
+ import Box from "@mui/material/Box";
++import Chip from "@mui/material/Chip";
+ import Paper from "@mui/material/Paper";
+ import Typography from "@mui/material/Typography";
+ import pickService from "../../services/pickService";
++import ResultIcon from "../Common/ResultIcon";
++import { colors, getResultColor } from "../../theme";
++import { getPickChanges, PICK_TYPES } from "../../utils/pickChanges";
+ import {
+     StevenTableContainer,
+     StevenTable,
+@@ -11,7 +16,15 @@ import {
+     StevenTableCell
+ } from "../Common/StevenTable";
+ 
+-const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByGameId, user, gameStarted, setSelectedPicks, setTempPicks }) => {
++const iconButtonStyle = {
++    cursor: 'pointer',
++    display: 'inline-flex',
++    justifyContent: 'center',
++    alignItems: 'center',
++    width: '100%',
++};
++
++const StevenBetCard = ({ selectedPicks, tempPicks, setMessage, setError, getCommenceTimeByGameId, user, gameStarted, setSelectedPicks, setTempPicks }) => {
+     const removePick = async (pickIdentifier, text) => {
+         const existingPickGameId = pickIdentifier.split('-')[0];
+         const commenceTime = getCommenceTimeByGameId(existingPickGameId)
+@@ -39,69 +52,97 @@ const StevenBetCard = ({ selectedPicks, setMessage, setError, getCommenceTimeByG
+         }
+     }
+ 
++    // Discard an unsubmitted change for this pick type, restoring the saved pick (if any).
++    const undoChange = (type) => {
++        const saved = selectedPicks.find(p => p.type === type);
++        setTempPicks(prev => {
++            const without = prev.filter(p => p.type !== type);
++            return saved ? [...without, saved] : without;
++        });
++    };
++
++    const safeSelected = Array.isArray(selectedPicks) ? selectedPicks : [];
++    const safeTemp = Array.isArray(tempPicks) ? tempPicks : [];
++    const { count: pendingCount } = getPickChanges(safeSelected, safeTemp);
++
++    const renderAction = (label, icon, onActivate, color) => (
++        <span
++            onClick={onActivate}
++            style={{ ...iconButtonStyle, color }}
++            aria-label={label}
++            title={label}
++            role="button"
++            tabIndex={0}
++            onKeyDown={(e) => {
++                if (e.key === 'Enter' || e.key === ' ') {
++                    e.preventDefault();
++                    onActivate();
++                }
++            }}
++        >
++            {icon}
++        </span>
++    );
++
+     return (
+         <Box sx={{ maxWidth: 600, mx: "auto", my: 2 }}>
+             <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
+-                <Box sx={{ px: 2, py: 1, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
++                <Box sx={{ px: 2, py: 1, borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                     <Typography sx={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "text.disabled" }}>
+                         My Picks
+                     </Typography>
++                    {pendingCount > 0 && (
++                        <Typography sx={{ fontSize: 11, color: colors.lineMoved, fontWeight: 600 }}>
++                            {pendingCount} unsubmitted {pendingCount === 1 ? "change" : "changes"}
++                        </Typography>
++                    )}
+                 </Box>
+                 <StevenTableContainer sx={{ overflowX: "visible" }}>
+                     <StevenTable sx={{ minWidth: 0, tableLayout: "fixed", width: "100%" }}>
+                         <StevenTableBody sx={{ "& .MuiTableRow-root:nth-of-type(odd)": { backgroundColor: "transparent" } }}>
+-                        {['favorite', 'dog', 'over', 'under', 'gotw'].map((type) => {
+-                            const pick = Array.isArray(selectedPicks)
+-                                ? selectedPicks.find(obj => obj.type === type)
+-                                : null;
+-                            var key = null;
+-                            var value = "-";
+-                            if (pick) {
+-                                value = pick.text;
+-                                key = pick.gameId + "-" + type
+-                            }
++                        {PICK_TYPES.map((type) => {
++                            const saved = safeSelected.find(obj => obj.type === type);
++                            const staged = safeTemp.find(obj => obj.type === type);
++                            const isPending = !!staged && (!saved || saved.gameId !== staged.gameId || saved.text !== staged.text);
++                            const isRemoving = !staged && !!saved;
++                            const pick = isRemoving ? saved : staged;
++                            const value = pick ? pick.text : "-";
+ 
+-                            const result = pick?.result;
+-                            const rowColor = result === 1
+-                                ? { bg: "rgba(27,94,32,0.35)", text: "#a5d6a7" }
+-                                : result === -1
+-                                ? { bg: "rgba(127,0,0,0.35)", text: "#ef9a9a" }
+-                                : result === 0
+-                                ? { bg: "rgba(74,56,0,0.35)", text: "#ffe082" }
+-                                : type === 'gotw'
+-                                ? { bg: "transparent", text: "#D4AF37" }
+-                                : { bg: "transparent", text: "inherit" };
++                            const result = !isPending && !isRemoving ? saved?.result : undefined;
++                            const rowColor = getResultColor(result)
++                                ?? (type === 'gotw'
++                                    ? { bg: "transparent", text: colors.gold }
++                                    : { bg: "transparent", text: "inherit" });
+ 
+                             return (
+-                                <StevenTableRow key={type} sx={{ "&.MuiTableRow-root": { backgroundColor: `${rowColor.bg} !important` }, "& td": { color: rowColor.text, fontWeight: pick ? "bold" : "normal" } }}>
++                                <StevenTableRow key={type} sx={{
++                                    "&.MuiTableRow-root": { backgroundColor: `${rowColor.bg} !important` },
++                                    "& td": { color: rowColor.text, fontWeight: pick ? "bold" : "normal" },
++                                    ...(isPending || isRemoving ? { boxShadow: `inset 3px 0 0 ${colors.lineMoved}` } : {}),
++                                }}>
+                                     <StevenTableCell sx={{ whiteSpace: "normal", wordBreak: "break-word", width: "30%" }}>
+                                         <b>{type === 'gotw' ? 'Game of the Week' : type.charAt(0).toUpperCase() + type.slice(1)}</b>
+                                     </StevenTableCell>
+                                     <StevenTableCell sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>
+-                                        {value}
++                                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, flexWrap: "wrap" }}>
++                                            <ResultIcon result={result} color={rowColor.text} />
++                                            <span style={isRemoving ? { textDecoration: "line-through", opacity: 0.6 } : undefined}>
++                                                {value}
++                                            </span>
++                                            {(isPending || isRemoving) && (
++                                                <Chip
++                                                    label={isRemoving ? "Will be removed" : "Not submitted"}
++                                                    size="small"
++                                                    variant="outlined"
++                                                    sx={{ height: 20, fontSize: 10, fontWeight: 600, color: colors.lineMoved, borderColor: colors.lineMoved }}
++                                                />
++                                            )}
++                                        </Box>
+                                     </StevenTableCell>
+                                     <StevenTableCell sx={{ whiteSpace: "nowrap", width: 40, textAlign: "center" }}>
+-                                        {key && (
+-                                            <span
+-                                                onClick={() => removePick(key, value)}
+-                                                style={{
+-                                                    cursor: 'pointer',
+-                                                    color: rowColor.text,
+-                                                    display: 'inline-flex',
+-                                                    justifyContent: 'center',
+-                                                    alignItems: 'center',
+-                                                    width: '100%',
+-                                                }}
+-                                                aria-label={`Remove ${type} pick`}
+-                                                role="button"
+-                                                tabIndex={0}
+-                                                onKeyDown={(e) => {
+-                                                    if (e.key === 'Enter' || e.key === ' ') removePick(key, value);
+-                                                }}
+-                                            >
+-                                                <FaTrash />
+-                                            </span>
+-                                        )}
++                                        {(isPending || isRemoving)
++                                            ? renderAction(`Undo ${type} change`, <BsArrowCounterclockwise />, () => undoChange(type), colors.lineMoved)
++                                            : saved && renderAction(`Remove ${type} pick`, <FaTrash />, () => removePick(saved.gameId + "-" + type, saved.text), rowColor.text)}
+                                     </StevenTableCell>
+                                 </StevenTableRow>
+                             );
+diff --git a/client/src/components/StevenGameList/index.js b/client/src/components/StevenGameList/index.js
+index 0640bc6..c3e55e8 100644
+--- a/client/src/components/StevenGameList/index.js
++++ b/client/src/components/StevenGameList/index.js
+@@ -10,8 +10,13 @@ import List from "@mui/material/List";
+ import ListItem from "@mui/material/ListItem";
+ import ListItemText from "@mui/material/ListItemText";
+ import Divider from "@mui/material/Divider";
++import MuiLink from "@mui/material/Link";
++import { BsLockFill } from "react-icons/bs";
+ import StevenGameInfo from "../StevenGameInfo";
+ import StevenButton from "../Common/StevenButton";
++import ResultIcon from "../Common/ResultIcon";
++import { colors } from "../../theme";
++import { getPickChanges } from "../../utils/pickChanges";
+ import gameService from "../../services/gameService";
+ import pickService from "../../services/pickService";
+ import apiClient from "../../services/apiClient";
+@@ -148,14 +153,7 @@ const StevenGameList = ({ tempPicks,
+         }
+     }
+     const submitPicks = async () => {
+-        const additions = tempPicks.filter(tempPick => {
+-            const existing = selectedPicks.find(p => p.type === tempPick.type);
+-            if (!existing) return true;
+-            return existing.gameId !== tempPick.gameId || existing.text !== tempPick.text;
+-        });
+-        const removals = selectedPicks.filter(existing =>
+-            !tempPicks.find(p => p.type === existing.type)
+-        );
++        const { additions, removals } = getPickChanges(selectedPicks, tempPicks);
+         try {
+             for (let pick of removals) {
+                 await pickService.removePick({ username: user.name, pickType: pick.type, gameId: pick.gameId, text: pick.text });
+@@ -285,6 +283,9 @@ const StevenGameList = ({ tempPicks,
+         ? [{ game: gotwGame, isGotw: true }, ...sortedGames.map(g => ({ game: g, isGotw: false }))]
+         : sortedGames.map(g => ({ game: g, isGotw: false }));
+ 
++    const pendingCount = getPickChanges(selectedPicks, tempPicks).count;
++    const pickedCount = tempPicks.length;
++
+     const pickTypeLabel = (type) => {
+         switch (type) {
+             case "favorite": return "Favorite";
+@@ -363,7 +364,7 @@ const StevenGameList = ({ tempPicks,
+                 </DialogContent>
+                 <DialogActions sx={{ gap: 1, px: 2, pb: 2 }}>
+                     <StevenButton onClick={() => setShowConfirm(false)} sx={{ color: "gray", borderColor: "gray" }} variant="outlined">Cancel</StevenButton>
+-                    <StevenButton onClick={submitPicks} sx={{ backgroundColor: "white", color: "black", "&:hover": { backgroundColor: "#f0f0f0" } }}>Confirm</StevenButton>
++                    <StevenButton onClick={submitPicks}>Confirm</StevenButton>
+                 </DialogActions>
+             </Dialog>
+ 
+@@ -412,6 +413,7 @@ const StevenGameList = ({ tempPicks,
+                             : null;
+ 
+                         const dateObj = new Date(commenceTime);
++                        const isLocked = gameStarted(commenceTime);
+                         const liveScore = liveScores[`${away_team}@${home_team}`];
+                         const hasScore = liveScore && liveScore.state !== 'pre';
+                         const isCompleted = liveScore?.is_completed ?? false;
+@@ -436,6 +438,12 @@ const StevenGameList = ({ tempPicks,
+                             return isGotw ? "gotw-total-picked" : "total-picked";
+                         };
+ 
++                        // Win/loss/push icon so graded picks aren't shown by color alone.
++                        const resultBadge = (pick, style) => isCompleted && pick
++                            ? <ResultIcon result={pick.result} size={16} style={{ position: "absolute", ...style }} />
++                            : null;
++                        const totalResultBadgeStyle = { top: -6, right: -6, backgroundColor: "#1e1e1e", borderRadius: "50%" };
++
+                         const awayPickClass = getTeamPickClass(away_picked);
+                         const homePickClass = getTeamPickClass(home_picked);
+ 
+@@ -461,10 +469,11 @@ const StevenGameList = ({ tempPicks,
+                         return (
+                             <Paper
+                                 key={isGotw ? `gotw-${game["gameId"]}` : game["gameId"]}
++                                className={isLocked ? "locked-card" : undefined}
+                                 sx={{
+                                     mb: 2.5,
+                                     ...(isGotw && {
+-                                        border: "2px solid #D4AF37",
++                                        border: `2px solid ${colors.gold}`,
+                                         boxShadow: "0 2px 16px rgba(212, 175, 55, 0.35)",
+                                     })
+                                 }}
+@@ -472,7 +481,7 @@ const StevenGameList = ({ tempPicks,
+                             >
+                                 {isGotw && (
+                                     <Box sx={{
+-                                        background: "linear-gradient(90deg, #9a7c0a 0%, #D4AF37 40%, #F5CB5C 70%, #D4AF37 100%)",
++                                        background: `linear-gradient(90deg, #9a7c0a 0%, ${colors.gold} 40%, #F5CB5C 70%, ${colors.gold} 100%)`,
+                                         color: "#3d2b00",
+                                         px: 1.5,
+                                         py: 0.75,
+@@ -493,18 +502,30 @@ const StevenGameList = ({ tempPicks,
+                                             ? (liveScore.is_completed ? "Final" : liveScore.status_short_detail)
+                                             : `${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
+                                     </Typography>
+-                                    <Box sx={{ display: "flex", gap: 1.5 }}>
+-                                        <Typography
++                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
++                                        {isLocked && (
++                                            <Typography
++                                                variant="body2"
++                                                sx={{ fontSize: "0.75rem", fontWeight: 600, color: "text.disabled", display: "flex", alignItems: "center", gap: 0.5 }}
++                                            >
++                                                <BsLockFill aria-hidden="true" /> Locked
++                                            </Typography>
++                                        )}
++                                        <MuiLink
++                                            component="button"
++                                            type="button"
+                                             variant="body2"
++                                            underline="always"
++                                            color="text.secondary"
+                                             onClick={() => {
+                                                 setShowStevenInfo(true);
+                                                 setSelectedGameId(game["gameId"]);
+                                                 setSelectedGame({ home: home_team, away: away_team, homeSpread: home_spread, awaySpread: away_spread, over });
+                                             }}
+-                                            sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
++                                            sx={{ fontSize: "0.85rem" }}
+                                         >
+                                             Game Info
+-                                        </Typography>
++                                        </MuiLink>
+                                     </Box>
+                                 </Box>
+                                 {hasScore && (() => {
+@@ -560,6 +581,7 @@ const StevenGameList = ({ tempPicks,
+                                             commenceTime
+                                         )
+                                     }>
++                                        {resultBadge(away_picked, { top: 8, right: 10 })}
+                                         <img src={away_logo} alt={away_team} className="logo" />
+                                         <div className="team-record">{records[away_team] ?? ""}</div>
+                                         <div><div className="team-name">{away_team}</div><b>{away_spread_num > 0 ? "+" + away_spread_num : away_spread_num}</b></div>
+@@ -580,6 +602,7 @@ const StevenGameList = ({ tempPicks,
+                                             commenceTime
+                                         )
+                                     }>
++                                        {resultBadge(home_picked, { top: 8, right: 10 })}
+                                         <img src={home_logo} alt={home_team} className="logo" />
+                                         <div className="team-record">{records[home_team] ?? ""}</div>
+                                         <div><div className="team-name">{home_team}</div><b>{home_spread_num > 0 ? "+" + home_spread_num : home_spread_num}</b></div>
+@@ -591,7 +614,8 @@ const StevenGameList = ({ tempPicks,
+                                     </div>
+                                     <div className="icon-text-container">
+                                         {overPickClass ? (
+-                                            <span className={overPickClass}>
++                                            <span className={overPickClass} style={{ position: "relative" }}>
++                                                {resultBadge(overPickForClass, totalResultBadgeStyle)}
+                                                 <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
+                                                     updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
+                                                 }></h2>
+@@ -603,7 +627,8 @@ const StevenGameList = ({ tempPicks,
+                                         )}
+                                         <div className="over-text"><b>{over}</b></div>
+                                         {underPickClass ? (
+-                                            <span className={underPickClass}>
++                                            <span className={underPickClass} style={{ position: "relative" }}>
++                                                {resultBadge(underPickForClass, totalResultBadgeStyle)}
+                                                 <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
+                                                     updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
+                                                 }></h2>
+@@ -635,9 +660,13 @@ const StevenGameList = ({ tempPicks,
+                 right: 0,
+                 px: 2,
+                 zIndex: 1000,
++                maxWidth: 600,
++                mx: "auto",
++                boxSizing: "border-box",
+             }}>
+                 <StevenButton
+                     onClick={() => setShowConfirm(true)}
++                    disabled={pendingCount === 0}
+                     sx={{
+                         width: "100%",
+                         py: 1.5,
+@@ -651,10 +680,16 @@ const StevenGameList = ({ tempPicks,
+                             backgroundColor: "#f0f0f0",
+                             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                         },
++                        "&.Mui-disabled": {
++                            backgroundColor: "#3a3a3a",
++                            color: "rgba(255,255,255,0.6)",
++                        },
+                         transition: "all 0.2s ease-in-out",
+                     }}
+                 >
+-                    Submit Picks
++                    {pendingCount === 0
++                        ? `${pickedCount} of 5 picks saved`
++                        : `Submit ${pendingCount} ${pendingCount === 1 ? "change" : "changes"} (${pickedCount} of 5 picked)`}
+                 </StevenButton>
+             </Box>
+         </>
+diff --git a/client/src/components/StevenNavbar/index.js b/client/src/components/StevenNavbar/index.js
+index dd6c2ad..1bf5dc1 100644
+--- a/client/src/components/StevenNavbar/index.js
++++ b/client/src/components/StevenNavbar/index.js
+@@ -31,6 +31,7 @@ import { ImStatsDots } from "react-icons/im";
+ import { GiRunningNinja } from "react-icons/gi";
+ import StevenButton from "../Common/StevenButton";
+ import apiClient from "../../services/apiClient";
++import { colors } from "../../theme";
+ import "./style.css";
+ 
+ const ADMIN_PATHS = [
+@@ -98,9 +99,9 @@ const StevenNavbar = () => {
+     const navItemSx = (isActive) => ({
+         "&.Mui-selected": {
+             backgroundColor: "rgba(144, 202, 249, 0.12)",
+-            borderLeft: "3px solid #90caf9",
+-            "& .MuiListItemText-primary": { color: "#90caf9", fontWeight: 700 },
+-            "& .MuiListItemIcon-root": { color: "#90caf9" },
++            borderLeft: `3px solid ${colors.primary}`,
++            "& .MuiListItemText-primary": { color: colors.primary, fontWeight: 700 },
++            "& .MuiListItemIcon-root": { color: colors.primary },
+         },
+         "&.Mui-selected:hover": { backgroundColor: "rgba(144, 202, 249, 0.2)" },
+     });
+@@ -123,7 +124,7 @@ const StevenNavbar = () => {
+                     ))}
+                 </DialogContent>
+                 <DialogActions>
+-                    <StevenButton onClick={() => setShowRules(false)} sx={{ backgroundColor: "white", color: "black", "&:hover": { backgroundColor: "#f0f0f0" } }}>Close</StevenButton>
++                    <StevenButton onClick={() => setShowRules(false)}>Close</StevenButton>
+                 </DialogActions>
+             </Dialog>
+ 
+@@ -151,7 +152,7 @@ const StevenNavbar = () => {
+                         variant="outlined"
+                         size="small"
+                         startIcon={<BsHeartFill />}
+-                        sx={{ color: "#e91e63", borderColor: "#e91e63", "&:hover": { borderColor: "#ad1457", color: "#ad1457" } }}
++                        sx={{ color: colors.donate, borderColor: colors.donate, "&:hover": { borderColor: colors.donateHover, color: colors.donateHover } }}
+                     >
+                         Donate to CTF
+                     </StevenButton>
+@@ -159,7 +160,7 @@ const StevenNavbar = () => {
+                         onClick={() => setShowRules(true)}
+                         variant="outlined"
+                         size="small"
+-                        sx={{ color: "red", borderColor: "red", "&:hover": { borderColor: "darkred", color: "darkred" } }}
++                        sx={{ color: colors.rules, borderColor: colors.rules, "&:hover": { borderColor: colors.rulesHover, color: colors.rulesHover } }}
+                     >
+                         Rules
+                     </StevenButton>
+@@ -175,7 +176,7 @@ const StevenNavbar = () => {
+                                 <ListItem key={link.path} disablePadding>
+                                     <ListItemButton onClick={() => handleNavigate(link.path)} selected={isActive} sx={navItemSx(isActive)}>
+                                         <ListItemIcon sx={{ minWidth: 36, fontSize: 18 }}>{link.icon}</ListItemIcon>
+-                                        <ListItemText primary={link.label} primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 500, fontSize: 15 }} />
++                                        <ListItemText primary={link.label} primaryTypographyProps={{ fontWeight: 500, fontSize: 15 }} />
+                                     </ListItemButton>
+                                 </ListItem>
+                             );
+@@ -190,15 +191,15 @@ const StevenNavbar = () => {
+                                         selected={isAdminActive && !adminOpen}
+                                         sx={{
+                                             ...navItemSx(isAdminActive),
+-                                            ...(isAdminActive ? { borderLeft: "3px solid #90caf9" } : {}),
++                                            ...(isAdminActive ? { borderLeft: `3px solid ${colors.primary}` } : {}),
+                                         }}
+                                     >
+-                                        <ListItemIcon sx={{ minWidth: 36, fontSize: 18, color: isAdminActive ? "#90caf9" : "inherit" }}>
++                                        <ListItemIcon sx={{ minWidth: 36, fontSize: 18, color: isAdminActive ? colors.primary : "inherit" }}>
+                                             <Badge badgeContent={issueCount + unreadLogCount} color="error" max={99}>
+                                                 <BsShieldLock />
+                                             </Badge>
+                                         </ListItemIcon>
+-                                        <ListItemText primary="Admin" primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 600, fontSize: 15, color: isAdminActive ? "#90caf9" : "inherit" }} />
++                                        <ListItemText primary="Admin" primaryTypographyProps={{ fontWeight: 600, fontSize: 15, color: isAdminActive ? colors.primary : "inherit" }} />
+                                         <Box sx={{ fontSize: 13, color: "text.secondary" }}>
+                                             {adminOpen ? <BsChevronDown /> : <BsChevronRight />}
+                                         </Box>
+@@ -216,7 +217,7 @@ const StevenNavbar = () => {
+                                                                 {link.icon}
+                                                             </Badge>
+                                                         </ListItemIcon>
+-                                                        <ListItemText primary={link.label} primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 500, fontSize: 14 }} />
++                                                        <ListItemText primary={link.label} primaryTypographyProps={{ fontWeight: 500, fontSize: 14 }} />
+                                                     </ListItemButton>
+                                                 </ListItem>
+                                             );
+diff --git a/client/src/components/TopLeaderboard/index.js b/client/src/components/TopLeaderboard/index.js
+index 6c8072b..521884e 100644
+--- a/client/src/components/TopLeaderboard/index.js
++++ b/client/src/components/TopLeaderboard/index.js
+@@ -5,10 +5,11 @@ import Typography from "@mui/material/Typography";
+ import { FaCrown } from "react-icons/fa";
+ import apiClient from "../../services/apiClient";
+ import DonorBadge from "../Common/DonorBadge";
++import { colors } from "../../theme";
+ 
+ const RANKS = ["#1", "#2", "#3"];
+ const COLORS = [
+-    { bg: "rgba(212,175,55,0.15)", border: "rgba(212,175,55,0.6)", text: "#D4AF37" },
++    { bg: "rgba(212,175,55,0.15)", border: "rgba(212,175,55,0.6)", text: colors.gold },
+     { bg: "transparent", border: "rgba(255,255,255,0.08)", text: "#888" },
+     { bg: "transparent", border: "rgba(255,255,255,0.06)", text: "#666" },
+ ];
+@@ -58,14 +59,14 @@ const TopLeaderboard = () => {
+                             flex: 1,
+                             fontSize: rank === 0 ? 15 : 13,
+                             fontWeight: rank === 0 ? 700 : 500,
+-                            color: rank === 0 ? "#FFD700" : "text.primary",
++                            color: rank === 0 ? colors.goldBright : "text.primary",
+                             display: "flex",
+                             alignItems: "center",
+                             gap: 0.5,
+                         }}>
+                             {player.displayName}
+                             {player.donationAmount > 0 && <DonorBadge amount={player.donationAmount} />}
+-                            {rank === 0 && <FaCrown style={{ fontSize: 14, color: "#D4AF37", flexShrink: 0 }} />}
++                            {rank === 0 && <FaCrown style={{ fontSize: 14, color: colors.gold, flexShrink: 0 }} />}
+                         </Typography>
+                         <Box sx={{ textAlign: "right" }}>
+                             {player.record && (
+diff --git a/client/src/components/WeekPicks/index.js b/client/src/components/WeekPicks/index.js
+index b5d509b..647f4f8 100644
+--- a/client/src/components/WeekPicks/index.js
++++ b/client/src/components/WeekPicks/index.js
+@@ -1,8 +1,9 @@
+-import { useState, useEffect } from "react";
++import React, { useState, useEffect } from "react";
+ import Box from "@mui/material/Box";
+ import Typography from "@mui/material/Typography";
+ import './style.css'
+ import pickService from "../../services/pickService";
++import userService from "../../services/userService";
+ import {
+     StevenTableContainer,
+     StevenTable,
+@@ -12,8 +13,18 @@ import {
+     StevenTableCell
+ } from "../Common/StevenTable";
+ 
++const PICK_TYPE_ORDER = ["favorite", "dog", "over", "under", "gotw"];
++const PICK_TYPE_LABELS = {
++    favorite: "Favorite",
++    dog: "Underdog",
++    over: "Over",
++    under: "Under",
++    gotw: "GOTW",
++};
++
+ const WeekPicks = (props) => {
+     const [picks, setPicks] = useState([])
++    const [displayNames, setDisplayNames] = useState({})
+ 
+     useEffect(() => {
+         const fetchPickHistory = async () => {
+@@ -28,9 +39,35 @@ const WeekPicks = (props) => {
+             }
+         };
+ 
++        const fetchUsers = async () => {
++            try {
++                const response = await userService.getAllUsers();
++                const names = {};
++                for (const u of response.data || []) {
++                    if (u.displayName) names[u.username] = u.displayName;
++                }
++                setDisplayNames(names);
++            } catch (error) {
++                console.error('Error fetching users:', error);
++            }
++        };
++
+         fetchPickHistory();
++        fetchUsers();
+     }, [])
+ 
++    const nameFor = (username) => displayNames[username] || (username || "").split("@")[0];
++
++    const groups = Object.entries(Object.groupBy(picks, ({ username }) => username))
++        .map(([username, userPicks]) => ({
++            username,
++            name: nameFor(username),
++            picks: [...userPicks].sort((a, b) =>
++                PICK_TYPE_ORDER.indexOf(a.type) - PICK_TYPE_ORDER.indexOf(b.type)
++            ),
++        }))
++        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
++
+     return (
+         <Box>
+             <Typography variant="h6" sx={{ mb: 1 }}>Week Picks</Typography>
+@@ -38,18 +75,27 @@ const WeekPicks = (props) => {
+                 <StevenTable className="wp-table">
+                     <StevenTableHead>
+                         <StevenTableRow>
+-                            <StevenTableCell>Submitted</StevenTableCell>
+-                            <StevenTableCell>User</StevenTableCell>
++                            <StevenTableCell>Type</StevenTableCell>
+                             <StevenTableCell>Pick</StevenTableCell>
++                            <StevenTableCell>Submitted</StevenTableCell>
+                         </StevenTableRow>
+                     </StevenTableHead>
+                     <StevenTableBody>
+-                    {picks.map((item) => (
+-                        <StevenTableRow key={item._id} className="wp-row">
+-                            <StevenTableCell className="wp-cell">{new Date(item.createdAt).toLocaleString()}</StevenTableCell>
+-                            <StevenTableCell className="wp-cell">{item.username}</StevenTableCell>
+-                            <StevenTableCell className="wp-cell">{item.text}</StevenTableCell>
+-                        </StevenTableRow>
++                    {groups.map((group) => (
++                        <React.Fragment key={group.username}>
++                            <StevenTableRow>
++                                <StevenTableCell colSpan={3} sx={{ backgroundColor: "rgba(255,255,255,0.08)", fontWeight: "bold" }}>
++                                    {group.name} ({group.picks.length} of 5)
++                                </StevenTableCell>
++                            </StevenTableRow>
++                            {group.picks.map((item) => (
++                                <StevenTableRow key={item._id} className="wp-row">
++                                    <StevenTableCell className="wp-cell">{PICK_TYPE_LABELS[item.type] || item.type}</StevenTableCell>
++                                    <StevenTableCell className="wp-cell">{item.text}</StevenTableCell>
++                                    <StevenTableCell className="wp-cell">{new Date(item.createdAt).toLocaleString()}</StevenTableCell>
++                                </StevenTableRow>
++                            ))}
++                        </React.Fragment>
+                     ))}
+                     </StevenTableBody>
+                 </StevenTable>
+diff --git a/client/src/index.css b/client/src/index.css
+index 0a9eec9..df34a81 100644
+--- a/client/src/index.css
++++ b/client/src/index.css
+@@ -1,3 +1,17 @@
++/* Color tokens shared with src/theme.js — keep the two in sync. */
++:root {
++  --sg-primary: #90caf9;
++  --sg-gold: #D4AF37;
++  --sg-gold-rgb: 212, 175, 55;
++  --sg-line-moved: #ffb74d;
++  --sg-win-text: #a5d6a7;
++  --sg-win-rgb: 27, 94, 32;
++  --sg-loss-text: #ef9a9a;
++  --sg-loss-rgb: 127, 0, 0;
++  --sg-push-text: #ffe082;
++  --sg-push-rgb: 74, 56, 0;
++}
++
+ body {
+   margin: 0;
+   -webkit-font-smoothing: antialiased;
+diff --git a/client/src/index.js b/client/src/index.js
+index c2c166a..c676aa6 100644
+--- a/client/src/index.js
++++ b/client/src/index.js
+@@ -1,22 +1,12 @@
+ import React from 'react';
+ import { createRoot } from 'react-dom/client';
+ import { Auth0Provider } from '@auth0/auth0-react';
+-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
++import { ThemeProvider, CssBaseline } from '@mui/material';
+ import reportWebVitals from './reportWebVitals';
+ import App from './App';
+ import { BrowserRouter } from 'react-router-dom';
+ import './index.css';
+-
+-const darkTheme = createTheme({
+-  palette: {
+-    mode: 'dark',
+-    primary: { main: '#90caf9' },
+-    background: {
+-      default: '#121212',
+-      paper: '#1e1e1e',
+-    },
+-  },
+-});
++import theme from './theme';
+ 
+ const root = createRoot(document.getElementById('root'));
+ const domain = process.env.REACT_APP_AUTH0_DOMAIN;
+@@ -25,7 +15,7 @@ const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
+ 
+ root.render(
+   <React.StrictMode>
+-    <ThemeProvider theme={darkTheme}>
++    <ThemeProvider theme={theme}>
+       <CssBaseline />
+       <BrowserRouter>
+         <Auth0Provider
+diff --git a/client/src/theme.js b/client/src/theme.js
+new file mode 100644
+index 0000000..9ca3363
+--- /dev/null
++++ b/client/src/theme.js
+@@ -0,0 +1,45 @@
++import { createTheme } from '@mui/material';
++
++// Shared color tokens. Use these (or the matching theme palette entries /
++// CSS variables in index.css) instead of hardcoding hex values in components.
++export const colors = {
++  primary: '#90caf9',
++  gold: '#D4AF37',
++  goldBright: '#FFD700',
++  donate: '#e91e63',
++  donateHover: '#ad1457',
++  rules: '#ef5350',
++  rulesHover: '#c62828',
++  lineMoved: '#ffb74d',
++};
++
++// Result colors for a pick: 1 = win, -1 = loss, 0 = push.
++export const resultColors = {
++  win: { bg: 'rgba(27,94,32,0.35)', text: '#a5d6a7' },
++  loss: { bg: 'rgba(127,0,0,0.35)', text: '#ef9a9a' },
++  push: { bg: 'rgba(74,56,0,0.35)', text: '#ffe082' },
++};
++
++export const getResultColor = (result) => {
++  if (result === 1) return resultColors.win;
++  if (result === -1) return resultColors.loss;
++  if (result === 0) return resultColors.push;
++  return null;
++};
++
++const theme = createTheme({
++  palette: {
++    mode: 'dark',
++    primary: { main: colors.primary },
++    gold: { main: colors.gold, light: colors.goldBright, contrastText: '#3d2b00' },
++    background: {
++      default: '#121212',
++      paper: '#1e1e1e',
++    },
++  },
++  typography: {
++    fontFamily: "'Inter', sans-serif",
++  },
++});
++
++export default theme;
+diff --git a/client/src/utils/pickChanges.js b/client/src/utils/pickChanges.js
+new file mode 100644
+index 0000000..ee0f933
+--- /dev/null
++++ b/client/src/utils/pickChanges.js
+@@ -0,0 +1,15 @@
++// Diff the user's locally staged picks (tempPicks) against what is saved on
++// the server (selectedPicks). Picks are keyed by type — one per type per week.
++export const getPickChanges = (selectedPicks = [], tempPicks = []) => {
++    const additions = tempPicks.filter(tempPick => {
++        const existing = selectedPicks.find(p => p.type === tempPick.type);
++        if (!existing) return true;
++        return existing.gameId !== tempPick.gameId || existing.text !== tempPick.text;
++    });
++    const removals = selectedPicks.filter(existing =>
++        !tempPicks.find(p => p.type === existing.type)
++    );
++    return { additions, removals, count: additions.length + removals.length };
++};
++
++export const PICK_TYPES = ["favorite", "dog", "over", "under", "gotw"];
+-- 
+2.43.0
+

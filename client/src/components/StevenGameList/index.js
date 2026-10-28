@@ -10,8 +10,13 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import Divider from "@mui/material/Divider";
+import MuiLink from "@mui/material/Link";
+import { BsLockFill } from "react-icons/bs";
 import StevenGameInfo from "../StevenGameInfo";
 import StevenButton from "../Common/StevenButton";
+import ResultIcon from "../Common/ResultIcon";
+import { colors } from "../../theme";
+import { getPickChanges } from "../../utils/pickChanges";
 import gameService from "../../services/gameService";
 import pickService from "../../services/pickService";
 import apiClient from "../../services/apiClient";
@@ -148,14 +153,7 @@ const StevenGameList = ({ tempPicks,
         }
     }
     const submitPicks = async () => {
-        const additions = tempPicks.filter(tempPick => {
-            const existing = selectedPicks.find(p => p.type === tempPick.type);
-            if (!existing) return true;
-            return existing.gameId !== tempPick.gameId || existing.text !== tempPick.text;
-        });
-        const removals = selectedPicks.filter(existing =>
-            !tempPicks.find(p => p.type === existing.type)
-        );
+        const { additions, removals } = getPickChanges(selectedPicks, tempPicks);
         try {
             for (let pick of removals) {
                 await pickService.removePick({ username: user.name, pickType: pick.type, gameId: pick.gameId, text: pick.text });
@@ -285,6 +283,9 @@ const StevenGameList = ({ tempPicks,
         ? [{ game: gotwGame, isGotw: true }, ...sortedGames.map(g => ({ game: g, isGotw: false }))]
         : sortedGames.map(g => ({ game: g, isGotw: false }));
 
+    const pendingCount = getPickChanges(selectedPicks, tempPicks).count;
+    const pickedCount = tempPicks.length;
+
     const pickTypeLabel = (type) => {
         switch (type) {
             case "favorite": return "Favorite";
@@ -363,7 +364,7 @@ const StevenGameList = ({ tempPicks,
                 </DialogContent>
                 <DialogActions sx={{ gap: 1, px: 2, pb: 2 }}>
                     <StevenButton onClick={() => setShowConfirm(false)} sx={{ color: "gray", borderColor: "gray" }} variant="outlined">Cancel</StevenButton>
-                    <StevenButton onClick={submitPicks} sx={{ backgroundColor: "white", color: "black", "&:hover": { backgroundColor: "#f0f0f0" } }}>Confirm</StevenButton>
+                    <StevenButton onClick={submitPicks}>Confirm</StevenButton>
                 </DialogActions>
             </Dialog>
 
@@ -412,6 +413,7 @@ const StevenGameList = ({ tempPicks,
                             : null;
 
                         const dateObj = new Date(commenceTime);
+                        const isLocked = gameStarted(commenceTime);
                         const liveScore = liveScores[`${away_team}@${home_team}`];
                         const hasScore = liveScore && liveScore.state !== 'pre';
                         const isCompleted = liveScore?.is_completed ?? false;
@@ -435,6 +437,12 @@ const StevenGameList = ({ tempPicks,
                             }
                             return isGotw ? "gotw-total-picked" : "total-picked";
                         };
+
+                        // Win/loss/push icon so graded picks aren't shown by color alone.
+                        const resultBadge = (pick, style) => isCompleted && pick
+                            ? <ResultIcon result={pick.result} size={16} style={{ position: "absolute", ...style }} />
+                            : null;
+                        const totalResultBadgeStyle = { top: -6, right: -6, backgroundColor: "#1e1e1e", borderRadius: "50%" };
 
                         const awayPickClass = getTeamPickClass(away_picked);
                         const homePickClass = getTeamPickClass(home_picked);
@@ -461,10 +469,11 @@ const StevenGameList = ({ tempPicks,
                         return (
                             <Paper
                                 key={isGotw ? `gotw-${game["gameId"]}` : game["gameId"]}
+                                className={isLocked ? "locked-card" : undefined}
                                 sx={{
                                     mb: 2.5,
                                     ...(isGotw && {
-                                        border: "2px solid #D4AF37",
+                                        border: `2px solid ${colors.gold}`,
                                         boxShadow: "0 2px 16px rgba(212, 175, 55, 0.35)",
                                     })
                                 }}
@@ -472,7 +481,7 @@ const StevenGameList = ({ tempPicks,
                             >
                                 {isGotw && (
                                     <Box sx={{
-                                        background: "linear-gradient(90deg, #9a7c0a 0%, #D4AF37 40%, #F5CB5C 70%, #D4AF37 100%)",
+                                        background: `linear-gradient(90deg, #9a7c0a 0%, ${colors.gold} 40%, #F5CB5C 70%, ${colors.gold} 100%)`,
                                         color: "#3d2b00",
                                         px: 1.5,
                                         py: 0.75,
@@ -493,18 +502,30 @@ const StevenGameList = ({ tempPicks,
                                             ? (liveScore.is_completed ? "Final" : liveScore.status_short_detail)
                                             : `${dateObj.toLocaleDateString('en-US', { weekday: 'short' })}, ${dateObj.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`}
                                     </Typography>
-                                    <Box sx={{ display: "flex", gap: 1.5 }}>
-                                        <Typography
+                                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                                        {isLocked && (
+                                            <Typography
+                                                variant="body2"
+                                                sx={{ fontSize: "0.75rem", fontWeight: 600, color: "text.disabled", display: "flex", alignItems: "center", gap: 0.5 }}
+                                            >
+                                                <BsLockFill aria-hidden="true" /> Locked
+                                            </Typography>
+                                        )}
+                                        <MuiLink
+                                            component="button"
+                                            type="button"
                                             variant="body2"
+                                            underline="always"
+                                            color="text.secondary"
                                             onClick={() => {
                                                 setShowStevenInfo(true);
                                                 setSelectedGameId(game["gameId"]);
                                                 setSelectedGame({ home: home_team, away: away_team, homeSpread: home_spread, awaySpread: away_spread, over });
                                             }}
-                                            sx={{ fontSize: "0.85rem", textDecoration: "underline", cursor: "pointer", color: "text.secondary" }}
+                                            sx={{ fontSize: "0.85rem" }}
                                         >
                                             Game Info
-                                        </Typography>
+                                        </MuiLink>
                                     </Box>
                                 </Box>
                                 {hasScore && (() => {
@@ -560,6 +581,7 @@ const StevenGameList = ({ tempPicks,
                                             commenceTime
                                         )
                                     }>
+                                        {resultBadge(away_picked, { top: 8, right: 10 })}
                                         <img src={away_logo} alt={away_team} className="logo" />
                                         <div className="team-record">{records[away_team] ?? ""}</div>
                                         <div><div className="team-name">{away_team}</div><b>{away_spread_num > 0 ? "+" + away_spread_num : away_spread_num}</b></div>
@@ -580,6 +602,7 @@ const StevenGameList = ({ tempPicks,
                                             commenceTime
                                         )
                                     }>
+                                        {resultBadge(home_picked, { top: 8, right: 10 })}
                                         <img src={home_logo} alt={home_team} className="logo" />
                                         <div className="team-record">{records[home_team] ?? ""}</div>
                                         <div><div className="team-name">{home_team}</div><b>{home_spread_num > 0 ? "+" + home_spread_num : home_spread_num}</b></div>
@@ -591,7 +614,8 @@ const StevenGameList = ({ tempPicks,
                                     </div>
                                     <div className="icon-text-container">
                                         {overPickClass ? (
-                                            <span className={overPickClass}>
+                                            <span className={overPickClass} style={{ position: "relative" }}>
+                                                {resultBadge(overPickForClass, totalResultBadgeStyle)}
                                                 <h2 className="bi bi-arrow-up-square-fill" onClick={() =>
                                                     updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "over", over, `${home_team} ${away_team} Over ${over}`, commenceTime)
                                                 }></h2>
@@ -603,7 +627,8 @@ const StevenGameList = ({ tempPicks,
                                         )}
                                         <div className="over-text"><b>{over}</b></div>
                                         {underPickClass ? (
-                                            <span className={underPickClass}>
+                                            <span className={underPickClass} style={{ position: "relative" }}>
+                                                {resultBadge(underPickForClass, totalResultBadgeStyle)}
                                                 <h2 className="bi bi-arrow-down-square-fill" onClick={() =>
                                                     updatePick(game["gameId"], home_team, away_team, isGotw ? "gotw" : "under", under, `${home_team} ${away_team} Under ${under}`, commenceTime)
                                                 }></h2>
@@ -635,9 +660,13 @@ const StevenGameList = ({ tempPicks,
                 right: 0,
                 px: 2,
                 zIndex: 1000,
+                maxWidth: 600,
+                mx: "auto",
+                boxSizing: "border-box",
             }}>
                 <StevenButton
                     onClick={() => setShowConfirm(true)}
+                    disabled={pendingCount === 0}
                     sx={{
                         width: "100%",
                         py: 1.5,
@@ -651,10 +680,16 @@ const StevenGameList = ({ tempPicks,
                             backgroundColor: "#f0f0f0",
                             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
                         },
+                        "&.Mui-disabled": {
+                            backgroundColor: "#3a3a3a",
+                            color: "rgba(255,255,255,0.6)",
+                        },
                         transition: "all 0.2s ease-in-out",
                     }}
                 >
-                    Submit Picks
+                    {pendingCount === 0
+                        ? `${pickedCount} of 5 picks saved`
+                        : `Submit ${pendingCount} ${pendingCount === 1 ? "change" : "changes"} (${pickedCount} of 5 picked)`}
                 </StevenButton>
             </Box>
         </>
