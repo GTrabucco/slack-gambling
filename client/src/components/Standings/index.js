@@ -8,6 +8,8 @@ import Typography from "@mui/material/Typography";
 import MuiLink from "@mui/material/Link";
 import './style.css';
 import { useNavigate } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
+import { colors } from "../../theme";
 import userService from "../../services/userService";
 import pickService from "../../services/pickService";
 import apiClient from "../../services/apiClient";
@@ -40,6 +42,7 @@ const Standings = () => {
     const [selectedSeason, setSelectedSeason] = useState("");
     const [lastPlaceRank, setLastPlaceRank] = useState(null);
     const navigate = useNavigate();
+    const { user } = useAuth0();
 
     useEffect(() => {
         const fetchSeasons = async () => {
@@ -164,6 +167,9 @@ const Standings = () => {
         }
     };
 
+    const hasGotw = parseInt(selectedSeason) >= 2026;
+    const perfectScore = hasGotw ? 5 : 4;
+
     return (
         <Container>
             <Box sx={{ mb: 2, pt: 2 }}>
@@ -176,9 +182,9 @@ const Standings = () => {
                     />
                 </FormControl>
             </Box>
-            {error && <Alert severity="danger" sx={{ mb: 2 }}>{error}</Alert>}
+            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
             <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
-                Tiebreaker rules: {parseInt(selectedSeason) >= 2026 ? "GOTW record → " : ""}Fewest 0/{parseInt(selectedSeason) >= 2026 ? 5 : 4} weeks → Most {parseInt(selectedSeason) >= 2026 ? 5 : 4}/{parseInt(selectedSeason) >= 2026 ? 5 : 4} weeks → Most &gt;0 weeks
+                Tiebreaker rules: {hasGotw ? "GOTW wins → " : ""}Fewest 0/{perfectScore} weeks → Most {perfectScore}/{perfectScore} weeks → Most &gt;0 weeks
             </Typography>
             <StevenTableContainer sx={{ overflowX: 'auto', overflowY: 'visible' }}>
                 <StevenTable stickyHeader>
@@ -187,69 +193,52 @@ const Standings = () => {
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}></StevenTableCell>
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}>Name</StevenTableCell>
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}>Points</StevenTableCell>
-                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>{parseInt(selectedSeason) >= 2026 ? "5/5 Weeks" : "4/4 Weeks"}</StevenTableCell>
-                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>{parseInt(selectedSeason) >= 2026 ? "0/5 Weeks" : "0/4 Weeks"}</StevenTableCell>
+                            {hasGotw && <StevenTableCell sx={{ bgcolor: "background.paper" }}>GOTW Wins</StevenTableCell>}
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>{perfectScore}/{perfectScore} Weeks</StevenTableCell>
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>0/{perfectScore} Weeks</StevenTableCell>
                         </StevenTableRow>
                     </StevenTableHead>
                     <StevenTableBody>
-                        {data
-                            .sort((a, b) => b.resultSum - a.resultSum)
-                            .map((item) => {
-                                if (item.rank < 4) {
-                                    return (
-                                        <StevenTableRow key={item.username}>
-                                            <StevenTableCell>
-                                                {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" alt="Gold medal" /> : ""}
-                                                {item.rank === 2 ? <img className="medal" src="SilverMedal.svg" alt="Silver medal" /> : ""}
-                                                {item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" alt="Bronze medal" /> : ""}
-                                            </StevenTableCell>
-                                            <StevenTableCell>
-                                                <MuiLink
-                                                    component="button"
-                                                    underline="hover"
-                                                    onClick={() => navigate(`/pickhistory?user=${item.username}`)}
-                                                    sx={{ cursor: "pointer" }}
-                                                >
-                                                    {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
-                                                </MuiLink>
-                                                {users && users[item.username]?.[0]?.donationAmount > 0 && <DonorBadge amount={users[item.username][0].donationAmount} sx={{ ml: 0.5 }} />}
-                                            </StevenTableCell>
-                                            <StevenTableCell> {item.resultSum}</StevenTableCell>
-                                            <StevenTableCell>{perfectWeeks[item.username]}</StevenTableCell>
-                                            <StevenTableCell>{negFourWeeks[item.username]}</StevenTableCell>
-                                        </StevenTableRow>
-                                    );
-                                }
-                                return null;
-                            })}
-                        {data
-                            .sort((a, b) => b.resultSum - a.resultSum)
-                            .map((item) => {
-                                if (item.rank > 3) {
-                                    return (
-                                        <StevenTableRow className="s-row" key={item.username}>
-                                            <StevenTableCell className={getPlace(item.rank)}>
-                                                {item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" /> : item.rank}
-                                            </StevenTableCell>
-                                            <StevenTableCell className="s1-cell">
-                                                <MuiLink
-                                                    component="button"
-                                                    underline="hover"
-                                                    onClick={() => navigate(`/pickhistory?user=${item.username}`)}
-                                                    sx={{ cursor: "pointer" }}
-                                                >
-                                                    {users && users[item.username]?.[0]?.displayName || item.username.split("@")[0]}
-                                                </MuiLink>
-                                                {users && users[item.username]?.[0]?.donationAmount > 0 && <DonorBadge amount={users[item.username][0].donationAmount} sx={{ ml: 0.5 }} />}
-                                            </StevenTableCell>
-                                            <StevenTableCell className="s2-cell"> {item.resultSum}</StevenTableCell>
-                                            <StevenTableCell className="s2-cell">{perfectWeeks[item.username]}</StevenTableCell>
-                                            <StevenTableCell className="s2-cell">{negFourWeeks[item.username]}</StevenTableCell>
-                                        </StevenTableRow>
-                                    );
-                                }
-                                return null;
-                            })}
+                        {data.map((item) => {
+                            const isMe = item.username === user?.name;
+                            const details = users?.[item.username]?.[0];
+                            return (
+                                <StevenTableRow
+                                    key={item.username}
+                                    className={item.rank > 3 ? "s-row" : undefined}
+                                    aria-current={isMe ? "true" : undefined}
+                                    sx={isMe ? {
+                                        "&.MuiTableRow-root": { backgroundColor: "rgba(144, 202, 249, 0.12) !important" },
+                                        "& td:first-of-type": { boxShadow: `inset 3px 0 0 ${colors.primary}` },
+                                        "& td": { fontWeight: 700 },
+                                    } : undefined}
+                                >
+                                    <StevenTableCell className={getPlace(item.rank)}>
+                                        {item.rank === 1 ? <img className="medal" src="GoldMedal.svg" alt="Gold medal" />
+                                            : item.rank === 2 ? <img className="medal" src="SilverMedal.svg" alt="Silver medal" />
+                                            : item.rank === 3 ? <img className="medal" src="BronzeMedal.svg" alt="Bronze medal" />
+                                            : item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" />
+                                            : item.rank}
+                                    </StevenTableCell>
+                                    <StevenTableCell className={item.rank > 3 ? "s1-cell" : undefined}>
+                                        <MuiLink
+                                            component="button"
+                                            underline="hover"
+                                            onClick={() => navigate(`/pickhistory?user=${item.username}`)}
+                                            sx={{ cursor: "pointer", fontWeight: "inherit" }}
+                                        >
+                                            {details?.displayName || item.username.split("@")[0]}
+                                        </MuiLink>
+                                        {details?.donationAmount > 0 && <DonorBadge amount={details.donationAmount} sx={{ ml: 0.5 }} />}
+                                        {isMe && <Typography component="span" sx={{ ml: 0.75, fontSize: 11, color: colors.primary }}>(you)</Typography>}
+                                    </StevenTableCell>
+                                    <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{item.resultSum}</StevenTableCell>
+                                    {hasGotw && <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{item.gotwWins}</StevenTableCell>}
+                                    <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{perfectWeeks[item.username]}</StevenTableCell>
+                                    <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{negFourWeeks[item.username]}</StevenTableCell>
+                                </StevenTableRow>
+                            );
+                        })}
                     </StevenTableBody>
                 </StevenTable>
             </StevenTableContainer>

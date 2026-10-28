@@ -1,3 +1,4 @@
+import { colors } from "../../../theme";
 import {
     FaGem,
     FaStar,
@@ -95,11 +96,11 @@ export const DonorIcon = ({ iconKey, color, style, ...props }) => {
                 {...props}
                 style={{ position: "relative", display: "inline-block", width: size, height: size, ...style, fontSize: undefined }}
             >
-                <span style={{ ...maskStyle(entry.fillSrc), backgroundColor: color || "#D4AF37" }} />
+                <span style={{ ...maskStyle(entry.fillSrc), backgroundColor: color || colors.gold }} />
                 <span style={{ ...maskStyle(entry.outlineSrc), backgroundColor: "#000" }} />
             </span>
         );
     }
     const Icon = entry.Component;
-    return <Icon style={{ color: color || "#D4AF37", ...style }} {...props} />;
+    return <Icon style={{ color: color || colors.gold, ...style }} {...props} />;
 };

@@ -12,6 +12,9 @@ import { useNavigate } from "react-router-dom";
 import StevenButton from "../Common/StevenButton";
 import pickService from "../../services/pickService";
 import apiClient from "../../services/apiClient";
+import userService from "../../services/userService";
+import ResultIcon from "../Common/ResultIcon";
+import { resultColors } from "../../theme";
 import StevenSelect from "../Common/StevenSelect";
 import {
     StevenTableContainer,
@@ -33,7 +36,18 @@ const PickHistory = () => {
     const usernameDisplay = userParam ? userParam : user.name;
     const [message, setMessage] = useState("");
     const navigate = useNavigate();
-    const isOwnPage = !userParam;
+    const isOwnPage = !userParam || userParam === user.name;
+    const [viewedDisplayName, setViewedDisplayName] = useState("");
+
+    useEffect(() => {
+        if (isOwnPage) return;
+        setViewedDisplayName("");
+        userService.getByUsername(userParam)
+            .then(res => setViewedDisplayName(res.data?.[0]?.displayName || ""))
+            .catch(() => { });
+    }, [userParam, isOwnPage]);
+
+    const viewedName = viewedDisplayName || (userParam || "").split("@")[0];
 
     const disputePick = (description) => {
         navigate('/reportissue', { state: { description: `I want to dispute: ${description}` } });
@@ -78,6 +92,10 @@ const PickHistory = () => {
         return acc;
     }, {});
 
+    // Neutral color for pushes (0) so a break-even pick/week doesn't read as a loss.
+    const resultColor = (result) =>
+        result > 0 ? resultColors.win.text : result < 0 ? resultColors.loss.text : "inherit";
+
     const sortedWeekKeys = Object.keys(groupedByWeek).sort((a, b) => Number(b) - Number(a));
     return (
         <Container>
@@ -101,6 +119,9 @@ const PickHistory = () => {
                 </FormControl>
             </Box>
             <Box sx={{ pb: 2.5 }}>
+                <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
+                    {isOwnPage ? "My Pick History" : `${viewedName}'s Pick History`}
+                </Typography>
                 <Typography variant="h6">Score: {picks.reduce((acc, item) => acc + item.result, 0)}</Typography>
             </Box>
             <StevenTableContainer>
@@ -109,38 +130,33 @@ const PickHistory = () => {
                         {sortedWeekKeys.map(week => (
                             <React.Fragment key={week}>
                                 <StevenTableRow>
-                                    <StevenTableCell colSpan={4} sx={{ backgroundColor: "#eee", fontWeight: "bold", color: "black" }}>
+                                    <StevenTableCell colSpan={isOwnPage ? 3 : 2} sx={{ backgroundColor: "rgba(255,255,255,0.08)", fontWeight: "bold", borderBottom: "1px solid rgba(255,255,255,0.12)" }}>
                                         Week {week} ({(() => {
                                             const sum = groupedByWeek[week].reduce((acc, item) => acc + item.result, 0);
-                                            return sum > 0 ? <span style={{ color: "green" }}>+{sum}</span> : <span style={{ color: "red" }}>{sum}</span>;
+                                            return <span style={{ color: resultColor(Math.sign(sum)) }}>{sum > 0 ? `+${sum}` : sum}</span>;
                                         })()})
                                     </StevenTableCell>
                                 </StevenTableRow>
                                 {groupedByWeek[week].map(item => (
                                     <StevenTableRow className="ph-row" key={item._id}>
                                         <StevenTableCell className="ph2-cell" sx={{ whiteSpace: "normal", wordBreak: "break-word" }}>
-                                            {item.result > 0 ? (
-                                                <span style={{ color: "green" }}><b>{item.text}</b></span>
-                                            ) : item.result < 0 ? (
-                                                <span style={{ color: "red" }}><b>{item.text}</b></span>
-                                            ) : (
+                                            <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: 0.75, color: resultColor(item.result) }}>
+                                                <ResultIcon result={Math.sign(item.result)} />
                                                 <b>{item.text}</b>
-                                            )}
+                                            </Box>
                                         </StevenTableCell>
                                         <StevenTableCell className="ph3-cell">
-                                            {item.result > 0 ? (
-                                                <span style={{ color: "green" }}><b>1</b></span>
-                                            ) : item.result < 0 ? (
-                                                <span style={{ color: "red" }}><b>-1</b></span>
-                                            ) : (
-                                                <b>0</b>
-                                            )}
+                                            <b style={{ color: resultColor(item.result) }}>
+                                                {item.result > 0 ? "+1" : item.result < 0 ? "-1" : "0"}
+                                            </b>
                                         </StevenTableCell>
-                                        <StevenTableCell>
-                                            <StevenButton onClick={() => disputePick(`Week ${item.week}: ${item.text}`)}>
-                                                Dispute
-                                            </StevenButton>
-                                        </StevenTableCell>
+                                        {isOwnPage && (
+                                            <StevenTableCell>
+                                                <StevenButton onClick={() => disputePick(`Week ${item.week}: ${item.text}`)}>
+                                                    Dispute
+                                                </StevenButton>
+                                            </StevenTableCell>
+                                        )}
                                     </StevenTableRow>
                                 ))}
                             </React.Fragment>

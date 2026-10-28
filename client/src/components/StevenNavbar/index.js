@@ -31,6 +31,7 @@ import { ImStatsDots } from "react-icons/im";
 import { GiRunningNinja } from "react-icons/gi";
 import StevenButton from "../Common/StevenButton";
 import apiClient from "../../services/apiClient";
+import { colors } from "../../theme";
 import "./style.css";
 
 const ADMIN_PATHS = [
@@ -98,9 +99,9 @@ const StevenNavbar = () => {
     const navItemSx = (isActive) => ({
         "&.Mui-selected": {
             backgroundColor: "rgba(144, 202, 249, 0.12)",
-            borderLeft: "3px solid #90caf9",
-            "& .MuiListItemText-primary": { color: "#90caf9", fontWeight: 700 },
-            "& .MuiListItemIcon-root": { color: "#90caf9" },
+            borderLeft: `3px solid ${colors.primary}`,
+            "& .MuiListItemText-primary": { color: colors.primary, fontWeight: 700 },
+            "& .MuiListItemIcon-root": { color: colors.primary },
         },
         "&.Mui-selected:hover": { backgroundColor: "rgba(144, 202, 249, 0.2)" },
     });
@@ -123,7 +124,7 @@ const StevenNavbar = () => {
                     ))}
                 </DialogContent>
                 <DialogActions>
-                    <StevenButton onClick={() => setShowRules(false)} sx={{ backgroundColor: "white", color: "black", "&:hover": { backgroundColor: "#f0f0f0" } }}>Close</StevenButton>
+                    <StevenButton onClick={() => setShowRules(false)}>Close</StevenButton>
                 </DialogActions>
             </Dialog>
 
@@ -151,7 +152,7 @@ const StevenNavbar = () => {
                         variant="outlined"
                         size="small"
                         startIcon={<BsHeartFill />}
-                        sx={{ color: "#e91e63", borderColor: "#e91e63", "&:hover": { borderColor: "#ad1457", color: "#ad1457" } }}
+                        sx={{ color: colors.donate, borderColor: colors.donate, "&:hover": { borderColor: colors.donateHover, color: colors.donateHover } }}
                     >
                         Donate to CTF
                     </StevenButton>
@@ -159,7 +160,7 @@ const StevenNavbar = () => {
                         onClick={() => setShowRules(true)}
                         variant="outlined"
                         size="small"
-                        sx={{ color: "red", borderColor: "red", "&:hover": { borderColor: "darkred", color: "darkred" } }}
+                        sx={{ color: colors.rules, borderColor: colors.rules, "&:hover": { borderColor: colors.rulesHover, color: colors.rulesHover } }}
                     >
                         Rules
                     </StevenButton>
@@ -175,7 +176,7 @@ const StevenNavbar = () => {
                                 <ListItem key={link.path} disablePadding>
                                     <ListItemButton onClick={() => handleNavigate(link.path)} selected={isActive} sx={navItemSx(isActive)}>
                                         <ListItemIcon sx={{ minWidth: 36, fontSize: 18 }}>{link.icon}</ListItemIcon>
-                                        <ListItemText primary={link.label} primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 500, fontSize: 15 }} />
+                                        <ListItemText primary={link.label} primaryTypographyProps={{ fontWeight: 500, fontSize: 15 }} />
                                     </ListItemButton>
                                 </ListItem>
                             );
@@ -190,15 +191,15 @@ const StevenNavbar = () => {
                                         selected={isAdminActive && !adminOpen}
                                         sx={{
                                             ...navItemSx(isAdminActive),
-                                            ...(isAdminActive ? { borderLeft: "3px solid #90caf9" } : {}),
+                                            ...(isAdminActive ? { borderLeft: `3px solid ${colors.primary}` } : {}),
                                         }}
                                     >
-                                        <ListItemIcon sx={{ minWidth: 36, fontSize: 18, color: isAdminActive ? "#90caf9" : "inherit" }}>
+                                        <ListItemIcon sx={{ minWidth: 36, fontSize: 18, color: isAdminActive ? colors.primary : "inherit" }}>
                                             <Badge badgeContent={issueCount + unreadLogCount} color="error" max={99}>
                                                 <BsShieldLock />
                                             </Badge>
                                         </ListItemIcon>
-                                        <ListItemText primary="Admin" primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 600, fontSize: 15, color: isAdminActive ? "#90caf9" : "inherit" }} />
+                                        <ListItemText primary="Admin" primaryTypographyProps={{ fontWeight: 600, fontSize: 15, color: isAdminActive ? colors.primary : "inherit" }} />
                                         <Box sx={{ fontSize: 13, color: "text.secondary" }}>
                                             {adminOpen ? <BsChevronDown /> : <BsChevronRight />}
                                         </Box>
@@ -216,7 +217,7 @@ const StevenNavbar = () => {
                                                                 {link.icon}
                                                             </Badge>
                                                         </ListItemIcon>
-                                                        <ListItemText primary={link.label} primaryTypographyProps={{ fontFamily: "Segoe UI", fontWeight: 500, fontSize: 14 }} />
+                                                        <ListItemText primary={link.label} primaryTypographyProps={{ fontWeight: 500, fontSize: 14 }} />
                                                     </ListItemButton>
                                                 </ListItem>
                                             );

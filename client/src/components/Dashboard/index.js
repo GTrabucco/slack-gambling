@@ -10,6 +10,7 @@ import GotwReveal from "../GotwReveal";
 import TopLeaderboard from "../TopLeaderboard";
 import PerfectWeekWatch from "../PerfectWeekWatch";
 import userService from "../../services/userService";
+import { getPickChanges } from "../../utils/pickChanges";
 
 const Dashboard = () => {
   const [games, setGames] = useState([]);
@@ -62,6 +63,18 @@ const Dashboard = () => {
     fetchUserDetails();
   }, [user.name]);
 
+  // Warn before closing/reloading the tab while picks are staged but not submitted.
+  const pendingCount = getPickChanges(selectedPicks, tempPicks).count;
+  useEffect(() => {
+    if (pendingCount === 0) return;
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [pendingCount]);
+
   const getCommenceTimeByGameId = (gameId) => {
     const obj = games.find(item => item["gameId"] === gameId);
     return obj?.commence_time;
@@ -92,6 +105,7 @@ const Dashboard = () => {
       <Divider sx={{ my: 2 }} />
       <StevenBetCard
         selectedPicks={selectedPicks}
+        tempPicks={tempPicks}
         setMessage={setMessage}
         setError={setError}
         getCommenceTimeByGameId={getCommenceTimeByGameId}

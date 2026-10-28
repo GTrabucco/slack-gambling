@@ -1,3 +1,17 @@
+/* Color tokens shared with src/theme.js — keep the two in sync. */
+:root {
+  --sg-primary: #90caf9;
+  --sg-gold: #D4AF37;
+  --sg-gold-rgb: 212, 175, 55;
+  --sg-line-moved: #ffb74d;
+  --sg-win-text: #a5d6a7;
+  --sg-win-rgb: 27, 94, 32;
+  --sg-loss-text: #ef9a9a;
+  --sg-loss-rgb: 127, 0, 0;
+  --sg-push-text: #ffe082;
+  --sg-push-rgb: 74, 56, 0;
+}
+
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;

@@ -7,6 +7,7 @@ import Chip from "@mui/material/Chip";
 import pickService from "../../services/pickService";
 import userService from "../../services/userService";
 import DonorBadge from "../Common/DonorBadge";
+import { colors } from "../../theme";
 
 const GotwReveal = ({ games, gameStarted }) => {
     const [allPicks, setAllPicks] = useState([]);
@@ -142,13 +143,13 @@ const GotwReveal = ({ games, gameStarted }) => {
     return (
         <Box sx={{ mb: 2.5, maxWidth: 600, mx: "auto" }}>
             <Paper sx={{
-                border: "2px solid #D4AF37",
+                border: `2px solid ${colors.gold}`,
                 boxShadow: "0 2px 16px rgba(212, 175, 55, 0.35)",
                 borderRadius: 2,
                 overflow: "hidden"
             }} elevation={4}>
                 <Box sx={{
-                    background: "linear-gradient(90deg, #9a7c0a 0%, #D4AF37 40%, #F5CB5C 70%, #D4AF37 100%)",
+                    background: `linear-gradient(90deg, #9a7c0a 0%, ${colors.gold} 40%, #F5CB5C 70%, ${colors.gold} 100%)`,
                     color: "#3d2b00",
                     px: 1.5,
                     py: 0.75,
