@@ -46,10 +46,12 @@
   position: relative;
 }
 
-.team-container:hover {
-  background-color: #3a3a3a;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0, 0, 0, 0.4);
+@media (hover: hover) {
+  .team-container:hover {
+    background-color: #3a3a3a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(0, 0, 0, 0.4);
+  }
 }
 
 .team-container:active {
@@ -75,10 +77,12 @@
   user-select: none;
 }
 
-.total:hover {
-  background-color: #3a3a3a;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+@media (hover: hover) {
+  .total:hover {
+    background-color: #3a3a3a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+  }
 }
 
 .total:active {
@@ -104,8 +108,10 @@
   color: rgba(0, 0, 0, 0.45);
 }
 
-.picked:hover {
-  background-color: #f0f0f0;
+@media (hover: hover) {
+  .picked:hover {
+    background-color: #f0f0f0;
+  }
 }
 
 .picked::after, .gotw-picked::after {
@@ -138,7 +144,8 @@
 }
 
 .line-moved-note {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
+  line-height: 1.25;
   font-weight: 700;
   color: var(--sg-line-moved);
   margin-top: 4px;
@@ -156,8 +163,10 @@
   border-radius: 12px;
 }
 
-.gotw-picked:hover {
-  background-color: rgba(var(--sg-gold-rgb), 0.38);
+@media (hover: hover) {
+  .gotw-picked:hover {
+    background-color: rgba(var(--sg-gold-rgb), 0.38);
+  }
 }
 
 .gotw-picked::after {
@@ -183,9 +192,11 @@
   transition: all 0.2s ease-in-out;
 }
 
-.total-picked:hover {
-  background-color: #222;
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .total-picked:hover {
+    background-color: #222;
+    transform: translateY(-2px);
+  }
 }
 
 .total-picked:active {
@@ -212,9 +223,11 @@
   transition: all 0.2s ease-in-out;
 }
 
-.gotw-total-picked:hover {
-  background-color: rgba(var(--sg-gold-rgb), 0.38);
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .gotw-total-picked:hover {
+    background-color: rgba(var(--sg-gold-rgb), 0.38);
+    transform: translateY(-2px);
+  }
 }
 
 .gotw-total-picked:active {
@@ -234,8 +247,10 @@
   color: rgba(165, 214, 167, 0.6);
 }
 
-.pick-win:hover {
-  background-color: rgba(var(--sg-win-rgb), 0.7);
+@media (hover: hover) {
+  .pick-win:hover {
+    background-color: rgba(var(--sg-win-rgb), 0.7);
+  }
 }
 
 .pick-loss {
@@ -250,8 +265,10 @@
   color: rgba(239, 154, 154, 0.6);
 }
 
-.pick-loss:hover {
-  background-color: rgba(var(--sg-loss-rgb), 0.7);
+@media (hover: hover) {
+  .pick-loss:hover {
+    background-color: rgba(var(--sg-loss-rgb), 0.7);
+  }
 }
 
 .pick-push {
@@ -266,8 +283,10 @@
   color: rgba(255, 224, 130, 0.6);
 }
 
-.pick-push:hover {
-  background-color: rgba(var(--sg-push-rgb), 0.7);
+@media (hover: hover) {
+  .pick-push:hover {
+    background-color: rgba(var(--sg-push-rgb), 0.7);
+  }
 }
 
 /* Result-colored total (over/under) buttons */
@@ -291,9 +310,11 @@
   margin: 0;
 }
 
-.total-win:hover {
-  background-color: rgba(var(--sg-win-rgb), 0.7);
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .total-win:hover {
+    background-color: rgba(var(--sg-win-rgb), 0.7);
+    transform: translateY(-2px);
+  }
 }
 
 .total-loss {
@@ -316,9 +337,11 @@
   margin: 0;
 }
 
-.total-loss:hover {
-  background-color: rgba(var(--sg-loss-rgb), 0.7);
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .total-loss:hover {
+    background-color: rgba(var(--sg-loss-rgb), 0.7);
+    transform: translateY(-2px);
+  }
 }
 
 .total-push {
@@ -341,9 +364,11 @@
   margin: 0;
 }
 
-.total-push:hover {
-  background-color: rgba(var(--sg-push-rgb), 0.7);
-  transform: translateY(-2px);
+@media (hover: hover) {
+  .total-push:hover {
+    background-color: rgba(var(--sg-push-rgb), 0.7);
+    transform: translateY(-2px);
+  }
 }
 
 /* Games that have kicked off: picks are locked, so options stop reacting to

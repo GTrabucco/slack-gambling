@@ -22,6 +22,7 @@ const iconButtonStyle = {
     justifyContent: 'center',
     alignItems: 'center',
     width: '100%',
+    minHeight: 44,
 };
 
 const StevenBetCard = ({ selectedPicks, tempPicks, setMessage, setError, getCommenceTimeByGameId, user, gameStarted, setSelectedPicks, setTempPicks }) => {
@@ -88,11 +89,11 @@ const StevenBetCard = ({ selectedPicks, tempPicks, setMessage, setError, getComm
         <Box sx={{ maxWidth: 600, mx: "auto", my: 2 }}>
             <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <Box sx={{ px: 2, py: 1, borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <Typography sx={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "text.disabled" }}>
+                    <Typography sx={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "text.disabled" }}>
                         My Picks
                     </Typography>
                     {pendingCount > 0 && (
-                        <Typography sx={{ fontSize: 11, color: colors.lineMoved, fontWeight: 600 }}>
+                        <Typography sx={{ fontSize: 12, color: colors.lineMoved, fontWeight: 600 }}>
                             {pendingCount} unsubmitted {pendingCount === 1 ? "change" : "changes"}
                         </Typography>
                     )}
@@ -134,14 +135,14 @@ const StevenBetCard = ({ selectedPicks, tempPicks, setMessage, setError, getComm
                                                     label={isRemoving ? "Will be removed" : "Not submitted"}
                                                     size="small"
                                                     variant="outlined"
-                                                    sx={{ height: 20, fontSize: 10, fontWeight: 600, color: colors.lineMoved, borderColor: colors.lineMoved }}
+                                                    sx={{ height: 22, fontSize: 12, fontWeight: 600, color: colors.lineMoved, borderColor: colors.lineMoved }}
                                                 />
                                             )}
                                         </Box>
                                     </StevenTableCell>
-                                    <StevenTableCell sx={{ whiteSpace: "nowrap", width: 40, textAlign: "center" }}>
+                                    <StevenTableCell sx={{ whiteSpace: "nowrap", width: 56, px: 0.5, py: 0, textAlign: "center" }}>
                                         {(isPending || isRemoving)
-                                            ? renderAction(`Undo ${type} change`, <BsArrowCounterclockwise />, () => undoChange(type), colors.lineMoved)
+                                            ? renderAction(`Undo ${type} change`, <BsArrowCounterclockwise size={22} />, () => undoChange(type), colors.lineMoved)
                                             : saved && renderAction(`Remove ${type} pick`, <FaTrash />, () => removePick(saved.gameId + "-" + type, saved.text), rowColor.text)}
                                     </StevenTableCell>
                                 </StevenTableRow>

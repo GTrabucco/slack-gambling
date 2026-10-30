@@ -21,7 +21,7 @@ const PerfectWeekWatch = () => {
         <Box sx={{ maxWidth: 600, mx: "auto", pt: 2, pb: 1 }}>
             <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid rgba(255,100,0,0.25)" }}>
                 <Box sx={{ px: 2, py: 1, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                    <Typography sx={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "text.disabled" }}>
+                    <Typography sx={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "text.disabled" }}>
                         Perfect Week Watch
                     </Typography>
                 </Box>

@@ -10,8 +10,8 @@ import { colors } from "../../theme";
 const RANKS = ["#1", "#2", "#3"];
 const COLORS = [
     { bg: "rgba(212,175,55,0.15)", border: "rgba(212,175,55,0.6)", text: colors.gold },
-    { bg: "transparent", border: "rgba(255,255,255,0.08)", text: "#888" },
-    { bg: "transparent", border: "rgba(255,255,255,0.06)", text: "#666" },
+    { bg: "transparent", border: "rgba(255,255,255,0.08)", text: "#b0b0b0" },
+    { bg: "transparent", border: "rgba(255,255,255,0.06)", text: "#9e9e9e" },
 ];
 
 const TopLeaderboard = () => {
@@ -29,7 +29,7 @@ const TopLeaderboard = () => {
         <Box sx={{ maxWidth: 600, mx: "auto", pt: 2, pb: 1 }}>
             <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid rgba(255,255,255,0.08)" }}>
                 <Box sx={{ px: 2, py: 1, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                    <Typography sx={{ fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "text.disabled" }}>
+                    <Typography sx={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "text.disabled" }}>
                         Top 3 Leaderboard
                     </Typography>
                 </Box>
@@ -46,7 +46,7 @@ const TopLeaderboard = () => {
                         }}
                     >
                         <Typography sx={{
-                            fontSize: rank === 0 ? 13 : 11,
+                            fontSize: rank === 0 ? 14 : 12,
                             fontWeight: 800,
                             color: COLORS[rank].text,
                             width: 32,
@@ -70,12 +70,12 @@ const TopLeaderboard = () => {
                         </Typography>
                         <Box sx={{ textAlign: "right" }}>
                             {player.record && (
-                                <Typography sx={{ fontSize: rank === 0 ? 11 : 10, color: "text.disabled", lineHeight: 1.2 }}>
+                                <Typography sx={{ fontSize: 12, color: "text.secondary", lineHeight: 1.2 }}>
                                     {player.record.wins}-{player.record.losses}{player.record.pushes ? `-${player.record.pushes}` : ""}
                                 </Typography>
                             )}
                             <Typography sx={{
-                                fontSize: rank === 0 ? 14 : 12,
+                                fontSize: rank === 0 ? 15 : 13,
                                 fontWeight: 700,
                                 color: COLORS[rank].text,
                                 lineHeight: 1.2,

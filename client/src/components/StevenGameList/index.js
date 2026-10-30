@@ -14,6 +14,7 @@ import MuiLink from "@mui/material/Link";
 import { BsLockFill } from "react-icons/bs";
 import StevenGameInfo from "../StevenGameInfo";
 import StevenButton from "../Common/StevenButton";
+import { MOBILE_TAB_BAR_HEIGHT } from "../MobileTabBar";
 import ResultIcon from "../Common/ResultIcon";
 import { colors } from "../../theme";
 import { getPickChanges } from "../../utils/pickChanges";
@@ -522,7 +523,7 @@ const StevenGameList = ({ tempPicks,
                                                 setSelectedGameId(game["gameId"]);
                                                 setSelectedGame({ home: home_team, away: away_team, homeSpread: home_spread, awaySpread: away_spread, over });
                                             }}
-                                            sx={{ fontSize: "0.85rem" }}
+                                            sx={{ fontSize: "0.9rem", px: 1, py: 1.25, my: -1.25, mr: -1 }}
                                         >
                                             Game Info
                                         </MuiLink>
@@ -535,10 +536,10 @@ const StevenGameList = ({ tempPicks,
                                     const periods = Array.from({ length: maxPeriod }, (_, i) => i + 1);
                                     const colLabel = (p) => p <= 4 ? `Q${p}` : `OT${p - 4}`;
                                     const getVal = (ls, p) => { const q = ls.find(x => x.period === p); return q ? q.displayValue : '-'; };
-                                    const cellSx = { fontSize: "0.7rem", textAlign: "center", px: 0.75, py: 0.25, minWidth: 28 };
+                                    const cellSx = { fontSize: "0.75rem", textAlign: "center", px: 0.75, py: 0.25, minWidth: 28 };
                                     const headerSx = { ...cellSx, color: "text.secondary", fontWeight: 600 };
                                     const totalSx = { ...cellSx, fontWeight: 700, fontSize: "0.8rem", borderLeft: "1px solid rgba(255,255,255,0.12)" };
-                                    const nameSx = { fontSize: "0.7rem", fontWeight: 600, textAlign: "left", pr: 1, minWidth: 32 };
+                                    const nameSx = { fontSize: "0.75rem", fontWeight: 600, textAlign: "left", pr: 1, minWidth: 32 };
                                     return (
                                         <Box sx={{ overflowX: "auto", px: 1.5, pt: 1.5, pb: 0.5 }}>
                                             <Box component="table" sx={{ width: "100%", borderCollapse: "collapse" }}>
@@ -587,7 +588,7 @@ const StevenGameList = ({ tempPicks,
                                         <div><div className="team-name">{away_team}</div><b>{away_spread_num > 0 ? "+" + away_spread_num : away_spread_num}</b></div>
                                         {awayLineMoved && (
                                             <div className="line-moved-note" title={`Line moved since you picked ${formatLineValue(away_picked.value)} — current line is ${formatLineValue(away_spread_num)}`}>
-                                                You have:  {formatLineValue(away_picked.value)}
+                                                Line moved · you have {formatLineValue(away_picked.value)}
                                             </div>
                                         )}
                                     </div>
@@ -608,7 +609,7 @@ const StevenGameList = ({ tempPicks,
                                         <div><div className="team-name">{home_team}</div><b>{home_spread_num > 0 ? "+" + home_spread_num : home_spread_num}</b></div>
                                         {homeLineMoved && (
                                             <div className="line-moved-note" title={`Line moved since you picked ${formatLineValue(home_picked.value)} — current line is ${formatLineValue(home_spread_num)}`}>
-                                                You have:  {formatLineValue(home_picked.value)}
+                                                Line moved · you have {formatLineValue(home_picked.value)}
                                             </div>
                                         )}
                                     </div>
@@ -643,7 +644,7 @@ const StevenGameList = ({ tempPicks,
                                                 className="line-moved-note"
                                                 title={`Line moved since you picked ${formatLineValue(overLineMoved ? overPickForClass.value : underPickForClass.value)} — current total is ${formatLineValue(overLineMoved ? over : under)}`}
                                             >
-                                                You have:  {formatLineValue(overLineMoved ? overPickForClass.value : underPickForClass.value)}
+                                                Line moved · you have {formatLineValue(overLineMoved ? overPickForClass.value : underPickForClass.value)}
                                             </div>
                                         )}
                                     </div>
@@ -655,7 +656,11 @@ const StevenGameList = ({ tempPicks,
             </Box>
             <Box sx={{
                 position: "fixed",
-                bottom: 20,
+                // Sit above the mobile tab bar and the iPhone home indicator.
+                bottom: {
+                    xs: `calc(${MOBILE_TAB_BAR_HEIGHT + 12}px + env(safe-area-inset-bottom))`,
+                    md: "calc(20px + env(safe-area-inset-bottom))",
+                },
                 left: 0,
                 right: 0,
                 px: 2,

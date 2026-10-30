@@ -2,6 +2,8 @@ import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import React, { useEffect } from "react";
 import PageLoader from "./PageLoader";
 import StevenNavbar from "./StevenNavbar";
+import MobileTabBar, { MOBILE_TAB_BAR_HEIGHT } from "./MobileTabBar";
+import Box from "@mui/material/Box";
 
 export const AuthenticationGuard = ({ component }) => {
   const { isAuthenticated, getAccessTokenSilently, loginWithRedirect, error } = useAuth0();
@@ -41,6 +43,9 @@ export const AuthenticationGuard = ({ component }) => {
       <div className="content">
         <WrappedComponent />
       </div>
+      {/* Keeps page content from ending up under the fixed mobile tab bar. */}
+      <Box sx={{ display: { xs: "block", md: "none" }, height: `calc(${MOBILE_TAB_BAR_HEIGHT}px + env(safe-area-inset-bottom))` }} />
+      <MobileTabBar />
     </div>
   ) : (
     <PageLoader />
