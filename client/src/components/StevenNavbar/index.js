@@ -128,7 +128,9 @@ const StevenNavbar = () => {
                 </DialogActions>
             </Dialog>
 
-            <AppBar position="static" color="default" elevation={1}>
+            {/* Fill the area under the phone's status bar with the header color,
+                so the browser doesn't blur page content up there. */}
+            <AppBar position="static" color="default" elevation={1} sx={{ pt: "env(safe-area-inset-top)" }}>
                 <Toolbar sx={{ gap: 1 }}>
                     <IconButton
                         aria-label="Toggle navigation menu"
