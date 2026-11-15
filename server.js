@@ -1969,6 +1969,48 @@ app.get('/api/perfect-week-watch', async (req, res) => {
     }
 });
 
+// Users currently running a winless (0-3 or worse) record on this week's scored picks
+app.get('/api/winless-week-watch', async (req, res) => {
+    try {
+        const db = client.db(DATABASE_NAME);
+        const picks = await db.collection('Picks').find({ result: { $exists: true } }).toArray();
+
+        const userRecord = {};
+        for (const pick of picks) {
+            if (!userRecord[pick.username]) userRecord[pick.username] = { wins: 0, losses: 0, pushes: 0 };
+            if (pick.result === 1) userRecord[pick.username].wins++;
+            else if (pick.result === -1) userRecord[pick.username].losses++;
+            else if (pick.result === 0) userRecord[pick.username].pushes++;
+        }
+
+        const winlessUsernames = Object.entries(userRecord)
+            .filter(([, record]) => record.wins === 0 && record.losses >= 3)
+            .map(([username, record]) => ({ username, record }));
+
+        if (winlessUsernames.length === 0) return res.json([]);
+
+        const users = await db.collection('User_Details')
+            .find({ username: { $in: winlessUsernames.map(p => p.username) } })
+            .project({ username: 1, displayName: 1, donationAmount: 1 })
+            .toArray();
+        const userMap = {};
+        for (const u of users) userMap[u.username] = u;
+
+        const result = winlessUsernames
+            .map(({ username, record }) => ({
+                displayName: userMap[username]?.displayName || username.split('@')[0],
+                donationAmount: Number(userMap[username]?.donationAmount) || 0,
+                record,
+            }))
+            .sort((a, b) => b.record.losses - a.record.losses);
+
+        res.json(result);
+    } catch (error) {
+        console.error('Error fetching winless week watch:', error);
+        res.status(500).json({ error: 'Error fetching winless week watch' });
+    }
+});
+
 app.get('/api/get-pick-history', async (req, res) => {
     try {
         const { season, username } = req.query;

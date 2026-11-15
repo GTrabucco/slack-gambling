@@ -1,0 +1,64 @@
+import { useState, useEffect } from "react";
+import Box from "@mui/material/Box";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import { FaSnowflake } from "react-icons/fa";
+import apiClient from "../../services/apiClient";
+import DonorBadge from "../Common/DonorBadge";
+
+const COLD = "#4FC3F7";
+
+const WinlessWeekWatch = () => {
+    const [players, setPlayers] = useState([]);
+
+    useEffect(() => {
+        apiClient.get("/api/winless-week-watch")
+            .then(res => setPlayers(res.data || []))
+            .catch(() => {});
+    }, []);
+
+    if (players.length === 0) return null;
+
+    return (
+        <Box sx={{ maxWidth: 600, mx: "auto", pt: 2, pb: 1 }}>
+            <Paper elevation={3} sx={{ borderRadius: 2, overflow: "hidden", border: "1px solid rgba(79,195,247,0.25)" }}>
+                <Box sx={{ px: 2, py: 1, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+                    <Typography sx={{ fontSize: 12, letterSpacing: "0.15em", textTransform: "uppercase", color: "text.disabled" }}>
+                        0/5 Week Watch
+                    </Typography>
+                </Box>
+                {players.map((player, idx) => (
+                    <Box
+                        key={idx}
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            px: 2,
+                            py: 1,
+                            borderBottom: idx < players.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                        }}
+                    >
+                        <FaSnowflake style={{ fontSize: 13, color: COLD, flexShrink: 0, marginRight: 8 }} />
+                        <Typography sx={{
+                            flex: 1,
+                            fontSize: 13,
+                            fontWeight: 500,
+                            color: "text.primary",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 0.5,
+                        }}>
+                            {player.displayName}
+                            {player.donationAmount > 0 && <DonorBadge amount={player.donationAmount} />}
+                        </Typography>
+                        <Typography sx={{ fontSize: 12, fontWeight: 700, color: COLD }}>
+                            {player.record.wins}-{player.record.losses}{player.record.pushes ? `-${player.record.pushes}` : ""}
+                        </Typography>
+                    </Box>
+                ))}
+            </Paper>
+        </Box>
+    );
+};
+
+export default WinlessWeekWatch;

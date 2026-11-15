@@ -9,6 +9,7 @@ import StevenGameList from "../StevenGameList";
 import GotwReveal from "../GotwReveal";
 import TopLeaderboard from "../TopLeaderboard";
 import PerfectWeekWatch from "../PerfectWeekWatch";
+import WinlessWeekWatch from "../WinlessWeekWatch";
 import userService from "../../services/userService";
 import { getPickChanges } from "../../utils/pickChanges";
 
@@ -102,6 +103,7 @@ const Dashboard = () => {
       />
       <TopLeaderboard />
       <PerfectWeekWatch />
+      <WinlessWeekWatch />
       <Divider sx={{ my: 2 }} />
       <StevenBetCard
         selectedPicks={selectedPicks}
