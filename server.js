@@ -1903,6 +1903,7 @@ app.get('/api/leaderboard', async (req, res) => {
 
         const sorted = Object.entries(userTotals)
             .map(([username, score]) => ({
+                username,
                 displayName: displayMap[username] || username.split('@')[0],
                 donationAmount: donatedMap[username] || 0,
                 score,
@@ -1956,6 +1957,7 @@ app.get('/api/perfect-week-watch', async (req, res) => {
 
         const result = perfectUsernames
             .map(({ username, record }) => ({
+                username,
                 displayName: userMap[username]?.displayName || username.split('@')[0],
                 donationAmount: Number(userMap[username]?.donationAmount) || 0,
                 record,
@@ -1998,6 +2000,7 @@ app.get('/api/winless-week-watch', async (req, res) => {
 
         const result = winlessUsernames
             .map(({ username, record }) => ({
+                username,
                 displayName: userMap[username]?.displayName || username.split('@')[0],
                 donationAmount: Number(userMap[username]?.donationAmount) || 0,
                 record,

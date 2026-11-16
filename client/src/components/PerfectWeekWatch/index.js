@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import { FaFire } from "react-icons/fa";
 import apiClient from "../../services/apiClient";
 import DonorBadge from "../Common/DonorBadge";
+import UserHistoryLink from "../Common/UserHistoryLink";
 
 const PerfectWeekWatch = () => {
     const [players, setPlayers] = useState([]);
@@ -46,7 +47,7 @@ const PerfectWeekWatch = () => {
                             alignItems: "center",
                             gap: 0.5,
                         }}>
-                            {player.displayName}
+                            <UserHistoryLink username={player.username}>{player.displayName}</UserHistoryLink>
                             {player.donationAmount > 0 && <DonorBadge amount={player.donationAmount} />}
                         </Typography>
                         <Typography sx={{ fontSize: 12, fontWeight: 700, color: "#FF6B00" }}>

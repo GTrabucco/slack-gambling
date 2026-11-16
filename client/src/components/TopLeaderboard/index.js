@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import { FaCrown } from "react-icons/fa";
 import apiClient from "../../services/apiClient";
 import DonorBadge from "../Common/DonorBadge";
+import UserHistoryLink from "../Common/UserHistoryLink";
 import { colors } from "../../theme";
 
 const RANKS = ["#1", "#2", "#3"];
@@ -64,7 +65,7 @@ const TopLeaderboard = () => {
                             alignItems: "center",
                             gap: 0.5,
                         }}>
-                            {player.displayName}
+                            <UserHistoryLink username={player.username}>{player.displayName}</UserHistoryLink>
                             {player.donationAmount > 0 && <DonorBadge amount={player.donationAmount} />}
                             {rank === 0 && <FaCrown style={{ fontSize: 14, color: colors.gold, flexShrink: 0 }} />}
                         </Typography>
