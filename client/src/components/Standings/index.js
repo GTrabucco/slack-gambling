@@ -31,6 +31,17 @@ const tieSameRank = (a, b, season) =>
     a.perfectWeeksCount === b.perfectWeeksCount &&
     a.winningWeeks === b.winningWeeks;
 
+const formatClv = (value, digits) => {
+    if (value == null) return "–";
+    const fixed = value.toFixed(digits);
+    return value > 0 ? `+${fixed}` : fixed;
+};
+
+const clvColor = (value) => {
+    if (value == null || value === 0) return undefined;
+    return value > 0 ? "success.main" : "error.main";
+};
+
 const Standings = () => {
     const [error, setError] = useState("");
     const [data, setData] = useState([]);
@@ -41,6 +52,7 @@ const Standings = () => {
     const [seasons, setSeasons] = useState([]);
     const [selectedSeason, setSelectedSeason] = useState("");
     const [lastPlaceRank, setLastPlaceRank] = useState(null);
+    const [clv, setClv] = useState({});
     const navigate = useNavigate();
     const { user } = useAuth0();
 
@@ -150,8 +162,19 @@ const Standings = () => {
             }
         };
 
+        const fetchClv = async () => {
+            if (!selectedSeason) return;
+            try {
+                const res = await apiClient.get('/api/clv-summary', { params: { season: selectedSeason } });
+                setClv(res.data || {});
+            } catch (_) {
+                setClv({});
+            }
+        };
+
         fetchUsers();
         fetchPickHistory();
+        fetchClv();
     }, [selectedSeason]);
 
     const getPlace = (index) => {
@@ -196,6 +219,8 @@ const Standings = () => {
                             {hasGotw && <StevenTableCell sx={{ bgcolor: "background.paper" }}>GOTW Wins</StevenTableCell>}
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}>{perfectScore}/{perfectScore} Weeks</StevenTableCell>
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}>0/{perfectScore} Weeks</StevenTableCell>
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }} title="Total closing line value (points) across all spread/total picks this season">Total CLV</StevenTableCell>
+                            <StevenTableCell sx={{ bgcolor: "background.paper" }} title="Average closing line value per pick (points)">Avg CLV</StevenTableCell>
                         </StevenTableRow>
                     </StevenTableHead>
                     <StevenTableBody>
@@ -236,6 +261,12 @@ const Standings = () => {
                                     {hasGotw && <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{item.gotwWins}</StevenTableCell>}
                                     <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{perfectWeeks[item.username]}</StevenTableCell>
                                     <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined}>{negFourWeeks[item.username]}</StevenTableCell>
+                                    <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined} sx={{ color: clvColor(clv[item.username]?.total) }}>
+                                        {formatClv(clv[item.username]?.total, 1)}
+                                    </StevenTableCell>
+                                    <StevenTableCell className={item.rank > 3 ? "s2-cell" : undefined} sx={{ color: clvColor(clv[item.username]?.average) }}>
+                                        {formatClv(clv[item.username]?.average, 2)}
+                                    </StevenTableCell>
                                 </StevenTableRow>
                             );
                         })}

@@ -2031,6 +2031,80 @@ app.get('/api/get-pick-history', async (req, res) => {
     }
 });
 
+// Closing line value for one pick, in points: positive means the pick's line was better
+// than where the game closed. Returns null when the pick has no comparable closing line
+// (non-spread/total pick types, unparseable value, or the game has no stored line).
+function computePickClv(pick, game) {
+    const pickValue = parseFloat(pick.value);
+    if (isNaN(pickValue)) return null;
+
+    let closingLine = null;
+    let clv = null;
+
+    if (pick.type === 'favorite' || pick.type === 'dog') {
+        // Determine which side was picked from the text (team name is everything before the last token)
+        const pickedTeam = (pick.text || '').trim().split(' ').slice(0, -1).join(' ');
+        const isHome = pickedTeam === pick.homeTeam;
+        closingLine = isHome ? game.home_spread : game.away_spread;
+        if (closingLine == null) return null;
+        clv = pickValue - closingLine;
+    } else if (pick.type === 'over') {
+        closingLine = game.over;
+        if (closingLine == null) return null;
+        clv = closingLine - pickValue;
+    } else if (pick.type === 'under') {
+        closingLine = game.under ?? game.over;
+        if (closingLine == null) return null;
+        clv = pickValue - closingLine;
+    } else {
+        return null;
+    }
+
+    return { pickValue, closingLine, clv: parseFloat(clv.toFixed(1)) };
+}
+
+// Season CLV per user: total points of CLV across every graded pick that has a closing
+// line, plus the per-pick average and how many picks were counted.
+app.get('/api/clv-summary', async (req, res) => {
+    try {
+        const { season } = req.query;
+        const db = client.db(DATABASE_NAME);
+
+        const pickFilter = { result: { $exists: true } };
+        if (season) pickFilter.season = { $in: [season, parseInt(season)] };
+
+        const picks = await db.collection('Picks_History').find(pickFilter).toArray();
+        const gameIds = [...new Set(picks.map(p => p.gameId))];
+        const games = await db.collection('Games_History')
+            .find({ gameId: { $in: [...gameIds, ...gameIds.map(String), ...gameIds.map(Number).filter(n => !isNaN(n))] } })
+            .toArray();
+
+        const gameMap = {};
+        for (const g of games) gameMap[String(g.gameId)] = g;
+
+        const summary = {};
+        for (const pick of picks) {
+            const game = gameMap[String(pick.gameId)];
+            if (!game) continue;
+            const result = computePickClv(pick, game);
+            if (!result) continue;
+            const entry = summary[pick.username] || (summary[pick.username] = { total: 0, count: 0 });
+            entry.total += result.clv;
+            entry.count += 1;
+        }
+
+        for (const entry of Object.values(summary)) {
+            entry.total = parseFloat(entry.total.toFixed(1));
+            entry.average = entry.count ? parseFloat((entry.total / entry.count).toFixed(2)) : 0;
+        }
+
+        res.json(summary);
+    } catch (error) {
+        console.error('Error fetching CLV summary:', error);
+        res.status(500).json({ error: 'Error fetching CLV summary' });
+    }
+});
+
 app.get('/api/sharp-report', async (req, res) => {
     try {
         const { season } = req.query;
@@ -2057,30 +2131,9 @@ app.get('/api/sharp-report', async (req, res) => {
             const game = gameMap[String(pick.gameId)];
             if (!game) continue;
 
-            const pickValue = parseFloat(pick.value);
-            if (isNaN(pickValue)) continue;
-
-            let closingLine = null;
-            let clv = null;
-
-            if (pick.type === 'favorite' || pick.type === 'dog') {
-                // Determine which side was picked from the text (team name is everything before the last token)
-                const pickedTeam = pick.text.trim().split(' ').slice(0, -1).join(' ');
-                const isHome = pickedTeam === pick.homeTeam;
-                closingLine = isHome ? game.home_spread : game.away_spread;
-                if (closingLine == null) continue;
-                clv = parseFloat((pickValue - closingLine).toFixed(1));
-            } else if (pick.type === 'over') {
-                closingLine = game.over;
-                if (closingLine == null) continue;
-                clv = parseFloat((closingLine - pickValue).toFixed(1));
-            } else if (pick.type === 'under') {
-                closingLine = game.under ?? game.over;
-                if (closingLine == null) continue;
-                clv = parseFloat((pickValue - closingLine).toFixed(1));
-            } else {
-                continue;
-            }
+            const result = computePickClv(pick, game);
+            if (!result) continue;
+            const { pickValue, closingLine, clv } = result;
 
             if (clv < 3) continue;
 
