@@ -42,6 +42,24 @@ const clvColor = (value) => {
     return value > 0 ? "success.main" : "error.main";
 };
 
+// Pin the Name column while the table scrolls sideways (mostly for mobile). Sticky cells
+// need an opaque background, so they sit on the paper color and re-apply the row's tint
+// (striping, hover, current user) as a gradient layer on top.
+const rowTint = (color) => ({ backgroundImage: `linear-gradient(${color}, ${color})` });
+const stickyNameSx = {
+    "& .sticky-name": {
+        position: "sticky",
+        left: 0,
+        zIndex: 2,
+        backgroundColor: "background.paper",
+        boxShadow: "inset -1px 0 0 rgba(255,255,255,0.08)",
+    },
+    "& thead .sticky-name": { zIndex: 3 },
+    "& tbody tr:nth-of-type(odd) .sticky-name": rowTint("rgba(255,255,255,0.02)"),
+    "& tbody tr:hover .sticky-name": rowTint("rgba(255,255,255,0.05)"),
+    "& tbody tr[aria-current='true'] .sticky-name": rowTint("rgba(144, 202, 249, 0.12)"),
+};
+
 const Standings = () => {
     const [error, setError] = useState("");
     const [data, setData] = useState([]);
@@ -209,12 +227,12 @@ const Standings = () => {
             <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2 }}>
                 Tiebreaker rules: {hasGotw ? "GOTW wins → " : ""}Fewest 0/{perfectScore} weeks → Most {perfectScore}/{perfectScore} weeks → Most &gt;0 weeks
             </Typography>
-            <StevenTableContainer sx={{ overflowX: 'auto', overflowY: 'visible' }}>
+            <StevenTableContainer sx={{ overflowX: 'auto', overflowY: 'visible', ...stickyNameSx }}>
                 <StevenTable stickyHeader>
                     <StevenTableHead>
                         <StevenTableRow>
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}></StevenTableCell>
-                            <StevenTableCell sx={{ bgcolor: "background.paper" }}>Name</StevenTableCell>
+                            <StevenTableCell className="sticky-name" sx={{ bgcolor: "background.paper", zIndex: 3 }}>Name</StevenTableCell>
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}>Points</StevenTableCell>
                             {hasGotw && <StevenTableCell sx={{ bgcolor: "background.paper" }}>GOTW Wins</StevenTableCell>}
                             <StevenTableCell sx={{ bgcolor: "background.paper" }}>{perfectScore}/{perfectScore} Weeks</StevenTableCell>
@@ -245,7 +263,7 @@ const Standings = () => {
                                                     : item.rank === lastPlaceRank ? <img className="medal" src="dumpsterfire.png" alt="Last place" />
                                                         : item.rank}
                                     </StevenTableCell>
-                                    <StevenTableCell className={item.rank > 3 ? "s1-cell" : undefined}>
+                                    <StevenTableCell className={item.rank > 3 ? "s1-cell sticky-name" : "sticky-name"}>
                                         <MuiLink
                                             component="button"
                                             underline="hover"
